@@ -114,7 +114,7 @@ export default function Hero() {
         secondaryHref: "/products",
         secondaryLabel: "View All",
         chips: ["Clean Profile", "Premium Stitch", "Limited Runs"],
-        imageSrc: "/images/cap-1-3d.png", // <-- your cap image
+        imageSrc: "/images/cap-2-3d.png", // <-- your cap image
       },
     ],
     []
@@ -247,7 +247,7 @@ export default function Hero() {
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute right-[-160px] bottom-[-200px] h-[420px] w-[380px] lg:h-[720px] lg:w-[620px]"
               >
-                <div className="absolute inset-0 rounded-full bg-white/10 blur-3xl" />
+                {/* <div className="absolute inset-0 rounded-full bg-white/10 blur-3xl" /> */}
                 <div
                   className="absolute inset-x-10 bottom-2 h-12 rounded-full bg-black/45 blur-2xl"
                   style={{ transform: "translateZ(-40px)" }}
