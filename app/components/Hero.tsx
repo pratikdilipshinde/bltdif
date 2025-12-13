@@ -108,7 +108,7 @@ export default function Hero() {
         titleTop: "Minimal caps designed",
         titleEmphasis: "to stand out quietly",
         desc:
-          "A clean profile with premium finishing. Everyday essential. Built to complement the fit.",
+          "A clean profile with premium finishing. Everyday essential. Built to complement the fit. Comfort and Complement the style.",
         primaryHref: "/caps",
         primaryLabel: "Shop Caps",
         secondaryHref: "/products",

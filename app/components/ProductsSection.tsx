@@ -34,7 +34,7 @@ const products = [
     name: "Red Graphic Tee",
     price: "$45",
     tag: "Limited",
-    image: "/images/tshirt-1-3d.png", // you already have this
+    image: "/images/tshirt-1-3d.png",
     href: "/products/red-graphic-tee",
   },
 ];
@@ -61,7 +61,8 @@ export default function ProductsSection() {
           </Link>
         </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {/* BIG cards + 2 per row */}
+        <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
           {products.map((p, idx) => (
             <motion.div
               key={p.id}
@@ -72,38 +73,38 @@ export default function ProductsSection() {
             >
               <Link
                 href={p.href}
-                className="group relative block overflow-hidden rounded-3xl border border-black/10 bg-[#f7f7f7] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
+                className="group relative block overflow-hidden rounded-[28px] border border-black/10 bg-[#f7f7f7] p-4 md:p-6 shadow-[0_18px_50px_rgba(0,0,0,0.08)]"
               >
                 {/* tag */}
                 <div className="absolute left-4 top-4 z-10 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] uppercase text-black">
                   {p.tag}
                 </div>
 
-                {/* product image */}
+                {/* product image (bigger) */}
                 <motion.div
-                  className="relative h-52 w-full"
-                  whileHover={{ y: -6, rotate: -1 }}
+                  className="relative h-72 w-full md:h-[360px]"
+                  whileHover={{ y: -8, rotate: -1 }}
                   transition={{ type: "spring", stiffness: 180, damping: 14 }}
                 >
                   <Image
                     src={p.image}
                     alt={p.name}
                     fill
-                    className="object-contain drop-shadow-[0_18px_35px_rgba(0,0,0,0.25)] transition duration-300 group-hover:scale-[1.06]"
+                    className="object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.22)] transition duration-300 group-hover:scale-[1.06]"
                   />
                 </motion.div>
 
                 {/* info */}
                 <div className="mt-5 flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-sm font-semibold text-black">
+                    <h3 className="text-base font-semibold text-black">
                       {p.name}
                     </h3>
                     <p className="mt-1 text-xs text-black/55">
                       Premium fit · BLTDIF
                     </p>
                   </div>
-                  <p className="text-sm font-semibold text-black">{p.price}</p>
+                  <p className="text-base font-semibold text-black">{p.price}</p>
                 </div>
 
                 {/* hover CTA */}
