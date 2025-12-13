@@ -10,7 +10,7 @@ const products = [
     name: "Night Shift Tee",
     price: "$39",
     tag: "New",
-    image: "/images/prod-tee.png",
+    image: "/images/tshirt-1-3d.png",
     href: "/products/night-shift-tee",
   },
   {
@@ -18,7 +18,7 @@ const products = [
     name: "Oversized Hoodie",
     price: "$79",
     tag: "Drop 01",
-    image: "/images/prod-hoodie.png",
+    image: "/images/tshirt-1-3d.png",
     href: "/products/oversized-hoodie",
   },
   {
@@ -26,7 +26,7 @@ const products = [
     name: "Minimal Cap",
     price: "$29",
     tag: "Essentials",
-    image: "/images/prod-cap.png",
+    image: "/images/tshirt-1-3d.png",
     href: "/products/minimal-cap",
   },
   {
