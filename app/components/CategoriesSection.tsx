@@ -86,7 +86,7 @@ export default function CategoriesSection() {
 
               {/* BD logo */}
               <Image
-                src="/images/bd-logo.png"
+                src="/images/BD-logo.png"
                 alt="BD Logo"
                 width={36}
                 height={36}
