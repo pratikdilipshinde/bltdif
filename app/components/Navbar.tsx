@@ -31,7 +31,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 bg-white">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:grid md:grid-cols-3 md:px-6 md:py-4">
+      <nav className=" flex items-center justify-between px-4 py-3 md:grid md:grid-cols-3 md:px-6 md:py-4">
         {/* LEFT */}
         <div className="flex items-center gap-3 md:gap-6">
           {/* Mobile hamburger */}

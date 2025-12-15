@@ -41,8 +41,8 @@ const products = [
 
 export default function ProductsSection() {
   return (
-    <section className="bg-white px-6 pb-14 md:pb-20">
-      <div className="mx-auto max-w-6xl">
+    <section className="bg-white pb-14 md:pb-20">
+      <div className="mx-4">
         <div className="flex items-end justify-between gap-6">
           <div>
             <p className="text-xs tracking-[0.28em] text-black/50 uppercase">
@@ -62,7 +62,7 @@ export default function ProductsSection() {
         </div>
 
         {/* BIG cards + 2 per row */}
-        <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-4">
           {products.map((p, idx) => (
             <motion.div
               key={p.id}
@@ -73,7 +73,7 @@ export default function ProductsSection() {
             >
               <Link
                 href={p.href}
-                className="group relative block overflow-hidden rounded-[28px] border border-black/10 bg-[#f7f7f7] p-4 md:p-6 shadow-[0_18px_50px_rgba(0,0,0,0.08)]"
+                className="group relative block overflow-hidden rounded-[20px] border border-black/10 bg-[#f7f7f7] p-4 md:p-3 shadow-[0_18px_50px_rgba(0,0,0,0.08)]"
               >
                 {/* tag */}
                 <div className="absolute left-4 top-4 z-10 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] uppercase text-black">

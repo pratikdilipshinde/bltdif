@@ -6,7 +6,7 @@ const items = ["HOODIES", "T-SHIRTS", "CAPS"];
 
 export default function CategoryMarquee() {
   // Repeat items so it looks continuous
-  const row = [...items, ...items, ...items, ...items];
+  const row = [...items, ...items, ...items, ...items, ...items, ...items, ...items, ...items, ...items];
 
   return (
     <section className="bg-white">
