@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export default function CategoriesSection() {
   return (
-    <section className="bg-gray-50 py-12 md:py-2">
+    <section className="bg-white py-12 md:py-2">
       <div className="mx-auto max-w-6xl px-4">
         {/* CENTERED TITLE */}{" "}
         <motion.div
