@@ -14,7 +14,7 @@ export default function ProductCard({ product }: { product: Product }) {
       <Link
         href={`/products/${product.id}`} // later you can make real product pages
         className="
-          group relative block overflow-hidden rounded-2xl
+          group relative block overflow-hidden rounded-sm
           border border-black/10 bg-white
           shadow-[0_10px_22px_rgba(0,0,0,0.06)]
           transition hover:-translate-y-[2px]

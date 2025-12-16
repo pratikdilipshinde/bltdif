@@ -98,7 +98,7 @@ export default function CollectionPage({
             </p>
           </motion.div>
         </div>
-        
+
 
         <div className="absolute bottom-5 left-6 z-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur">
@@ -113,7 +113,7 @@ export default function CollectionPage({
 
       {/* TOOLBAR */}
       <section className="mx-auto max-w-7xl px-4 py-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-row gap-4 justify-between items-baseline md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setFilterOpen(true)}
@@ -141,7 +141,7 @@ export default function CollectionPage({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-3 md:justify-end">
+          <div className="flex flex-col-reverse md:flex-row items-center justify-end gap-1 md:gap-3 md:justify-end">
             <p className="text-sm text-black/60">
               Showing{" "}
               <span className="font-semibold text-black">
@@ -156,8 +156,8 @@ export default function CollectionPage({
       </section>
 
       {/* GRID */}
-      <section className="mx-auto max-w-7xl px-4 pb-10">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <section className="mx-auto max-w-7xl px-2 pb-10">
+        <div className="grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
