@@ -141,8 +141,8 @@ export default function CollectionPage({
             )}
           </div>
 
-          <div className="flex flex-col-reverse md:flex-row items-center justify-end gap-1 md:gap-3 md:justify-end">
-            <p className="text-sm text-black/60">
+          <div className="flex flex-col-reverse md:flex-row items-end justify-end gap-1 md:gap-3 md:justify-end">
+            <p className="text-sm text-black/60 pr-2">
               Showing{" "}
               <span className="font-semibold text-black">
                 {filtered.length}
