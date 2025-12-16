@@ -98,6 +98,7 @@ export default function CollectionPage({
             </p>
           </motion.div>
         </div>
+        
 
         <div className="absolute bottom-5 left-6 z-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur">
