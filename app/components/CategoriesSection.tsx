@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export default function CategoriesSection() {
   return (
-    <section className="bg-white py-12 md:py-2">
+    <section className="bg-white py-4 md:py-2">
       <div className="mx-auto max-w-6xl px-4">
         {/* CENTERED TITLE */}{" "}
         <motion.div
@@ -37,9 +37,9 @@ export default function CategoriesSection() {
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.35, delay: 0.10 }}
+            transition={{ type: "spring", stiffness: 180, damping: 14 }}
             className="relative"
-            whileHover={{ y: -6 }}
+            whileHover={{ y: -8, rotate: -1 }}
           >
             <div className="relative mx-auto h-[320px] w-[260px] md:h-[620px] md:w-[420px]">
               <Image
@@ -55,12 +55,12 @@ export default function CategoriesSection() {
           <div className="flex flex-col items-center justify-center gap-16">
             {/* Row 1: Caps image */}
             <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.35, delay: 0.10 }}
-              className="relative"
-              whileHover={{ y: -6 }}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ type: "spring", stiffness: 180, damping: 14 }}
+                className="relative"
+                whileHover={{ y: -8, rotate: -1 }}
             >
               <div className="relative h-[220px] w-[320px] md:h-[260px] md:w-[360px]">
                 <Image
@@ -99,9 +99,9 @@ export default function CategoriesSection() {
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.35, delay: 0.10 }}
+            transition={{ type: "spring", stiffness: 180, damping: 14 }}
             className="relative"
-            whileHover={{ y: -6 }}
+            whileHover={{ y: -8, rotate: -1 }}
           >
             <div className="relative mx-auto md:ml-[-12%] h-[320px] w-[260px] md:h-[620px] md:w-[420px]">
               <Image

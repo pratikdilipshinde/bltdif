@@ -42,9 +42,9 @@ const products = [
 export default function ProductsSection() {
   return (
     <section className="bg-white pb-14 md:pb-20">
-      <div className="mx-4">
-        <div className="flex items-end justify-between gap-6">
-          <div>
+      <div className="mx-4 ">
+        <div className="relative text-center">
+          <div className="mb-4">
             <p className="text-xs tracking-[0.28em] text-black/50 uppercase">
               Featured
             </p>
@@ -61,8 +61,8 @@ export default function ProductsSection() {
           </Link>
         </div>
 
-        {/* BIG cards + 2 per row */}
-        <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-4">
+        
+        <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
           {products.map((p, idx) => (
             <motion.div
               key={p.id}
@@ -73,16 +73,16 @@ export default function ProductsSection() {
             >
               <Link
                 href={p.href}
-                className="group relative block overflow-hidden rounded-[20px] border border-black/10 bg-[#f7f7f7] p-4 md:p-3 shadow-[0_18px_50px_rgba(0,0,0,0.08)]"
+                className="group relative block overflow-hidden bg-white"
               >
                 {/* tag */}
-                <div className="absolute left-4 top-4 z-10 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] uppercase text-black">
+                <div className="absolute left-2 top-2 z-10 rounded-full bg-white/90 px-3 py-1 text-[9px] font-semibold tracking-[0.18em] uppercase text-black">
                   {p.tag}
                 </div>
 
                 {/* product image (bigger) */}
                 <motion.div
-                  className="relative h-72 w-full md:h-[360px]"
+                  className="relative bg-[#f7f7f7] h-60 mb-[-5%] w-full md:h-[360px]"
                   whileHover={{ y: -8, rotate: -1 }}
                   transition={{ type: "spring", stiffness: 180, damping: 14 }}
                 >
@@ -90,12 +90,12 @@ export default function ProductsSection() {
                     src={p.image}
                     alt={p.name}
                     fill
-                    className="object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.22)] transition duration-300 group-hover:scale-[1.06]"
+                    className="object-contain rounded-[5px] border border-black/10 drop-shadow-[0_22px_45px_rgba(0,0,0,0.22)] transition duration-300 group-hover:scale-[1.06]"
                   />
                 </motion.div>
 
                 {/* info */}
-                <div className="mt-5 flex items-start justify-between gap-3">
+                <div className="mt-5 px-3 flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-base font-semibold text-black">
                       {p.name}
@@ -108,7 +108,7 @@ export default function ProductsSection() {
                 </div>
 
                 {/* hover CTA */}
-                <div className="mt-4 flex items-center justify-between">
+                <div className="my-2 px-3 flex items-center justify-between">
                   <span className="text-xs tracking-[0.22em] uppercase text-black/45">
                     View
                   </span>

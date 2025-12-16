@@ -47,7 +47,7 @@ export default function HeroSection() {
   return (
     <section className="relative w-full h-[70vh] md:h-[96vh] overflow-hidden">
       {/* IMAGE SLIDER */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         <motion.div
           key={slide.image}
           initial={{ opacity: 0, scale: 1.05 }}
