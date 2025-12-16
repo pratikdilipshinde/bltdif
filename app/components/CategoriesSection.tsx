@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export default function CategoriesSection() {
   return (
-    <section className="bg-white py-4 md:py-2">
+    <section className="bg-white py-2 md:py-2">
       <div className="mx-auto max-w-6xl px-4">
         {/* CENTERED TITLE */}{" "}
         <motion.div
@@ -31,7 +31,7 @@ export default function CategoriesSection() {
           </p>{" "}
         </motion.div>
         {/* Whole strip */}
-        <div className="grid gap-8 md:grid-cols-3 md:gap-1 mt-[-5%]">
+        <div className="grid gap-2 md:grid-cols-3 md:gap-1 py-4 md:py-1 mt-[-5%]">
           {/* product image */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
@@ -41,7 +41,7 @@ export default function CategoriesSection() {
             className="relative"
             whileHover={{ y: -8, rotate: -1 }}
           >
-            <div className="relative mx-auto h-[320px] w-[260px] md:h-[620px] md:w-[420px]">
+            <div className="relative mx-auto h-[420px] w-[360px] md:h-[620px] md:w-[420px]">
               <Image
                 src="/images/tshirt-category.png"
                 alt="T-Shirts"
@@ -52,7 +52,7 @@ export default function CategoriesSection() {
             </div>
           </motion.div>
           {/* MIDDLE: Caps (2 rows) */}
-          <div className="flex flex-col items-center justify-center gap-16">
+          <div className="flex flex-col items-center justify-center gap-8 md:gap-16">
             {/* Row 1: Caps image */}
             <motion.div
                 initial={{ opacity: 0, y: 14 }}
@@ -62,7 +62,7 @@ export default function CategoriesSection() {
                 className="relative"
                 whileHover={{ y: -8, rotate: -1 }}
             >
-              <div className="relative h-[220px] w-[320px] md:h-[260px] md:w-[360px]">
+              <div className="relative h-[320px] w-[380px] md:h-[260px] md:w-[360px]">
                 <Image
                   src="/images/cap-category.png"
                   alt="Caps"
@@ -103,7 +103,7 @@ export default function CategoriesSection() {
             className="relative"
             whileHover={{ y: -8, rotate: -1 }}
           >
-            <div className="relative mx-auto md:ml-[-12%] h-[320px] w-[260px] md:h-[620px] md:w-[420px]">
+            <div className="relative mx-auto md:ml-[-12%] h-[420px] w-[360px] md:h-[620px] md:w-[420px]">
               <Image
                 src="/images/hoodie-category.png"
                 alt="Hoodies"
