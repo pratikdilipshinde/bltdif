@@ -5,7 +5,7 @@ import Image from "next/image";
 export default function PhotosSection() {
   return (
     <section className="bg-white py-4">
-      <div className="mx-auto max-w-7xl px-4">
+      <div className="mx-auto px-2">
         <div
           className="
             grid gap-4

@@ -12,7 +12,6 @@ const BRAND_RED = "#CE0028";
 const categories = [
   { label: "HOODIE", href: "/hoodies" },
   { label: "T-SHIRT", href: "/t-shirts" },
-  { label: "SHIRT", href: "/shirts" },
   { label: "CAP", href: "/caps" },
 ];
 
