@@ -144,7 +144,7 @@ export default function AuthModal({
                   `}
                 >
                   {/* Header row */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center mx-auto gap-3">
                     <span
                       className="inline-flex h-2 w-2 rounded-full"
                       style={{ backgroundColor: BRAND_RED }}
@@ -202,8 +202,8 @@ export default function AuthModal({
                         >
                           {isRegister && (
                             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                              <Field label="First name" placeholder="Pratik" />
-                              <Field label="Last name" placeholder="Shinde" />
+                              <Field label="First name" placeholder="First Name" />
+                              <Field label="Last name" placeholder="Last Name" />
                             </div>
                           )}
 
@@ -392,7 +392,7 @@ export default function AuthModal({
                       }}
                       className="absolute inset-0"
                     >
-                      
+
                       <Image
                         src={AUTH_IMAGE}
                         alt="BLTDIF"
