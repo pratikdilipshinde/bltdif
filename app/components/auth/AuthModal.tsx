@@ -392,6 +392,7 @@ export default function AuthModal({
                       }}
                       className="absolute inset-0"
                     >
+                      
                       <Image
                         src={AUTH_IMAGE}
                         alt="BLTDIF"
