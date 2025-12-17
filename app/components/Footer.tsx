@@ -65,7 +65,7 @@ export default function Footer() {
             </Link>
 
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-black/60">
-              BLTDIF — Build Different. Premium streetwear engineered for late
+              BLTDIF — Built Different. Premium streetwear engineered for late
               nights, early mornings, and the grind in between.
             </p>
 
@@ -177,7 +177,7 @@ export default function Footer() {
                 className="h-2 w-2 rounded-full"
                 style={{ backgroundColor: BRAND_RED }}
               />
-              Build Different
+              Built Different
             </span>
           </div>
         </div>

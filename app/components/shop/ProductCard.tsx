@@ -10,41 +10,45 @@ export default function ProductCard({ product }: { product: Product }) {
   const isOut = product.availability === "Out of Stock";
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.25 }}>
+    
       <Link
         href={`/products/${product.id}`} // later you can make real product pages
         className="
-          group relative block overflow-hidden rounded-sm
-          border border-black/10 bg-white
-          shadow-[0_10px_22px_rgba(0,0,0,0.06)]
-          transition hover:-translate-y-[2px]
-          hover:shadow-[0_18px_40px_rgba(0,0,0,0.10)]
+          group relative block overflow-hidden 
         "
       >
-        <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
-          {!!product.tag && (
-            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold tracking-[0.18em] uppercase text-black">
-              {product.tag}
-            </span>
-          )}
+        <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.25 }}>
+            <div className="rounded-sm
+                border border-black/10 bg-white
+                shadow-[0_10px_22px_rgba(0,0,0,0.06)]
+                transition hover:-translate-y-[2px]
+                hover:shadow-[0_18px_40px_rgba(0,0,0,0.10)]">
+                <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
+                {!!product.tag && (
+                    <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold tracking-[0.18em] uppercase text-black">
+                    {product.tag}
+                    </span>
+                )}
 
-          <span
-            className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold tracking-[0.18em] uppercase"
-            style={{ color: isOut ? "#777" : BRAND_RED }}
-          >
-            {product.availability}
-          </span>
-        </div>
+                <span
+                    className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold tracking-[0.18em] uppercase"
+                    style={{ color: isOut ? "#777" : BRAND_RED }}
+                >
+                    {product.availability}
+                </span>
+                </div>
 
-        <div className="relative aspect-[4/5] w-full bg-[#f7f7f7]">
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            className="object-contain p-2 transition duration-300 group-hover:scale-[1.04]"
-            sizes="(min-width: 1280px) 23vw, (min-width: 1024px) 30vw, (min-width: 640px) 45vw, 95vw"
-          />
-        </div>
+                <div className="relative aspect-[4/5] w-full bg-[#f7f7f7]">
+                <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-contain p-2 transition duration-300 group-hover:scale-[1.04]"
+                    sizes="(min-width: 1280px) 23vw, (min-width: 1024px) 30vw, (min-width: 640px) 45vw, 95vw"
+                />
+                </div>
+            </div>
+        </motion.div>
 
         <div className="p-3">
           <div className="flex items-start justify-between gap-2">
@@ -78,6 +82,6 @@ export default function ProductCard({ product }: { product: Product }) {
 
         {isOut && <div className="absolute inset-0 bg-white/55 backdrop-blur-[1px]" />}
       </Link>
-    </motion.div>
+    
   );
 }
