@@ -10,7 +10,7 @@ export type Product = {
   availability: "In Stock" | "Low Stock" | "Out of Stock";
   sizes?: string[]; // t-shirts/hoodies
   colors?: string[]; // all
-  fit?: "Oversized" | "Relaxed" | "Regular"; // hoodies/t-shirts
+  fit?: "Oversized" | "Relaxed" | "Regular" | "Boxy"; // hoodies/t-shirts
   material?: string; // optional
 };
 
