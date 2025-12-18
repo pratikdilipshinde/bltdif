@@ -49,7 +49,7 @@ export default function Navbar() {
               type="button"
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               onClick={toggleMenu}
-              className="md:hidden inline-flex items-center justify-center rounded-full p-2 text-black hover:bg-black/5"
+              className="md:hidden inline-flex items-center justify-center rounded-xs p-2 text-black hover:bg-black/5"
             >
               {isMenuOpen ? (
                 <X className="h-5 w-5" strokeWidth={1.8} />
@@ -101,7 +101,7 @@ export default function Navbar() {
             <button
               aria-label="Account"
               onClick={openAuth}
-              className="rounded-full p-2 hover:bg-black/5"
+              className="rounded-xs p-2 hover:bg-black/5"
             >
               <User className="h-5 w-5" strokeWidth={1.8} />
             </button>
@@ -110,7 +110,7 @@ export default function Navbar() {
 
             <button
               aria-label="Cart"
-              className="rounded-full p-2 hover:bg-black/5"
+              className="rounded-xs p-2 hover:bg-black/5"
             >
               <ShoppingBag className="h-5 w-5" strokeWidth={1.8} />
             </button>
@@ -136,13 +136,13 @@ export default function Navbar() {
                         key={item.href}
                         href={item.href}
                         onClick={closeMenu}
-                        className="flex items-center justify-between rounded-lg px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
+                        className="flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
                         style={{ color: isActive ? BRAND_RED : undefined }}
                       >
                         <span>{item.label}</span>
                         {isActive && (
                           <span
-                            className="h-[2px] w-10 rounded-full"
+                            className="h-[2px] w-10 rounded-xs"
                             style={{ backgroundColor: BRAND_RED }}
                           />
                         )}
@@ -153,7 +153,7 @@ export default function Navbar() {
                   {/* Optional: auth entry in mobile menu */}
                   <button
                     onClick={openAuth}
-                    className="mt-2 flex items-center justify-between rounded-lg px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
+                    className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
                     style={{ color: BRAND_RED }}
                   >
                     <span>ACCOUNT</span>

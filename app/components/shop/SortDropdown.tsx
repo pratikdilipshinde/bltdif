@@ -27,7 +27,7 @@ export default function SortDropdown({
     <div className="relative">
       <button
         onClick={() => setOpen((s) => !s)}
-        className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-black shadow-sm hover:border-black/20"
+        className="inline-flex items-center gap-2 rounded-sm border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/80 shadow-sm hover:border-black/20"
       >
         Sort: {label}
         <ChevronDown className="h-4 w-4" />

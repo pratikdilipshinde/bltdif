@@ -152,7 +152,7 @@ export const PRODUCTS: Product[] = [
     category: "hoodies",
     name: "The Shadow Knows Hoodie",
     price: 89,
-    tag: "Drop 01",
+    tag: "",
     image: "/images/hoodie-back-3d.png",
     availability: "In Stock",
     sizes: ["S", "M", "L", "XL"],

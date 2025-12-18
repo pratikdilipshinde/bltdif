@@ -115,7 +115,7 @@ export default function AuthModal({
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="
                 relative w-full max-w-5xl
-                rounded-sm bg-white
+                rounded-xs bg-white
                 border border-black/10
                 shadow-[0_30px_90px_rgba(0,0,0,0.20)]
                 overflow-hidden
@@ -126,7 +126,7 @@ export default function AuthModal({
               <button
                 aria-label="Close"
                 onClick={onClose}
-                className="absolute right-3 top-3 z-20 rounded-sm p-2 hover:bg-black/5 transition"
+                className="absolute right-3 top-3 z-20 rounded-xs p-2 hover:bg-black/5 transition"
               >
                 <X className="h-5 w-5 text-black/45" />
               </button>
@@ -155,7 +155,7 @@ export default function AuthModal({
                   </div>
 
                   {/* Tabs */}
-                  <div className="mt-3 grid grid-cols-2 rounded-sm border border-black/10 bg-black/[0.03] p-1">
+                  <div className="mt-3 grid grid-cols-2 rounded-xs border border-black/10 bg-black/[0.03] p-1">
                     <Tab
                       active={!isRegister}
                       onClick={() => switchMode("login")}
@@ -225,7 +225,7 @@ export default function AuthModal({
                                 <button
                                   type="button"
                                   onClick={() => setShowPwd(!showPwd)}
-                                  className="rounded-sm p-2 text-black/60 hover:bg-black/5 hover:text-black transition"
+                                  className="rounded-xs p-2 text-black/60 hover:bg-black/5 hover:text-black transition"
                                   aria-label={
                                     showPwd
                                       ? "Hide password"
@@ -252,7 +252,7 @@ export default function AuthModal({
                                   <button
                                     type="button"
                                     onClick={() => setShowPwd(!showPwd)}
-                                    className="rounded-sm p-2 text-black/60 hover:bg-black/5 hover:text-black transition"
+                                    className="rounded-xs p-2 text-black/60 hover:bg-black/5 hover:text-black transition"
                                     aria-label={
                                       showPwd
                                         ? "Hide password"
@@ -287,7 +287,7 @@ export default function AuthModal({
                                     onClick={() =>
                                       setShowCnfmPwd(!showCnfmPwd)
                                     }
-                                    className="rounded-sm p-2 text-black/60 hover:bg-black/5 hover:text-black transition"
+                                    className="rounded-xs p-2 text-black/60 hover:bg-black/5 hover:text-black transition"
                                     aria-label={
                                       showCnfmPwd
                                         ? "Hide password"
@@ -436,12 +436,12 @@ function Tab({
   return (
     <button
       onClick={onClick}
-      className="relative rounded-sm py-2 text-[13px] font-semibold cursor-pointer"
+      className="relative rounded-xs py-2 text-[13px] font-semibold cursor-pointer"
     >
       {active && (
         <motion.div
           layoutId="authTabRect"
-          className="absolute inset-0 rounded-sm"
+          className="absolute inset-0 rounded-xs"
           style={{
             background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)`,
           }}
@@ -487,7 +487,7 @@ function Field({
           onChange={onChange}
           placeholder={placeholder}
           className={`
-            w-full rounded-sm border bg-black/[0.03]
+            w-full rounded-xs border bg-black/[0.03]
             px-4 py-2.5 pr-12 text-[13px] text-black placeholder:text-black/35
             outline-none transition
             ${
@@ -524,8 +524,8 @@ function PrimaryButton({
       type="submit"
       disabled={disabled}
       className={`
-        w-full rounded-sm py-2.5 text-[13px] font-semibold text-white
-        shadow-[0_18px_60px_rgba(0,0,0,0.15)]
+        w-full rounded-xs py-2.5 text-[13px] font-semibold text-white
+        drop-shadow-md
         ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
       `}
       style={{ background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)` }}
@@ -541,7 +541,7 @@ function SecondaryButton({ label }: { label: string }) {
       whileTap={{ scale: 0.98 }}
       whileHover={{ y: -1 }}
       type="button"
-      className="w-full rounded-sm border border-black/10 bg-white py-2.5 text-[13px] font-semibold text-black hover:bg-black/[0.02] transition"
+      className="w-full rounded-xs border border-black/10 bg-white py-2.5 text-[13px] font-semibold text-black hover:bg-black/[0.02] transition"
     >
       {label}
     </motion.button>

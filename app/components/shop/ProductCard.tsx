@@ -18,20 +18,20 @@ export default function ProductCard({ product }: { product: Product }) {
         "
       >
         <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.25 }}>
-            <div className="rounded-sm
-                border border-black/10 bg-white
-                shadow-[0_10px_22px_rgba(0,0,0,0.06)]
+            <div className="rounded-xs
+                border border-black/5 bg-white
+                shadow
                 transition hover:-translate-y-[2px]
-                hover:shadow-[0_18px_40px_rgba(0,0,0,0.10)]">
+                hover:drop-shadow-md">
                 <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
                 {!!product.tag && (
-                    <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold tracking-[0.18em] uppercase text-black">
+                    <span className="rounded-xs bg-white/95 px-2.5 py-1 text-[8px] md:text-[10px] font-medium tracking-[0.18em] uppercase text-black">
                     {product.tag}
                     </span>
                 )}
 
                 <span
-                    className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold tracking-[0.18em] uppercase"
+                    className="rounded-xs bg-white/95 px-2.5 py-1 text-[8px] md:text-[10px] font-medium tracking-[0.18em] uppercase"
                     style={{ color: isOut ? "#777" : BRAND_RED }}
                 >
                     {product.availability}

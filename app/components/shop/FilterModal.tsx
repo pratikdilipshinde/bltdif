@@ -62,12 +62,12 @@ export default function FilterModal({
               <div>
                 <p className="text-xs tracking-[0.28em] uppercase text-black/50">Filters</p>
                 <p className="text-sm font-semibold text-black">
-                  Refine {categoryKey.replace("-", " ")}
+                  Refine {categoryKey.toUpperCase()}
                 </p>
               </div>
 
-              <button onClick={onClose} className="rounded-full p-2 hover:bg-black/5" aria-label="Close filters">
-                <X className="h-5 w-5" />
+              <button onClick={onClose} className="rounded-xs cursor-pointer p-2 hover:bg-black/5" aria-label="Close filters">
+                <X className="h-5 w-5 text-black/80" />
               </button>
             </div>
 
@@ -143,7 +143,7 @@ export default function FilterModal({
                         <button
                           key={s}
                           onClick={() => onChange({ ...value, sizes: toggle(value.sizes, s) })}
-                          className={`rounded-full border px-3 py-1 text-sm transition ${
+                          className={`rounded-xs border px-3 py-1 text-sm transition ${
                             active
                               ? "border-black bg-black text-white"
                               : "border-black/15 bg-white text-black hover:border-black/30"
@@ -167,7 +167,7 @@ export default function FilterModal({
                         <button
                           key={f}
                           onClick={() => onChange({ ...value, fits: toggle(value.fits, f as any) })}
-                          className={`rounded-full border px-3 py-1 text-sm transition ${
+                          className={`rounded-xs border px-3 py-1 text-sm transition ${
                             active
                               ? "border-black bg-black text-white"
                               : "border-black/15 bg-white text-black hover:border-black/30"
@@ -191,7 +191,7 @@ export default function FilterModal({
                         <button
                           key={c}
                           onClick={() => onChange({ ...value, colors: toggle(value.colors, c) })}
-                          className={`rounded-full border px-3 py-1 text-sm transition ${
+                          className={`rounded-xs border px-3 py-1 text-sm transition ${
                             active
                               ? "border-black bg-black text-white"
                               : "border-black/15 bg-white text-black hover:border-black/30"
@@ -213,7 +213,7 @@ export default function FilterModal({
 
               <button
                 onClick={onClose}
-                className="rounded-full bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#111]"
+                className="rounded-xs bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#111]"
               >
                 Apply
               </button>
@@ -246,10 +246,10 @@ function CheckRow({
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-xl border border-black/10 px-4 py-3 text-sm hover:bg-black/5"
+      className="flex w-full cursor-pointer items-center justify-between rounded-xs px-4 py-3 text-sm hover:bg-black/5"
     >
       <span className="text-black">{label}</span>
-      <span className={`h-5 w-5 rounded-md border ${checked ? "border-black bg-black" : "border-black/20 bg-white"}`} />
+      <span className={`h-3 w-3 rounded-full border ${checked ? "border-black bg-black" : "border-black/20 bg-white"}`} />
     </button>
   );
 }

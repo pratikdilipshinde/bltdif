@@ -101,13 +101,16 @@ export default function CollectionPage({
 
 
         <div className="absolute bottom-5 left-6 z-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur">
-            <Link href="/" className="hover:text-white">
-              Home
-            </Link>
-            <span className="text-white/60">›</span>
-            <span className="font-semibold">{config.label}</span>
-          </div>
+          
+          {/* Breadcrumb */}
+        <div className="inline-flex items-center gap-2 rounded-xs border border-white/10 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur">
+          <Link href="/" className="hover:text-white transition">
+            Home
+          </Link>{" "}
+          
+          <span className="mx-2">›</span>
+          <span className="text-white/80">{config.label}</span>
+        </div>
         </div>
       </section>
 
@@ -117,7 +120,7 @@ export default function CollectionPage({
           <div className="flex items-start gap-3">
             <button
               onClick={() => setFilterOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-black shadow-sm hover:border-black/20"
+              className="inline-flex items-center gap-2 rounded-sm border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/80 shadow-sm hover:border-black/20"
             >
               <SlidersHorizontal className="h-4 w-4" />
               Filters
@@ -144,7 +147,7 @@ export default function CollectionPage({
           <div className="flex flex-col-reverse md:flex-row items-end md:items-center justify-end gap-1 md:gap-3 md:justify-end">
             <p className="text-sm text-black/60 pr-2">
               Showing{" "}
-              <span className="font-semibold text-black">
+              <span className="font-semibold text-black/80">
                 {filtered.length}
               </span>{" "}
               items
