@@ -24,7 +24,7 @@ const slides = [
   },
   {
     image: "/images/hero3-2.5x-min.webp",
-    title: "MINIMAL. ICONIC.",
+    title: "MINIMAL ICONIC",
     subtitle: "Caps that complete the fit",
     cta: "Explore Caps",
     href: "/caps",
@@ -67,10 +67,10 @@ export default function HeroSection() {
       </AnimatePresence>
 
       {/* DARK OVERLAY */}
-      <div className="absolute inset-0 bg-black/45" />
+      <div className="absolute inset-0 bg-black/35" />
 
       {/* CENTER CONTENT */}
-      <div className="relative z-10 flex h-full items-center justify-center text-center px-6">
+      <div className="relative z-10 flex h-full items-center justify-center text-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.title}
@@ -78,9 +78,9 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-2xl"
+            className="max-w-4xl"
           >
-            <h1 className="text-white text-4xl md:text-6xl font-bold tracking-wide">
+            <h1 className="text-white text-4xl md:text-6xl font-bold tracking-[0.75rem]">
               {slide.title}
             </h1>
 

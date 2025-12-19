@@ -97,7 +97,7 @@ export default function Navbar() {
           </div>
 
           {/* RIGHT */}
-          <div className="flex items-center justify-end gap-3 md:gap-5 text-black">
+          <div className="flex items-center justify-end gap-0 md:gap-5 text-black">
             <button
               aria-label="Account"
               onClick={openAuth}
