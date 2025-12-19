@@ -443,7 +443,7 @@ function Tab({
           layoutId="authTabRect"
           className="absolute inset-0 rounded-xs"
           style={{
-            background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)`,
+            background: `black`,
           }}
           transition={{ type: "spring", stiffness: 260, damping: 24 }}
         />
@@ -528,7 +528,7 @@ function PrimaryButton({
         drop-shadow-md
         ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
       `}
-      style={{ background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)` }}
+      style={{ background: `black` }}
     >
       {label}
     </motion.button>

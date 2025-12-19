@@ -44,7 +44,7 @@ export default function ProductsSection() {
     <section className="bg-white pb-14 md:pb-20">
       <div className="mx-4 ">
         <div className="relative text-center">
-          <div className="mb-4">
+          <div className="mb-4 mt-[-5px]">
             <p className="text-xs tracking-[0.28em] text-black/50 uppercase">
               Featured
             </p>

@@ -1,10 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import BrandMarquee from "./BrandMarquee";
 
 export default function PhotosSection() {
   return (
-    <section className="bg-white py-4">
+    <section className="bg-black pb-8">
+      <div className="">
+        <BrandMarquee />
+      </div>
       <div className="mx-auto px-2">
         <div
           className="
@@ -14,7 +18,7 @@ export default function PhotosSection() {
           "
         >
           {/* Left tall block (2 rows) */}
-          <div className="relative md:row-span-2 overflow-hidden rounded-sm bg-gray-300 min-h-[260px]">
+          <div className="relative md:row-span-2 overflow-hidden rounded-xs bg-black min-h-[260px]">
             <Image
               src="/images/photo-1.jpg"
               alt="Photo 1"
@@ -26,7 +30,7 @@ export default function PhotosSection() {
           </div>
 
           {/* Top wide block */}
-          <div className="relative md:col-span-2 overflow-hidden rounded-sm bg-gray-300 min-h-[260px]">
+          <div className="relative md:col-span-2 overflow-hidden rounded-xs bg-black min-h-[260px]">
             <Image
               src="/images/photo-3.jpg"
               alt="Photo 2"
@@ -37,9 +41,9 @@ export default function PhotosSection() {
           </div>
 
           {/* Bottom left */}
-          <div className="relative overflow-hidden rounded-sm bg-gray-300 min-h-[260px]">
+          <div className="relative overflow-hidden rounded-xs bg-black min-h-[260px]">
             <Image
-              src="/images/photo-4.jpg"
+              src="/images/photo-6.jpg"
               alt="Photo 3"
               fill
               className="object-cover"
@@ -48,7 +52,7 @@ export default function PhotosSection() {
           </div>
 
           {/* Bottom right */}
-          <div className="relative overflow-hidden rounded-sm bg-gray-300 min-h-[260px]">
+          <div className="relative overflow-hidden rounded-xs bg-black min-h-[260px]">
             <Image
               src="/images/photo-5.jpg"
               alt="Photo 4"
