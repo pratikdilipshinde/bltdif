@@ -65,7 +65,7 @@ export default function ProductCard({ product }: { product: Product }) {
           {product.sizes?.length ? (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {product.sizes.slice(0, 5).map((s) => (
-                <span key={s} className="rounded-full border border-black/10 bg-white px-2 py-0.5 text-[11px] text-black/70">
+                <span key={s} className="rounded-xs border hover:bg-black border-black/10 bg-white px-2 py-0.5 text-[11px] hover:text-white text-black/70">
                   {s}
                 </span>
               ))}
