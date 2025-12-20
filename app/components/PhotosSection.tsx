@@ -59,7 +59,7 @@ export default function PhotosSection() {
               sizes="(min-width: 768px) 400px, 100vw"
               priority
               delay={0.0}
-              className="h-[320px] md:h-[500px]"
+              className="h-[500px]"
             />
 
             {/* Right (remaining width) */}
