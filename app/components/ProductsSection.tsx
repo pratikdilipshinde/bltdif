@@ -41,28 +41,30 @@ const products = [
 
 export default function ProductsSection() {
   return (
-    <section className="bg-white pb-14 md:pb-20">
+    <section className="bg-white pb-10">
       <div className="mx-4 ">
         <div className="relative text-center">
-          <div className="mb-4 mt-[-5px]">
+          <div className="mb-6 mt-[-5px]">
             <p className="text-xs tracking-[0.28em] text-black/50 uppercase">
               Featured
             </p>
-            <h2 className="mt-2 text-2xl md:text-3xl font-semibold text-black">
-              Best sellers this week
-            </h2>
+            
           </div>
 
           <Link
-            href="/products"
-            className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white hover:bg-[#111] transition"
-          >
-            Shop all
-          </Link>
+                href="/products"
+                className="
+                        rounded-full border border-black/60 bg-white text-black/60
+                        px-6 md:px-8 py-3 text-xs md:text-sm font-semibold tracking-[0.18em]
+                        transition hover:-translate-y-0.5 hover:border-[#CE0028] hover:text-[#CE0028]
+                        "
+              >
+                SHOP ALL
+              </Link>
         </div>
 
         
-        <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
           {products.map((p, idx) => (
             <motion.div
               key={p.id}

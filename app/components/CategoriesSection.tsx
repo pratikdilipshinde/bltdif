@@ -2,19 +2,20 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function CategoriesSection() {
   return (
     <section className="relative bg-white pb-10 md:pb-14 overflow-hidden">
       {/* Background image (Category-bg.png) */}
       <div className="pointer-events-none absolute inset-0">
-        <Image
+        {/* <Image
           src="/images/Category-bg.png"
           alt="Category Background"
           fill
           priority
           className="object-cover"
-        />
+        /> */}
         {/* subtle fade so it stays clean on white */}
         <div className="absolute inset-0 bg-white/35 md:bg-white/25" />
       </div>
@@ -25,17 +26,24 @@ export default function CategoriesSection() {
            whileInView={{ opacity: 1, y: 1 }}
            viewport={{ once: true }}
            transition={{ duration: 0.35 }}
-           className="text-center my-8"
+           className="text-center my-8 pb-2 md:pb-4"
          >
           
-           <p className="text-xs tracking-[0.32em] uppercase text-black/45">
+           <p className="text-xs mb-6 tracking-[0.32em] uppercase text-black/45">
              {" "}
              Categories{" "}
            </p>{" "}
-           <h2 className="mt-3 text-2xl md:text-4xl font-semibold text-black">
-             {" "}
-             Shop the essentials{" "}
-           </h2>{" "}
+           <Link
+                href="/products"
+                className="
+                        rounded-full border border-black/60 bg-white text-black/60
+                        px-6 md:px-8 py-3 text-xs md:text-sm font-semibold tracking-[0.18em]
+                        transition hover:-translate-y-0.5 hover:border-[#CE0028] hover:text-[#CE0028]
+                        "
+              >
+                EXPLORE ALL
+              </Link>
+           {" "}
            {/* <p className="mx-auto mt-3 max-w-xl text-sm md:text-base text-black/55">
              {" "}
              Clean drops. Premium fits. Built around your grind.{" "}

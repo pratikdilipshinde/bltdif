@@ -10,7 +10,6 @@ const footerLinks = [
   {
     title: "Shop",
     links: [
-      { label: "All Products", href: "/products" },
       { label: "Hoodies", href: "/hoodies" },
       { label: "T-Shirts", href: "/t-shirts" },
       { label: "Caps", href: "/caps" },
@@ -21,8 +20,7 @@ const footerLinks = [
     links: [
       { label: "About BLTDIF", href: "/about" },
       { label: "Contact", href: "/contact" },
-      { label: "Store Locator", href: "/stores" },
-      { label: "Careers", href: "/careers" },
+      { label: "FAQ", href: "/faq" },
     ],
   },
   {
@@ -31,7 +29,6 @@ const footerLinks = [
       { label: "Shipping & Delivery", href: "/shipping" },
       { label: "Returns & Exchanges", href: "/returns" },
       { label: "Size Guide", href: "/size-guide" },
-      { label: "FAQ", href: "/faq" },
     ],
   },
 ];
@@ -48,7 +45,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-white border-t border-black/10">
-      <div className="px-6 py-14 md:py-16">
+      <div className="px-6 py-6 md:py-6">
         {/* Top grid */}
         <div className="grid gap-10 md:grid-cols-12">
           {/* Brand */}
@@ -120,9 +117,6 @@ export default function Footer() {
             <p className="text-xs font-semibold tracking-[0.22em] uppercase text-black">
               Drop Alerts
             </p>
-            <p className="mt-4 text-sm text-black/60">
-              Get notified when the next drop goes live.
-            </p>
 
             <form
               className="mt-4 flex flex-col gap-3"
@@ -131,14 +125,14 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="Email address"
-                className="h-11 rounded-2xl border border-black/12 bg-white px-4 text-sm outline-none focus:border-black/30"
+                className="h-11 rounded-xs border border-black/12 bg-white px-4 text-sm outline-none focus:border-black/30"
               />
               <button
                 type="submit"
-                className="h-11 rounded-2xl text-sm font-semibold text-white transition"
+                className="h-11 cursor-pointer rounded-xs text-sm font-semibold text-white transition"
                 style={{
                   backgroundColor: BRAND_RED,
-                  boxShadow: "0 14px 40px rgba(206,0,40,0.25)",
+                  boxShadow: "0 2px 6px rgba(206,0,40,0.25)",
                 }}
               >
                 Subscribe
@@ -151,7 +145,7 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="my-10 h-px w-full bg-black/10" />
+        <div className="my-5 h-px w-full bg-black/10" />
 
         {/* Bottom bar */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
