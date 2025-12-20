@@ -15,13 +15,13 @@ export default function ProductsSection() {
       <div className="mx-4">
         {/* Header */}
         <div className="relative text-center">
-          <div className="mb-6 mt-[-5px]">
-            <p className="text-xs tracking-[0.28em] text-black/50 uppercase">
+          <div className="mb-2 mt-[-5px]">
+            <p className="text-sm tracking-[0.28em] text-black/50 uppercase">
               FEATURED
             </p>
           </div>
 
-          <Link
+          {/* <Link
             href="/products"
             className="
               rounded-full border border-black/60 bg-white text-black/60
@@ -30,11 +30,11 @@ export default function ProductsSection() {
             "
           >
             SHOP ALL
-          </Link>
+          </Link> */}
         </div>
 
         {/* Product grid */}
-        <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
           {drop01Products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
