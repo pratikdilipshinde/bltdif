@@ -21,7 +21,7 @@ export default function ContactPage() {
       <section className="mx-auto max-w-7xl px-4 py-12 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 md:items-start">
           {/* Left visual */}
-          <div className="rounded-sm border border-black/10 overflow-hidden bg-black/[0.02]">
+          <div className="rounded-xs border border-black/10 overflow-hidden bg-black/[0.02]">
             <div className="relative h-[360px] md:h-[540px]">
               <Image src="/images/photo-5.jpg" alt="Support" fill className="object-cover" />
               <div className="absolute inset-0 bg-black/10" />
@@ -34,7 +34,7 @@ export default function ContactPage() {
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {["Sizing", "Order Status", "Returns", "Product Details"].map((t) => (
-                  <span key={t} className="rounded-full border border-black/10 bg-white px-3 py-1 text-[12px] text-black/70">
+                  <span key={t} className="rounded-xs border border-black/10 bg-white px-3 py-1 text-[12px] text-black/70">
                     {t}
                   </span>
                 ))}
@@ -43,7 +43,7 @@ export default function ContactPage() {
           </div>
 
           {/* Right form */}
-          <div className="rounded-sm border border-black/10 bg-white p-6 md:p-8 shadow-[0_18px_60px_rgba(0,0,0,0.06)]">
+          <div className="rounded-xs border border-black/10 bg-white p-6 md:p-8 shadow-[0_18px_60px_rgba(0,0,0,0.06)]">
             <p className="text-xs tracking-[0.28em] uppercase text-black/45">Send a message</p>
             <h2 className="mt-3 text-2xl font-semibold text-black">How can we help?</h2>
 
@@ -62,14 +62,14 @@ export default function ContactPage() {
                 setSent(true);
               }}
             >
-              <Field label="Full name" placeholder="Pratik Shinde" />
+              <Field label="Full name" placeholder="Full Name" />
               <Field label="Email" type="email" placeholder="you@domain.com" />
               <Field label="Subject" placeholder="Order / Size / Product question" />
               <TextArea label="Message" placeholder="Write your message..." />
 
               <button
                 type="submit"
-                className="rounded-sm px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
+                className="rounded-xs px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
                 style={{ background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)` }}
               >
                 Send Message
@@ -102,7 +102,7 @@ function Field({
         type={type}
         placeholder={placeholder}
         className="
-          w-full rounded-sm border border-black/10 bg-black/[0.03]
+          w-full rounded-xs border border-black/10 bg-black/[0.03]
           px-4 py-2.5 text-[13px] text-black placeholder:text-black/35
           outline-none transition focus:border-[#CE0028]/45 focus:bg-black/[0.045]
         "
@@ -124,7 +124,7 @@ function TextArea({
       <textarea
         placeholder={placeholder}
         className="
-          min-h-[140px] w-full rounded-sm border border-black/10 bg-black/[0.03]
+          min-h-[140px] w-full rounded-xs border border-black/10 bg-black/[0.03]
           px-4 py-3 text-[13px] text-black placeholder:text-black/35
           outline-none transition focus:border-[#CE0028]/45 focus:bg-black/[0.045]
         "

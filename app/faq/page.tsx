@@ -43,7 +43,7 @@ export default function FAQPage() {
       <section className="mx-auto max-w-7xl px-4 -mt-10 md:-mt-14 relative z-10">
         <div className="grid gap-3 md:grid-cols-3">
           {["/images/photo-1.jpg", "/images/photo-3.jpg", "/images/photo-5.jpg"].map((src) => (
-            <div key={src} className="relative h-[160px] md:h-[300px] overflow-hidden rounded-sm border border-black/10 bg-black/[0.02]">
+            <div key={src} className="relative h-[160px] md:h-[300px] overflow-hidden rounded-xs border border-black/10 bg-black/[0.02]">
               <Image src={src} alt="BLTDIF" fill className="object-cover" />
             </div>
           ))}
@@ -60,7 +60,7 @@ export default function FAQPage() {
           </p>
         </div>
 
-        <div className="mt-8 divide-y divide-black/10 rounded-sm border border-black/10">
+        <div className="mt-8 divide-y divide-black/10 rounded-xs border border-black/10">
           {faqs.map((item, idx) => {
             const isOpen = open === idx;
             return (

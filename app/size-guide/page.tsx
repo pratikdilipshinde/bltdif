@@ -44,21 +44,21 @@ export default function SizeGuidePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/contact"
-                className="rounded-sm px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
+                className="rounded-xs px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
                 style={{ background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)` }}
               >
                 Ask about sizing
               </Link>
               <Link
                 href="/returns"
-                className="rounded-sm border border-black/15 bg-white px-6 py-3 text-[12px] font-semibold text-black hover:bg-black/[0.02] transition"
+                className="rounded-xs border border-black/15 bg-white px-6 py-3 text-[12px] font-semibold text-black hover:bg-black/[0.02] transition"
               >
                 Returns & Exchanges
               </Link>
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-sm border border-black/10 bg-black/[0.02]">
+          <div className="relative overflow-hidden rounded-xs border border-black/10 bg-black/[0.02]">
             <div className="relative h-[360px] md:h-[520px]">
               <Image src="/images/photo-3.jpg" alt="Fit" fill className="object-cover" />
               <div className="absolute inset-0 bg-black/10" />
@@ -80,7 +80,7 @@ export default function SizeGuidePage() {
             </div>
           </div>
 
-          <div className="mt-8 overflow-hidden rounded-sm border border-black/10 bg-white">
+          <div className="mt-8 overflow-hidden rounded-xs border border-black/10 bg-white">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-left">
                 <thead className="bg-black/[0.02]">
@@ -128,7 +128,7 @@ export default function SizeGuidePage() {
 
 function Tip({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="rounded-sm border border-black/10 bg-white p-5">
+    <div className="rounded-xs border border-black/10 bg-white p-5">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: BRAND_RED }} />
         <p className="text-sm font-semibold text-black">{title}</p>
@@ -156,7 +156,7 @@ function Td({ children, strong }: { children: React.ReactNode; strong?: boolean 
 
 function How({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="rounded-sm border border-black/10 bg-white p-6">
+    <div className="rounded-xs border border-black/10 bg-white p-6">
       <p className="text-sm font-semibold text-black">{title}</p>
       <p className="mt-2 text-sm text-black/65 leading-relaxed">{desc}</p>
     </div>

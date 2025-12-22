@@ -39,7 +39,7 @@ export default function AboutPage() {
               {["Premium Fabrics", "Minimal Branding", "Comfort First", "Statement Fits"].map((t) => (
                 <span
                   key={t}
-                  className="rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] text-black/70"
+                  className="rounded-xs border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] text-black/70"
                 >
                   {t}
                 </span>
@@ -49,7 +49,7 @@ export default function AboutPage() {
             <div className="mt-8">
               <Link
                 href="/products"
-                className="rounded-sm px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
+                className="rounded-xs px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
                 style={{ background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)` }}
               >
                 Explore Products
@@ -57,7 +57,7 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-sm border border-black/10 bg-black/[0.02]">
+          <div className="relative overflow-hidden rounded-xs border border-black/10 bg-black/[0.02]">
             <div className="relative h-[420px] md:h-[520px]">
               <Image src="/images/photo-3.jpg" alt="BLTDIF" fill className="object-cover" />
               <div className="absolute inset-0 bg-black/10" />
@@ -80,7 +80,7 @@ export default function AboutPage() {
             />
           </div>
 
-          <div className="mt-6 rounded-sm border border-black/10 bg-white p-6">
+          <div className="mt-6 rounded-xs border border-black/10 bg-white p-6">
             <p className="text-sm text-black/70 leading-relaxed">
               <span className="font-semibold">Our goal:</span> help you show up confidently, express yourself,
               and turn everyday moments into conversations.
@@ -113,7 +113,7 @@ export default function AboutPage() {
 
 function Block({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-sm border border-black/10 bg-white p-6">
+    <div className="rounded-xs border border-black/10 bg-white p-6">
       <p className="text-[11px] font-semibold tracking-[0.28em] uppercase text-black/45">{title}</p>
       <p className="mt-3 text-sm md:text-[15px] leading-relaxed text-black/70">{text}</p>
     </div>
@@ -122,7 +122,7 @@ function Block({ title, text }: { title: string; text: string }) {
 
 function USP({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="rounded-sm border border-black/10 bg-white p-6 hover:shadow-[0_18px_60px_rgba(0,0,0,0.06)] transition">
+    <div className="rounded-xs border border-black/10 bg-white p-6 hover:shadow-[0_18px_60px_rgba(0,0,0,0.06)] transition">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: BRAND_RED }} />
         <p className="text-sm font-semibold text-black">{title}</p>

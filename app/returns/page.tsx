@@ -77,21 +77,21 @@ export default function ReturnsPage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/contact"
-                  className="rounded-sm px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
+                  className="rounded-xs px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
                   style={{ background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)` }}
                 >
                   Start a return
                 </Link>
                 <Link
                   href="/size-guide"
-                  className="rounded-sm border border-black/15 bg-white px-6 py-3 text-[12px] font-semibold text-black hover:bg-black/[0.02] transition"
+                  className="rounded-xs border border-black/15 bg-white px-6 py-3 text-[12px] font-semibold text-black hover:bg-black/[0.02] transition"
                 >
                   Size Guide
                 </Link>
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-sm border border-black/10 bg-white">
+            <div className="relative overflow-hidden rounded-xs border border-black/10 bg-white">
               <div className="relative h-[360px] md:h-[520px]">
                 <Image src="/images/photo-5.jpg" alt="Returns" fill className="object-cover" />
                 <div className="absolute inset-0 bg-black/10" />
@@ -116,7 +116,7 @@ export default function ReturnsPage() {
 
 function PolicyCard({ title, value, desc }: { title: string; value: string; desc: string }) {
   return (
-    <div className="rounded-sm border border-black/10 bg-white p-6 hover:shadow-[0_18px_60px_rgba(0,0,0,0.06)] transition">
+    <div className="rounded-xs border border-black/10 bg-white p-6 hover:shadow-[0_18px_60px_rgba(0,0,0,0.06)] transition">
       <p className="text-[11px] font-semibold tracking-[0.28em] uppercase text-black/45">{title}</p>
       <p className="mt-3 text-xl font-semibold text-black">{value}</p>
       <p className="mt-2 text-sm text-black/60 leading-relaxed">{desc}</p>
@@ -126,10 +126,10 @@ function PolicyCard({ title, value, desc }: { title: string; value: string; desc
 
 function Step({ num, title, desc }: { num: string; title: string; desc: string }) {
   return (
-    <div className="rounded-sm border border-black/10 bg-white p-5">
+    <div className="rounded-xs border border-black/10 bg-white p-5">
       <div className="flex items-start gap-3">
         <span
-          className="rounded-sm px-2 py-1 text-[11px] font-semibold text-white"
+          className="rounded-xs px-2 py-1 text-[11px] font-semibold text-white"
           style={{ backgroundColor: BRAND_RED }}
         >
           {num}
@@ -145,7 +145,7 @@ function Step({ num, title, desc }: { num: string; title: string; desc: string }
 
 function Info({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="rounded-sm border border-black/10 bg-white p-6">
+    <div className="rounded-xs border border-black/10 bg-white p-6">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: BRAND_RED }} />
         <p className="text-sm font-semibold text-black">{title}</p>

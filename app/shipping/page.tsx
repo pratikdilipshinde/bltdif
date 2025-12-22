@@ -43,7 +43,7 @@ export default function ShippingPage() {
       <section className="w-full border-y border-black/10 bg-black/[0.02]">
         <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
-            <div className="relative overflow-hidden rounded-sm border border-black/10 bg-white">
+            <div className="relative overflow-hidden rounded-xs border border-black/10 bg-white">
               <div className="relative h-[360px] md:h-[520px]">
                 <Image src="/images/photo-1.jpg" alt="Shipping" fill className="object-cover" />
                 <div className="absolute inset-0 bg-black/10" />
@@ -80,14 +80,14 @@ export default function ShippingPage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/contact"
-                  className="rounded-sm px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
+                  className="rounded-xs px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
                   style={{ background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)` }}
                 >
                   Ask about my order
                 </Link>
                 <Link
                   href="/faq"
-                  className="rounded-sm border border-black/15 bg-white px-6 py-3 text-[12px] font-semibold text-black hover:bg-black/[0.02] transition"
+                  className="rounded-xs border border-black/15 bg-white px-6 py-3 text-[12px] font-semibold text-black hover:bg-black/[0.02] transition"
                 >
                   View FAQ
                 </Link>
@@ -128,7 +128,7 @@ function Dot() {
 
 function StatCard({ title, value, desc }: { title: string; value: string; desc: string }) {
   return (
-    <div className="rounded-sm border border-black/10 bg-white p-6 hover:shadow-[0_18px_60px_rgba(0,0,0,0.06)] transition">
+    <div className="rounded-xs border border-black/10 bg-white p-6 hover:shadow-[0_18px_60px_rgba(0,0,0,0.06)] transition">
       <p className="text-[11px] font-semibold tracking-[0.28em] uppercase text-black/45">{title}</p>
       <p className="mt-3 text-xl font-semibold text-black">{value}</p>
       <p className="mt-2 text-sm text-black/60 leading-relaxed">{desc}</p>
@@ -138,7 +138,7 @@ function StatCard({ title, value, desc }: { title: string; value: string; desc: 
 
 function InfoCard({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="rounded-sm border border-black/10 bg-white p-6">
+    <div className="rounded-xs border border-black/10 bg-white p-6">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: BRAND_RED }} />
         <p className="text-sm font-semibold text-black">{title}</p>
