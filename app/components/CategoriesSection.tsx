@@ -72,15 +72,27 @@ export default function CategoriesSection() {
             }}
             className="relative"
           >
-            <Link href={c.href} className="group relative block w-full overflow-hidden bg-black">
+            <Link
+              href={c.href}
+              className="group relative block w-full overflow-hidden bg-black"
+            >
               {/* fixed height = 600 desktop */}
               <div className="relative h-[520px] md:h-[600px] w-full">
-                {/* image zoom on hover */}
+                {/* IMAGE WRAPPER:
+                    - Mobile: zoom on scroll (whileInView)
+                    - Desktop: zoom on hover (group-hover via class)
+                */}
                 <motion.div
-                  className="absolute inset-0"
+                  className="
+                    absolute inset-0
+                    transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]
+                    md:group-hover:scale-[1.08]
+                  "
+                  // Mobile scroll zoom
                   initial={{ scale: 1 }}
-                  whileHover={{ scale: 1.08 }}
-                  transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                  whileInView={{ scale: 1.06 }}
+                  viewport={{ amount: 0.55, once: false }}
+                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <Image
                     src={c.image}
@@ -92,13 +104,10 @@ export default function CategoriesSection() {
                   />
                 </motion.div>
 
-                {/* overlay */}
-                <div className="absolute inset-0 bg-black/0 transition duration-500 group-hover:bg-black/35" />
-
-                {/* bottom gradient for readability */}
+                {/* bottom gradient for readability (keep) */}
                 <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
 
-                {/* text block (animated on scroll + hover) */}
+                {/* text block (animated on scroll) */}
                 <motion.div
                   initial={{ opacity: 0, y: 14 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -106,17 +115,6 @@ export default function CategoriesSection() {
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                   className="absolute left-7 right-7 bottom-7 text-white"
                 >
-                  {/* <div
-                    className="
-                      inline-flex items-center gap-2 rounded-full
-                      border border-white/25 bg-white/10
-                      px-3 py-1 text-[10px] tracking-[0.26em] uppercase text-white/90
-                    "
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: BRAND_RED }} />
-                    BLTDIF · DROP 01
-                  </div> */}
-
                   <h3 className="mt-4 text-3xl md:text-[34px] font-semibold leading-tight">
                     {c.title}
                   </h3>
@@ -146,7 +144,9 @@ export default function CategoriesSection() {
                     pointer-events-none absolute left-0 top-0 h-[3px] w-full
                     opacity-0 transition duration-500 group-hover:opacity-100
                   "
-                  style={{ background: `linear-gradient(90deg, ${BRAND_RED}, transparent)` }}
+                  style={{
+                    background: `linear-gradient(90deg, ${BRAND_RED}, transparent)`,
+                  }}
                 />
               </div>
             </Link>
@@ -156,6 +156,7 @@ export default function CategoriesSection() {
     </section>
   );
 }
+
 
 
 // "use client";
