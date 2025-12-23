@@ -1,92 +1,161 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
 import Link from "next/link";
+import { motion } from "framer-motion";
+
+const BRAND_RED = "#CE0028";
+
+const cards = [
+  {
+    title: "T-Shirts",
+    subtitle: "Clean silhouettes. Premium hand-feel.",
+    href: "/t-shirts",
+    image: "/images/photo-10.jpg",
+  },
+  {
+    title: "Hoodies",
+    subtitle: "Heavyweight fits. Minimal branding.",
+    href: "/hoodies",
+    image: "/images/photo-11.jpg",
+  },
+  {
+    title: "Caps",
+    subtitle: "Everyday essential. Built different.",
+    href: "/caps",
+    image: "/images/caps-5.jpg",
+  },
+];
 
 export default function CategoriesSection() {
   return (
-    <section className="relative bg-white pb-10 md:pb-14 overflow-hidden">
-      {/* Background image (Category-bg.png) */}
-      <div className="pointer-events-none absolute inset-0">
-        {/* <Image
-          src="/images/Category-bg.png"
-          alt="Category Background"
-          fill
-          priority
-          className="object-cover"
-        /> */}
-        {/* subtle fade so it stays clean on white */}
-        <div className="absolute inset-0 bg-white/35 md:bg-white/25" />
-      </div>
+    <section className="relative bg-white overflow-hidden mb-10">
+      {/* Header (centered) */}
       <div className="mx-auto max-w-6xl">
-        {/* CENTERED TITLE */}{" "}
-         <motion.div
-           initial={{ opacity: 1, y: 14 }}
-           whileInView={{ opacity: 1, y: 1 }}
-           viewport={{ once: true }}
-           transition={{ duration: 0.35 }}
-           className="text-center my-8 pb-2 md:pb-4"
-         >
-          
-           <p className="text-xs mb-6 tracking-[0.32em] uppercase text-black/45">
-             {" "}
-             Categories{" "}
-           </p>{" "}
-           <Link
-                href="/products"
-                className="
-                        rounded-full border border-black/60 bg-white text-black/60
-                        px-6 md:px-8 py-3 text-xs md:text-sm font-semibold tracking-[0.18em]
-                        transition hover:-translate-y-0.5 hover:border-[#CE0028] hover:text-[#CE0028]
-                        "
-              >
-                EXPLORE ALL
-              </Link>
-           {" "}
-           {/* <p className="mx-auto mt-3 max-w-xl text-sm md:text-base text-black/55">
-             {" "}
-             Clean drops. Premium fits. Built around your grind.{" "}
-           </p>{" "} */}
-         </motion.div>
-      </div>
-
-      <div className="relative mx-auto max-w-6xl px-4">
-        {/* CENTER IMAGE ONLY */}
-        
         <motion.div
-          initial={{ opacity: 0, y: 14 }}
+          initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="flex items-center justify-center"
+          viewport={{ once: true, amount: 0.6 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center py-8"
         >
-          {/* Responsive wrapper */}
-          <div
+          <p className="text-xs mb-2 tracking-[0.32em] uppercase text-black/45">
+            Categories
+          </p>
+
+          <Link
+            href="/products"
             className="
-              relative
-              w-full
-              max-w-[1400px]
-              aspect-8/5
-              sm:aspect-[14/4.2]
-              md:aspect-[12/4.2]
+              inline-flex items-center justify-center
+              rounded-full border border-black/60 bg-white text-black/60
+              px-6 md:px-8 py-3 text-xs md:text-sm font-semibold tracking-[0.18em]
+              transition hover:-translate-y-0.5 hover:border-[#CE0028] hover:text-[#CE0028]
             "
           >
-            <Image
-              src="/images/categories-img.png"
-              alt="Categories"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
+            EXPLORE ALL
+          </Link>
         </motion.div>
+      </div>
+
+      {/* FULL WIDTH GRID (no left/right padding) */}
+      <div className="grid grid-cols-1 md:grid-cols-3">
+        {cards.map((c, idx) => (
+          <motion.div
+            key={c.title}
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{
+              duration: 0.45,
+              ease: [0.22, 1, 0.36, 1],
+              delay: idx * 0.06,
+            }}
+            className="relative"
+          >
+            <Link href={c.href} className="group relative block w-full overflow-hidden bg-black">
+              {/* fixed height = 600 desktop */}
+              <div className="relative h-[520px] md:h-[600px] w-full">
+                {/* image zoom on hover */}
+                <motion.div
+                  className="absolute inset-0"
+                  initial={{ scale: 1 }}
+                  whileHover={{ scale: 1.08 }}
+                  transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <Image
+                    src={c.image}
+                    alt={c.title}
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    priority={idx === 0}
+                  />
+                </motion.div>
+
+                {/* overlay */}
+                <div className="absolute inset-0 bg-black/0 transition duration-500 group-hover:bg-black/35" />
+
+                {/* bottom gradient for readability */}
+                <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+
+                {/* text block (animated on scroll + hover) */}
+                <motion.div
+                  initial={{ opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute left-7 right-7 bottom-7 text-white"
+                >
+                  {/* <div
+                    className="
+                      inline-flex items-center gap-2 rounded-full
+                      border border-white/25 bg-white/10
+                      px-3 py-1 text-[10px] tracking-[0.26em] uppercase text-white/90
+                    "
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: BRAND_RED }} />
+                    BLTDIF · DROP 01
+                  </div> */}
+
+                  <h3 className="mt-4 text-3xl md:text-[34px] font-semibold leading-tight">
+                    {c.title}
+                  </h3>
+
+                  <p className="mt-1.5 text-sm text-white/80 max-w-[26rem]">
+                    {c.subtitle}
+                  </p>
+
+                  <div className="mt-5 flex items-center justify-between">
+                    <span className="text-xs tracking-[0.22em] uppercase text-white/75">
+                      Shop now
+                    </span>
+
+                    <span
+                      className="
+                        h-[2px] w-10 bg-white/35
+                        transition-all duration-500
+                        group-hover:w-16
+                      "
+                    />
+                  </div>
+                </motion.div>
+
+                {/* accent line reveal */}
+                <div
+                  className="
+                    pointer-events-none absolute left-0 top-0 h-[3px] w-full
+                    opacity-0 transition duration-500 group-hover:opacity-100
+                  "
+                  style={{ background: `linear-gradient(90deg, ${BRAND_RED}, transparent)` }}
+                />
+              </div>
+            </Link>
+          </motion.div>
+        ))}
       </div>
     </section>
   );
 }
-
-
 
 
 // "use client";

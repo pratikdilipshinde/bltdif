@@ -68,7 +68,7 @@ export default function AboutPage() {
 
       {/* Mission / Vision blocks */}
       <section className="w-full bg-black/[0.02] border-y border-black/10">
-        <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+        <div className="mx-auto max-w-7xl px-4 py-12">
           <div className="grid gap-4 md:grid-cols-2">
             <Block
               title="Our Mission"
@@ -78,14 +78,13 @@ export default function AboutPage() {
               title="Our Vision"
               text="We dream of BLTDIF becoming your go-to brand — bold, timeless, and personal. Our aim is to set trends, shape the market, and make every piece you wear reflect your style, comfort, and confidence."
             />
+            <Block
+              title="Our Goal"
+              text="We help you show up confidently, express yourself, and turn everyday moments into conversations."
+            />
           </div>
 
-          <div className="mt-6 rounded-xs border border-black/10 bg-white p-6">
-            <p className="text-sm text-black/70 leading-relaxed">
-              <span className="font-semibold">Our goal:</span> help you show up confidently, express yourself,
-              and turn everyday moments into conversations.
-            </p>
-          </div>
+          
         </div>
       </section>
 
