@@ -186,7 +186,7 @@ export default function AuthModal({
                         }}
                         className="mt-3"
                       >
-                        <h2 className="text-[26px] md:text-[28px] font-semibold text-black leading-tight">
+                        <h2 className="text-[20px] md:text-[28px] font-semibold text-black leading-tight">
                           {isRegister ? "Create your account" : "Welcome back"}
                         </h2>
 
