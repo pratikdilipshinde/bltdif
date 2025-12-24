@@ -80,7 +80,7 @@ export default function HeroSection() {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="max-w-4xl"
           >
-            <h1 className="text-white text-4xl md:text-6xl font-bold tracking-[0.75rem]">
+            <h1 className="text-white text-2xl md:text-6xl font-bold tracking-[0.65rem]">
               {slide.title}
             </h1>
 
@@ -90,7 +90,7 @@ export default function HeroSection() {
 
             <Link
               href={slide.href}
-              className="inline-flex mt-8 items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-semibold text-black hover:bg-[#CE0028] hover:text-white transition"
+              className="inline-flex mt-8 items-center justify-center rounded-full bg-white px-6 py-2 md:px-8 md:py-3 text-sm font-semibold text-black hover:bg-[#CE0028] hover:text-white transition"
             >
               {slide.cta}
             </Link>

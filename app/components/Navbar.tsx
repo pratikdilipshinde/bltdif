@@ -41,7 +41,7 @@ export default function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-40 bg-white">
-        <nav className="flex items-center justify-between px-4 py-3 md:grid md:grid-cols-3 md:px-6 md:py-4">
+        <nav className="flex items-center justify-between px-2 py-2 md:grid md:grid-cols-3 md:px-6 md:py-4">
           {/* LEFT */}
           <div className="flex items-center gap-3 md:gap-6">
             {/* Mobile hamburger */}
@@ -49,12 +49,12 @@ export default function Navbar() {
               type="button"
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               onClick={toggleMenu}
-              className="md:hidden inline-flex items-center justify-center rounded-xs p-2 text-black hover:bg-black/5"
+              className="md:hidden inline-flex items-center justify-center rounded-xs p-1 md:p-2 text-black hover:bg-black/5"
             >
               {isMenuOpen ? (
-                <X className="h-5 w-5" strokeWidth={1.8} />
+                <X className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.8} />
               ) : (
-                <Menu className="h-5 w-5" strokeWidth={1.8} />
+                <Menu className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.8} />
               )}
             </button>
 
@@ -91,28 +91,28 @@ export default function Navbar() {
                 width={140}
                 height={40}
                 priority
-                className="h-6 w-auto md:h-7 select-none"
+                className="h-4 w-auto md:h-7 select-none"
               />
             </Link>
           </div>
 
           {/* RIGHT */}
-          <div className="flex items-center justify-end gap-0 md:gap-5 text-black">
+          <div className="flex items-center justify-end gap-1 md:gap-5 text-black">
             <button
               aria-label="Account"
               onClick={openAuth}
-              className="rounded-xs p-2 hover:bg-black/5"
+              className="rounded-xs p-1 md:p-2 hover:bg-black/5"
             >
-              <User className="h-5 w-5" strokeWidth={1.8} />
+              <User className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.8} />
             </button>
 
             <span className="hidden md:inline-block h-6 w-px bg-black/70" />
 
             <button
               aria-label="Cart"
-              className="rounded-xs p-2 hover:bg-black/5"
+              className="rounded-xs p-1 md:p-2 hover:bg-black/5"
             >
-              <ShoppingBag className="h-5 w-5" strokeWidth={1.8} />
+              <ShoppingBag className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.8} />
             </button>
           </div>
         </nav>
