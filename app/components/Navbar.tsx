@@ -83,7 +83,7 @@ export default function Navbar() {
           </div>
 
           {/* CENTER: logo image */}
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center pl-8 md:pl-4">
             <Link href="/" aria-label="BLTDIF Home" className="relative">
               <Image
                 src="/images/Logo.png"
