@@ -34,7 +34,7 @@ const footerLinks = [
 ];
 
 const socials = [
-  { label: "Instagram", href: "https://instagram.com/", icon: Instagram },
+  { label: "Instagram", href: "https://www.instagram.com/bltdif.co?igsh=MWQxeHJ4ZmI0cTFqbQ==", icon: Instagram },
   { label: "X / Twitter", href: "https://x.com/", icon: Twitter },
   { label: "YouTube", href: "https://youtube.com/", icon: Youtube },
   { label: "Email", href: "mailto:hello@bltdif.com", icon: Mail },
