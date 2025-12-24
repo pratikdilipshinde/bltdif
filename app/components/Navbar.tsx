@@ -91,7 +91,7 @@ export default function Navbar() {
                 width={140}
                 height={40}
                 priority
-                className="h-4 w-auto md:h-7 select-none"
+                className="h-4 w-auto md:h-6 select-none"
               />
             </Link>
           </div>

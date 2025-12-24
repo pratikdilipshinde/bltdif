@@ -48,7 +48,7 @@ export default function CategoriesSection() {
             className="
               inline-flex items-center justify-center
               rounded-full border border-black/60 bg-white text-black/60
-              px-6 md:px-8 py-3 text-xs md:text-sm font-semibold tracking-[0.18em]
+              px-6 py-2 md:px-8 md:py-3 text-xs md:text-sm font-semibold tracking-[0.18em]
               transition hover:-translate-y-0.5 hover:border-[#CE0028] hover:text-[#CE0028]
             "
           >

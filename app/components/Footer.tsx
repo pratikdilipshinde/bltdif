@@ -56,7 +56,7 @@ export default function Footer() {
                 alt="BLTDIF"
                 width={160}
                 height={44}
-                className="h-8 w-auto select-none"
+                className="h-4 md:h-6 w-auto select-none"
                 priority
               />
             </Link>
