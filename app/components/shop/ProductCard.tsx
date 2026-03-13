@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { Product } from "../../lib/shop/types";
 import { BRAND_RED } from "../../lib/shop/catalog";
 
+
+
 export default function ProductCard({ product }: { product: Product }) {
   const isOut = product.availability === "Out of Stock";
 
