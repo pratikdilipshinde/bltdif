@@ -49,7 +49,7 @@ export default function Footer() {
         {/* Top grid */}
         <div className="grid gap-10 md:grid-cols-12">
           {/* Brand */}
-          <div className="md:col-span-4">
+          <div className="md:col-span-6">
             <Link href="/" aria-label="BLTDIF Home" className="inline-flex">
               <Image
                 src="/images/Logo.png"
@@ -113,7 +113,7 @@ export default function Footer() {
           </div>
 
           {/* Newsletter */}
-          <div className="md:col-span-2">
+          {/* <div className="md:col-span-2">
             <p className="text-xs font-semibold tracking-[0.22em] uppercase text-black">
               Drop Alerts
             </p>
@@ -141,7 +141,7 @@ export default function Footer() {
                 No spam. Unsubscribe anytime.
               </p>
             </form>
-          </div>
+          </div> */}
         </div>
 
         {/* Divider */}

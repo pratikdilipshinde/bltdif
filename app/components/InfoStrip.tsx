@@ -28,7 +28,7 @@ const items = [
 export default function InfoStrip() {
   return (
     <section className="bg-white my-4">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-full">
         <div className="grid grid-cols-2 md:grid-cols-4 border border-black/10 bg-black/5">
           {items.map((it, idx) => {
             const Icon = it.icon;

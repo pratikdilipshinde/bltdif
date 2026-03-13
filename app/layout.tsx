@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { Manrope } from "next/font/google";
+import { AuthProvider } from "./providers/AuthProvider";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -11,7 +12,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "BLTDIF | Build Different",
+  title: "BLTDIF | Built Different",
   description: "Modern streetwear and performance apparel by Build Different (BLTDIF).",
 };
 
@@ -24,9 +25,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-black text-neutral-100">
         <div className="flex min-h-screen flex-col">
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          
+          <main className="flex-1"><AuthProvider><Navbar />{children}<Footer /></AuthProvider></main>
+          
         </div>
       </body>
     </html>

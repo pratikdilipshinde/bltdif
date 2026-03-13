@@ -69,6 +69,22 @@ export default function Hero() {
   const slides: Slide[] = useMemo(
     () => [
       {
+        key: "main",
+        bgClass: "bg-gradient-to-br from-[#CE0028] via-[#CE0028] to-[#af0127]",
+        glowClass: "absolute -right-28 top-10 h-96 w-96 rounded-full bg-black/25 blur-3xl",
+        tagline: "BLTDIF · Products",
+        titleTop: "Clothes Built Different",
+        titleEmphasis: "for people who build different",
+        desc:
+          "Oversized tees, hoodies, and essentials crafted with intent. Minimal branding. Maximum quality.",
+        primaryHref: "/",
+        primaryLabel: "Shop Products",
+        secondaryHref: "/products",
+        secondaryLabel: "View All",
+        chips: ["Premium Cotton", "Oversized Fits", "Limited Drop"],
+        imageSrc: "/images/Hero-main.png",
+      },
+      {
         key: "tshirts",
         bgClass: "bg-gradient-to-br from-[#CE0028] via-[#CE0028] to-[#af0127]",
         glowClass: "absolute -right-28 top-10 h-96 w-96 rounded-full bg-black/25 blur-3xl",
