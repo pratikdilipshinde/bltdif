@@ -10,8 +10,6 @@ export default function ProductCard({ product }: { product: Product }) {
   const isOut = product.availability === "Out of Stock";
 
   return (
-    
-    
       <Link
         href={`/products/${product.id}`} // later you can make real product pages
         className="
