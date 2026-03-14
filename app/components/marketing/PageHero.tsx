@@ -41,7 +41,7 @@ export default function PageHero({
         {/* <p className="text-[11px] font-semibold tracking-[0.30em] uppercase text-white/75">
           {kicker}
         </p> */}
-        <h1 className="mt-4 mb-[-2%] md:mb-[-1.3%] text-4xl md:text-7xl tracking-[0.28rem] font-semibold align-text-bottom text-white leading-tight">
+        <h1 className="mt-4 mb-[-2.1%] md:mb-[-1.3%] text-4xl md:text-7xl tracking-[0.28rem] font-semibold align-text-bottom text-white leading-tight">
           {title}
         </h1>
         {/* <p className="mt-4 max-w-2xl text-sm md:text-[15px] leading-relaxed text-white/80">
