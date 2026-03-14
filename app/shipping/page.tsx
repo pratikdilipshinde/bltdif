@@ -11,9 +11,10 @@ export default function ShippingPage() {
     <main className="bg-white">
       <PageHero
         kicker="BLTDIF · SHIPPING"
-        title="Shipping & Delivery"
+        title="SHIPPING & DELIVERY"
         subtitle="Fast dispatch, reliable delivery, and clear timelines — so you always know what to expect."
-        image="/images/shipping-hero.jpg"
+        //image="/images/shipping-hero.jpg"
+        image=""
         primaryCta={{ label: "Shop Drop 01", href: "/products" }}
         secondaryCta={{ label: "Contact Support", href: "/contact" }}
       />

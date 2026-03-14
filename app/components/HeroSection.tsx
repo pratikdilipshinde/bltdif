@@ -79,7 +79,7 @@ export default function HeroSection() {
               height={100}
               priority
               sizes="(max-width: 640px) 100px, (max-width: 768px) 140px, (max-width: 1024px) 180px, 250px"
-              className="w-[100px] sm:w-[120px] md:w-[180px] lg:w-[220px] xl:w-[250px] h-auto object-contain"
+              className="w-[100px] sm:w-[300px] md:w-[180px] lg:w-[220px] xl:w-[250px] h-auto object-contain"
             />
           </motion.div>
         </AnimatePresence>

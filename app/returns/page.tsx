@@ -11,7 +11,7 @@ export default function ReturnsPage() {
     <main className="bg-white">
       <PageHero
         kicker="BLTDIF · RETURNS"
-        title="Returns & Exchanges"
+        title="RETURNS & EXCHANGES"
         subtitle="We keep it simple: unworn, tagged, and within the return window — we’ll take care of the rest."
         image="/images/returns-hero.jpg"
         primaryCta={{ label: "Contact Support", href: "/contact" }}

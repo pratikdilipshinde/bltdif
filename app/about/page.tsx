@@ -11,9 +11,10 @@ export default function AboutPage() {
     <main className="bg-white">
       <PageHero
         kicker="BLTDIF · BRAND"
-        title="Built Different."
+        title="ABOUT US!"
         subtitle="Modern streetwear with contemporary formals — premium fabrics, minimal branding, and comfort-first silhouettes that make a statement without trying too hard."
-        image="/images/about-hero.jpg"
+        //image="/images/about-hero.jpg"
+        image=""
         primaryCta={{ label: "Shop Drop 01", href: "/products" }}
         secondaryCta={{ label: "Contact Us", href: "/contact" }}
       />

@@ -21,9 +21,13 @@ export default function PageHero({
   return (
     <section className="relative w-full overflow-hidden bg-black">
       {/* background image */}
-      <div className="absolute inset-0">
-        <Image src={image} alt={title} fill className="object-cover object-top-left" priority />
-        <div className="absolute inset-0 bg-black/45" />
+      <div className="absolute inset-0 bg-[#CE0028]">
+        {/* <div className="bg-[]">
+
+        </div> */}
+        {/* <Image src={color} alt={title} fill className="object-cover object-top-left" priority /> */}
+        
+        <div className="absolute inset-0 bg-black/0" />
         {/* <div
           className="absolute inset-0"
           style={{
@@ -33,18 +37,18 @@ export default function PageHero({
         /> */}
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 py-16 md:py-24">
-        <p className="text-[11px] font-semibold tracking-[0.30em] uppercase text-white/75">
+      <div className="relative mx-auto max-w-7xl px-4 pt-16 md:pt-36 pb-0 mb-0">
+        {/* <p className="text-[11px] font-semibold tracking-[0.30em] uppercase text-white/75">
           {kicker}
-        </p>
-        <h1 className="mt-4 text-4xl md:text-5xl tracking-[0.28rem] lg:text-6xl font-semibold text-white leading-tight">
+        </p> */}
+        <h1 className="mt-4 mb-[-1.9%] md:mb-[-1.3%] text-4xl md:text-7xl tracking-[0.28rem] font-semibold align-text-bottom text-white leading-tight">
           {title}
         </h1>
-        <p className="mt-4 max-w-2xl text-sm md:text-[15px] leading-relaxed text-white/80">
+        {/* <p className="mt-4 max-w-2xl text-sm md:text-[15px] leading-relaxed text-white/80">
           {subtitle}
-        </p>
+        </p> */}
 
-        {(primaryCta || secondaryCta) && (
+        {/* {(primaryCta || secondaryCta) && (
           <div className="mt-8 flex flex-wrap gap-3">
             {primaryCta ? (
               <Link
@@ -65,7 +69,7 @@ export default function PageHero({
               </Link>
             ) : null}
           </div>
-        )}
+        )} */}
       </div>
     </section>
   );

@@ -19,7 +19,7 @@ export default function SizeGuidePage() {
     <main className="bg-white">
       <PageHero
         kicker="BLTDIF · FIT"
-        title="Size Guide"
+        title="SIZE GUIDE"
         subtitle="Choose the fit you want — regular, relaxed, or oversized. Use these measurements as a reference."
         image="/images/size-hero.jpg"
         primaryCta={{ label: "Shop T-Shirts", href: "/t-shirts" }}
