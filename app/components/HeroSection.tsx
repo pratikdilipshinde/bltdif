@@ -60,7 +60,7 @@ export default function HeroSection() {
       </AnimatePresence>
 
       {/* DARK OVERLAY */}
-      <div className="absolute inset-0 bg-black/30 sm:bg-black/35" />
+      {/* <div className="absolute inset-0 bg-black/30 sm:bg-black/35" /> */}
 
       {/* HERO TITLE IMAGE */}
       <div className="absolute top-6 sm:top-8 md:top-10 lg:top-12 left-1/2 -translate-x-1/2 z-20 px-4">
