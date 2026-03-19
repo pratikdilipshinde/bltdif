@@ -31,7 +31,7 @@ export default function HeroSection() {
   const slide = slides[index];
 
   return (
-    <section className="relative w-full overflow-hidden h-[55vh] min-h-[420px] sm:h-[65vh] md:h-[78vh] lg:h-[88vh] xl:h-[96vh]">
+    <section className="relative w-full overflow-hidden h-[55vh] min-h-[420px] sm:h-[60vh] md:h-[78vh] lg:h-[88vh] xl:h-[96vh]">
       {/* IMAGE SLIDER */}
       <AnimatePresence mode="sync">
         <motion.div
