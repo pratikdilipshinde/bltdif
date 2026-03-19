@@ -31,7 +31,7 @@ export default function HeroSection() {
   const slide = slides[index];
 
   return (
-    <section className="relative w-full overflow-hidden h-[55vh] min-h-[420px] sm:h-[60vh] md:h-[78vh] lg:h-[88vh] xl:h-[96vh]">
+    <section className="relative w-full overflow-hidden h-[45vh] min-h-[400px] sm:h-[65vh] md:h-[78vh] lg:h-[88vh] xl:h-[96vh]">
       {/* IMAGE SLIDER */}
       <AnimatePresence mode="sync">
         <motion.div
@@ -78,8 +78,8 @@ export default function HeroSection() {
               width={350}
               height={100}
               priority
-              sizes="(max-width: 640px) 100px, (max-width: 768px) 140px, (max-width: 1024px) 180px, 250px"
-              className="w-[100px] sm:w-[300px] md:w-[180px] lg:w-[220px] xl:w-[250px] h-auto object-contain"
+              sizes="(max-width: 640px) 150px, (max-width: 768px) 150px, (max-width: 1024px) 180px, 250px"
+              className="w-[150px] sm:w-[150px] md:w-[150px] lg:w-[220px] xl:w-[250px] h-auto object-contain"
             />
           </motion.div>
         </AnimatePresence>
