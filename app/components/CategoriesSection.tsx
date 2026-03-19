@@ -11,19 +11,19 @@ const cards = [
     title: "T-Shirts",
     subtitle: "Clean silhouettes. Premium hand-feel.",
     href: "/t-shirts",
-    image: "/images/photo-10.jpg",
+    image: "/images/tshirt-category-img.png",
   },
   {
     title: "Hoodies",
     subtitle: "Heavyweight fits. Minimal branding.",
     href: "/hoodies",
-    image: "/images/photo-11.jpg",
+    image: "/images/hoodie-category-img.png",
   },
   {
     title: "Caps",
     subtitle: "Everyday essential. Built different.",
     href: "/caps",
-    image: "/images/caps-5.jpg",
+    image: "/images/cap-category-img.png",
   },
 ];
 
