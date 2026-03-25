@@ -45,14 +45,14 @@ function PhotoTile({
 
 export default function PhotosSection() {
   return (
-    <section className="bg-black pb-6">
-      <BrandMarquee />
+    <section className="bg-black">
+      {/* <BrandMarquee /> */}
 
-      <div className="px-2 md:px-2">
+      <div className="">
         <div className="flex flex-col gap-4">
           {/* Row 1 */}
-          <div className="grid gap-4 md:grid-cols-[400px_1fr]">
-            {/* Left (400w) */}
+          {/* <div className="grid gap-4 md:grid-cols-[400px_1fr]">
+             Left (400w) 
             <PhotoTile
               src="/images/photo-1.jpg"
               alt="Photo 1"
@@ -62,7 +62,7 @@ export default function PhotosSection() {
               className="h-[500px]"
             />
 
-            {/* Right (remaining width) */}
+             Right (remaining width) 
             <PhotoTile
               src="/images/photo-3.jpg"
               alt="Photo 2"
@@ -70,11 +70,11 @@ export default function PhotosSection() {
               delay={0.08}
               className="h-[320px] md:h-[500px]"
             />
-          </div>
+          </div> */}
 
           {/* Row 2 (full width) */}
           <PhotoTile
-            src="/images/photo-5.jpg"
+            src="/images/poster-img.png"
             alt="Photo 3"
             sizes="(min-width: 768px) 100vw, 100vw"
             delay={0.14}

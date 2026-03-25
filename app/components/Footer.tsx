@@ -52,7 +52,7 @@ export default function Footer() {
           <div className="md:col-span-6">
             <Link href="/" aria-label="BLTDIF Home" className="inline-flex">
               <Image
-                src="/images/Logo.png"
+                src="/images/Footer-Logo.png"
                 alt="BLTDIF"
                 width={160}
                 height={44}

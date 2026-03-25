@@ -9,21 +9,24 @@ const BRAND_RED = "#CE0028";
 const cards = [
   {
     title: "T-Shirts",
-    subtitle: "Clean silhouettes. Premium hand-feel.",
+    //subtitle: "Clean silhouettes. Premium hand-feel.",
+    subtitle:"",
     href: "/t-shirts",
-    image: "/images/tshirt-category-img.png",
+    image: "/images/tshirt-cat-img.png",
   },
   {
     title: "Hoodies",
-    subtitle: "Heavyweight fits. Minimal branding.",
+    //subtitle: "Heavyweight fits. Minimal branding.",
+    subtitle:"",
     href: "/hoodies",
-    image: "/images/hoodie-category-img.png",
+    image: "/images/hoodie-cat-img.png",
   },
   {
     title: "Caps",
-    subtitle: "Everyday essential. Built different.",
+    //subtitle: "Everyday essential. Built different.",
+    subtitle:"",
     href: "/caps",
-    image: "/images/cap-category-img.png",
+    image: "/images/cap-cat-img.png",
   },
 ];
 
@@ -31,7 +34,7 @@ export default function CategoriesSection() {
   return (
     <section className="relative bg-white overflow-hidden mb-10">
       {/* Header (centered) */}
-      <div className="mx-auto max-w-6xl">
+      {/* <div className="mx-auto max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -55,7 +58,7 @@ export default function CategoriesSection() {
             EXPLORE ALL
           </Link>
         </motion.div>
-      </div>
+      </div> */}
 
       {/* FULL WIDTH GRID (no left/right padding) */}
       <div className="grid grid-cols-1 md:grid-cols-3">
@@ -77,7 +80,7 @@ export default function CategoriesSection() {
               className="group relative block w-full overflow-hidden bg-black"
             >
               {/* fixed height = 600 desktop */}
-              <div className="relative h-[520px] md:h-[600px] w-full">
+              <div className="relative h-[400px] w-full">
                 {/* IMAGE WRAPPER:
                     - Mobile: zoom on scroll (whileInView)
                     - Desktop: zoom on hover (group-hover via class)
@@ -119,11 +122,11 @@ export default function CategoriesSection() {
                     {c.title}
                   </h3>
 
-                  <p className="mt-1.5 text-sm text-white/80 max-w-[26rem]">
+                  {/* <p className="mt-1.5 text-sm text-white/80 max-w-[26rem]">
                     {c.subtitle}
-                  </p>
+                  </p> */}
 
-                  <div className="mt-5 flex items-center justify-between">
+                  <div className="mt-2 flex items-center justify-between">
                     <span className="text-xs tracking-[0.22em] uppercase text-white/75">
                       Shop now
                     </span>

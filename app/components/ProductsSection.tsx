@@ -15,7 +15,7 @@ export default function ProductsSection() {
       <div className="mx-4">
         {/* Header */}
         <div className="relative text-center">
-          <div className="mb-2 mt-[-5px]">
+          <div className="mb-2 mt-8">
             <p className="text-sm tracking-[0.28em] text-black/50 uppercase">
               FEATURED
             </p>

@@ -44,12 +44,12 @@ export default function InfoStrip() {
                 ].join(" ")}
               >
                 <Icon className="h-8 w-8 text-black/90" strokeWidth={1.6} />
-                <p className="text-[11px] md:text-[12px] font-semibold tracking-[0.26em] text-[#CE0028] uppercase">
+                <p className="text-[11px] md:text-[12px] font-semibold tracking-[0.26em] text-black/90 uppercase">
                   {it.title}
                 </p>
-                <p className="max-w-[260px] text-[10px] md:text-[11px] tracking-[0.16em] text-black/55 uppercase leading-relaxed">
+                {/* <p className="max-w-[260px] text-[10px] md:text-[11px] tracking-[0.16em] text-black/55 uppercase leading-relaxed">
                   {it.desc}
-                </p>
+                </p> */}
               </div>
             );
           })}

@@ -3,6 +3,7 @@ import CategoryMarquee from "./components/CategoryMarquee";
 import Hero from "./components/Hero";
 import HeroSection from "./components/HeroSection";
 import InfoStrip from "./components/InfoStrip";
+import NewsletterSection from "./components/NewsletterSection";
 import PhotosSection from "./components/PhotosSection";
 import ProductsSection from "./components/ProductsSection";
 
@@ -13,8 +14,9 @@ export default function HomePage() {
       <HeroSection />
       <CategoryMarquee />
       <CategoriesSection />
-      <ProductsSection />
+      {/* <NewsletterSection /> */}
       <PhotosSection />
+      <ProductsSection />
       <InfoStrip />
       {/* later: product grid, etc. */}
     </>

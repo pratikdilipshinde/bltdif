@@ -8,7 +8,7 @@ const SLIDE_INTERVAL = 4500;
 
 const slides = [
   {
-    image: "/images/Hero-main.png",
+    image: "/images/Hero-main-img.png",
     title: "/images/Hero-title.png",
     subtitle: "",
     href: "/",
@@ -31,7 +31,7 @@ export default function HeroSection() {
   const slide = slides[index];
 
   return (
-    <section className="relative w-full overflow-hidden h-[45vh] min-h-[400px] sm:h-[65vh] md:h-[78vh] lg:h-[88vh] xl:h-[96vh]">
+    <section className="relative w-full overflow-hidden h-[65vh] md:h-[78vh] lg:h-[100dvh] -mt-[56px] md:-mt-[72px]">
       {/* IMAGE SLIDER */}
       <AnimatePresence mode="sync">
         <motion.div
@@ -63,7 +63,7 @@ export default function HeroSection() {
       {/* <div className="absolute inset-0 bg-black/30 sm:bg-black/35" /> */}
 
       {/* HERO TITLE IMAGE */}
-      <div className="absolute top-6 sm:top-8 md:top-10 lg:top-12 left-1/2 -translate-x-1/2 z-20 px-4">
+      {/* <div className="absolute top-6 sm:top-8 md:top-10 lg:top-12 left-1/2 -translate-x-1/2 z-20 px-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.title}
@@ -83,7 +83,7 @@ export default function HeroSection() {
             />
           </motion.div>
         </AnimatePresence>
-      </div>
+      </div> */}
 
       {/* OPTIONAL SUBTITLE */}
       {slide.subtitle && (
