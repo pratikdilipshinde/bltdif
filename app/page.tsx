@@ -14,7 +14,7 @@ export default function HomePage() {
       <HeroSection />
       <CategoryMarquee />
       <CategoriesSection />
-      {/* <NewsletterSection /> */}
+      <NewsletterSection />
       <PhotosSection />
       <ProductsSection />
       <InfoStrip />
