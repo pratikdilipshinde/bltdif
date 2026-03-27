@@ -17,7 +17,7 @@ export default function ProductsSection() {
         <div className="relative text-center">
           <div className="mb-2 mt-8">
             <p className="text-sm tracking-[0.28em] text-black/50 uppercase">
-              FEATURED
+              FEATURED CAPS
             </p>
           </div>
 
