@@ -11,7 +11,7 @@ export default function NewsletterSection() {
         </p>
 
         <h2
-          className="my-5 md:my-8 md:mb-10 max-w-full text-[24px] leading-[0.9] text-black sm:text-[24px] md:text-[48px] lg:text-[48px] xl:text-[48px]"
+          className="my-5 md:my-8 md:mb-10 max-w-full text-[21px] leading-[0.9] text-black sm:text-[24px] md:text-[48px] lg:text-[48px] xl:text-[48px]"
           style={{
             fontFamily: '"Instrument Serif", serif',
             transform: "scaleY(1.4)",

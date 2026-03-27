@@ -71,7 +71,7 @@ export default function Navbar() {
             <Link href="/" aria-label="BLTDIF Home" className="relative">
               <div className="relative h-5 w-[80px] md:h-6 md:w-[100px]">
                 <Image
-                  src="/images/logo-white.png"
+                  src="/images/Logo-white.png"
                   alt="BLTDIF White Logo"
                   fill
                   priority
