@@ -32,15 +32,56 @@ const swapVariants = {
   }),
 };
 
-function getErrorMessage(payload: any) {
-  if (!payload) return "Something went wrong.";
-  if (typeof payload === "string") return payload;
-  if (payload.error && typeof payload.error === "string") return payload.error;
-  if (payload.message && typeof payload.message === "string") return payload.message;
-  return "Something went wrong.";
+function getErrorMessage(payload: any, isRegister: boolean) {
+  if (!payload) {
+    return "Something went wrong. Please try again.";
+  }
+
+  const raw =
+    typeof payload === "string"
+      ? payload
+      : payload.error || payload.message || payload.msg || "";
+
+  if (!raw || typeof raw !== "string") {
+    return "Something went wrong. Please try again.";
+  }
+
+  const msg = raw.toLowerCase();
+
+  if (msg.includes("invalid login credentials")) {
+    return "Invalid email or password.";
+  }
+
+  if (msg.includes("email not confirmed")) {
+    return "Please verify your email before logging in.";
+  }
+
+  if (msg.includes("user already registered") || msg.includes("already exists")) {
+    return "An account with this email already exists. Please login instead.";
+  }
+
+  if (msg.includes("password should be at least")) {
+    return "Password must be at least 8 characters.";
+  }
+
+  if (msg.includes("unable to validate email address") || msg.includes("invalid email")) {
+    return "Please enter a valid email address.";
+  }
+
+  if (msg.includes("network")) {
+    return "Network issue detected. Please try again.";
+  }
+
+  return isRegister
+    ? "Unable to create your account right now. Please try again."
+    : "Unable to log you in right now. Please try again.";
 }
 
-export default function AuthModal({ open, onClose, defaultMode = "register" }: Props) {
+export default function AuthModal({
+  open,
+  onClose,
+  defaultMode = "register",
+}: Props) {
   const router = useRouter();
   const { refresh } = useAuth();
 
@@ -59,6 +100,7 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
 
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const isRegister = mode === "register";
 
@@ -76,12 +118,24 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
     if (emailInvalid) return false;
 
     if (isRegister) {
+      if (!firstname.trim() || !lastname.trim()) return false;
       if (password.length < 8) return false;
       if (!confirmPassword) return false;
       if (passwordMismatch) return false;
     }
+
     return true;
-  }, [loading, email, password, emailInvalid, isRegister, confirmPassword, passwordMismatch]);
+  }, [
+    loading,
+    email,
+    password,
+    emailInvalid,
+    isRegister,
+    firstname,
+    lastname,
+    confirmPassword,
+    passwordMismatch,
+  ]);
 
   useEffect(() => {
     if (!open) return;
@@ -111,6 +165,7 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
     setConfirmPassword("");
 
     setFormError(null);
+    setSuccessMessage(null);
     setLoading(false);
   };
 
@@ -130,11 +185,64 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
     resetFields();
   };
 
+  const clearErrorOnChange =
+    (setter: React.Dispatch<React.SetStateAction<string>>) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (formError) setFormError(null);
+      if (successMessage) setSuccessMessage(null);
+      setter(e.target.value);
+    };
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
+    setSuccessMessage(null);
 
-    if (!canSubmit) return;
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedFirst = firstname.trim();
+    const trimmedLast = lastname.trim();
+
+    if (!trimmedEmail) {
+      setFormError("Email is required.");
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      setFormError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!password) {
+      setFormError("Password is required.");
+      return;
+    }
+
+    if (isRegister) {
+      if (!trimmedFirst) {
+        setFormError("First name is required.");
+        return;
+      }
+
+      if (!trimmedLast) {
+        setFormError("Last name is required.");
+        return;
+      }
+
+      if (password.length < 8) {
+        setFormError("Password must be at least 8 characters.");
+        return;
+      }
+
+      if (!confirmPassword) {
+        setFormError("Please confirm your password.");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setFormError("Passwords do not match.");
+        return;
+      }
+    }
 
     try {
       setLoading(true);
@@ -143,13 +251,13 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
 
       const payload = isRegister
         ? {
-            firstname: firstname.trim() || null,
-            lastname: lastname.trim() || null,
-            email: email.trim(),
+            firstname: trimmedFirst,
+            lastname: trimmedLast,
+            email: trimmedEmail,
             password,
           }
         : {
-            email: email.trim(),
+            email: trimmedEmail,
             password,
           };
 
@@ -159,23 +267,36 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json().catch(() => null);
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
 
       if (!res.ok) {
-        setFormError(getErrorMessage(data));
-        setLoading(false);
+        setFormError(getErrorMessage(data, isRegister));
         return;
       }
 
-      // ✅ update navbar instantly
-      await refresh();
+      if (isRegister) {
+        setSuccessMessage(
+          "Account created successfully. Please check your email to verify your account."
+        );
+        setPassword("");
+        setConfirmPassword("");
+        return;
+      }
 
-      setLoading(false);
+      await refresh();
+      resetFields();
       onClose();
       router.refresh();
-    } catch {
+    } catch (error) {
+      console.error("Auth submit error:", error);
+      setFormError("Network error. Please check your connection and try again.");
+    } finally {
       setLoading(false);
-      setFormError("Network error. Please try again.");
     }
   }
 
@@ -183,7 +304,6 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
     <AnimatePresence>
       {open && (
         <>
-          {/* Overlay */}
           <motion.button
             aria-label="Close modal overlay"
             className="fixed inset-0 z-[90] cursor-default bg-black/45"
@@ -193,14 +313,12 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
             onClick={onClose}
           />
 
-          {/* Center wrapper */}
           <motion.div
             className="fixed inset-0 z-[95] flex items-center justify-center p-3 md:p-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Modal */}
             <motion.div
               onClick={(e) => e.stopPropagation()}
               initial={{ y: 16, opacity: 0, scale: 0.99 }}
@@ -216,18 +334,15 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                 h-[min(78vh,600px)] md:h-[min(90vh,600px)]
               "
             >
-              {/* Close button */}
               <button
                 aria-label="Close"
                 onClick={onClose}
-                className="absolute right-3 top-3 z-20 rounded-xs p-2 hover:bg-black/5 transition"
+                className="absolute right-3 top-3 z-20 rounded-xs p-2 transition hover:bg-black/5"
               >
                 <X className="h-5 w-5 text-black/45" />
               </button>
 
-              {/* Body */}
               <div className="grid h-full grid-cols-1 md:grid-cols-2">
-                {/* Content side */}
                 <div
                   className={`
                     ${isRegister ? "md:order-2" : "md:order-1"}
@@ -235,8 +350,11 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                     flex flex-col overflow-y-auto
                   `}
                 >
-                  <div className="flex items-center mx-auto gap-3">
-                    <span className="inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: BRAND_RED }} />
+                  <div className="mx-auto flex items-center gap-3">
+                    <span
+                      className="inline-flex h-2 w-2 rounded-full"
+                      style={{ backgroundColor: BRAND_RED }}
+                    />
                     <p className="text-[11px] font-semibold tracking-[0.26em] text-black/60">
                       BLTDIF · ACCOUNT
                     </p>
@@ -251,7 +369,7 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                     </Tab>
                   </div>
 
-                  <div className="flex-1 flex flex-col">
+                  <div className="flex flex-1 flex-col">
                     <AnimatePresence mode="wait" custom={dir}>
                       <motion.div
                         key={mode}
@@ -263,11 +381,11 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                         className="mt-3"
                       >
-                        <h2 className="text-[20px] md:text-[28px] font-semibold text-black leading-tight">
+                        <h2 className="leading-tight text-[20px] font-semibold text-black md:text-[28px]">
                           {isRegister ? "Create your account" : "Welcome back"}
                         </h2>
 
-                        <p className="mt-1.5 text-[13px] text-black/60 leading-relaxed">
+                        <p className="mt-1.5 text-[13px] leading-relaxed text-black/60">
                           {isRegister
                             ? "Create an account to checkout faster."
                             : "Login to manage your cart and checkout faster."}
@@ -280,19 +398,25 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                             </div>
                           ) : null}
 
+                          {successMessage ? (
+                            <div className="rounded-xs border border-green-500/25 bg-green-50 px-3 py-2 text-[13px] text-green-700">
+                              {successMessage}
+                            </div>
+                          ) : null}
+
                           {isRegister && (
                             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                               <Field
                                 label="First name"
                                 placeholder="First Name"
                                 value={firstname}
-                                onChange={(e) => setFirstname(e.target.value)}
+                                onChange={clearErrorOnChange(setFirstname)}
                               />
                               <Field
                                 label="Last name"
                                 placeholder="Last Name"
                                 value={lastname}
-                                onChange={(e) => setLastname(e.target.value)}
+                                onChange={clearErrorOnChange(setLastname)}
                               />
                             </div>
                           )}
@@ -302,7 +426,7 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                             placeholder="you@domain.com"
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={clearErrorOnChange(setEmail)}
                             error={emailInvalid ? "Please enter a valid email" : undefined}
                           />
 
@@ -312,15 +436,19 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                               placeholder="••••••••"
                               type={showPwd ? "text" : "password"}
                               value={password}
-                              onChange={(e) => setPassword(e.target.value)}
+                              onChange={clearErrorOnChange(setPassword)}
                               right={
                                 <button
                                   type="button"
                                   onClick={() => setShowPwd(!showPwd)}
-                                  className="rounded-xs p-2 text-black/60 hover:bg-black/5 hover:text-black transition"
+                                  className="rounded-xs p-2 text-black/60 transition hover:bg-black/5 hover:text-black"
                                   aria-label={showPwd ? "Hide password" : "Show password"}
                                 >
-                                  {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  {showPwd ? (
+                                    <EyeOff className="h-4 w-4" />
+                                  ) : (
+                                    <Eye className="h-4 w-4" />
+                                  )}
                                 </button>
                               }
                             />
@@ -331,16 +459,24 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                                 placeholder="Create a password"
                                 type={showPwd ? "text" : "password"}
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                error={password && password.length < 8 ? "Min 8 characters" : undefined}
+                                onChange={clearErrorOnChange(setPassword)}
+                                error={
+                                  password && password.length < 8
+                                    ? "Min 8 characters"
+                                    : undefined
+                                }
                                 right={
                                   <button
                                     type="button"
                                     onClick={() => setShowPwd(!showPwd)}
-                                    className="rounded-xs p-2 text-black/60 hover:bg-black/5 hover:text-black transition"
+                                    className="rounded-xs p-2 text-black/60 transition hover:bg-black/5 hover:text-black"
                                     aria-label={showPwd ? "Hide password" : "Show password"}
                                   >
-                                    {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    {showPwd ? (
+                                      <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                      <Eye className="h-4 w-4" />
+                                    )}
                                   </button>
                                 }
                               />
@@ -350,16 +486,24 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                                 placeholder="Confirm password"
                                 type={showCnfmPwd ? "text" : "password"}
                                 value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                error={passwordMismatch ? "Passwords do not match" : undefined}
+                                onChange={clearErrorOnChange(setConfirmPassword)}
+                                error={
+                                  passwordMismatch ? "Passwords do not match" : undefined
+                                }
                                 right={
                                   <button
                                     type="button"
                                     onClick={() => setShowCnfmPwd(!showCnfmPwd)}
-                                    className="rounded-xs p-2 text-black/60 hover:bg-black/5 hover:text-black transition"
-                                    aria-label={showCnfmPwd ? "Hide password" : "Show password"}
+                                    className="rounded-xs p-2 text-black/60 transition hover:bg-black/5 hover:text-black"
+                                    aria-label={
+                                      showCnfmPwd ? "Hide password" : "Show password"
+                                    }
                                   >
-                                    {showCnfmPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    {showCnfmPwd ? (
+                                      <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                      <Eye className="h-4 w-4" />
+                                    )}
                                   </button>
                                 }
                               />
@@ -369,23 +513,39 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                           {!isRegister ? (
                             <div className="flex items-center justify-between pt-0.5">
                               <label className="flex items-center gap-2 text-[13px] text-black/60">
-                                <input type="checkbox" className="h-4 w-4 accent-[#CE0028]" />
+                                <input
+                                  type="checkbox"
+                                  className="h-4 w-4 accent-[#CE0028]"
+                                />
                                 Remember me
                               </label>
                               <button
                                 type="button"
-                                className="text-[13px] text-black/60 hover:text-black transition"
-                                onClick={() => setFormError("Forgot password not wired yet.")}
+                                className="text-[13px] text-black/60 transition hover:text-black"
+                                onClick={() =>
+                                  setFormError("Forgot password not wired yet.")
+                                }
                               >
                                 Forgot password?
                               </button>
                             </div>
                           ) : (
-                            <label className="flex items-start gap-2 text-[13px] text-black/60 pt-0.5">
-                              <input type="checkbox" className="mt-1 h-4 w-4 accent-[#CE0028]" required />
+                            <label className="flex items-start gap-2 pt-0.5 text-[13px] text-black/60">
+                              <input
+                                type="checkbox"
+                                className="mt-1 h-4 w-4 accent-[#CE0028]"
+                                required
+                              />
                               <span className="leading-relaxed">
-                                I agree to the <span className="text-black underline underline-offset-4">Terms</span> and{" "}
-                                <span className="text-black underline underline-offset-4">Privacy Policy</span>.
+                                I agree to the{" "}
+                                <span className="text-black underline underline-offset-4">
+                                  Terms
+                                </span>{" "}
+                                and{" "}
+                                <span className="text-black underline underline-offset-4">
+                                  Privacy Policy
+                                </span>
+                                .
                               </span>
                             </label>
                           )}
@@ -405,7 +565,7 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
 
                           <Divider />
 
-                          <SecondaryButton label="Continue with Google" />
+                          {/* <SecondaryButton label="Continue with Google" /> */}
 
                           <p className="pt-0.5 text-center text-[13px] text-black/60">
                             {isRegister ? "Already have an account?" : "New here?"}{" "}
@@ -425,11 +585,10 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                   </div>
                 </div>
 
-                {/* Image side */}
                 <div
                   className={`
                     ${isRegister ? "md:order-1" : "md:order-2"}
-                    hidden md:block relative h-full overflow-hidden
+                    relative hidden h-full overflow-hidden md:block
                   `}
                 >
                   <AnimatePresence mode="popLayout" custom={dir}>
@@ -443,12 +602,19 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
                       transition={{ duration: 0.15, ease: [0.15, 1, 0.25, 1] }}
                       className="absolute inset-0"
                     >
-                      <Image src={AUTH_IMAGE} alt="BLTDIF" fill className="object-cover" priority />
+                      <Image
+                        src={AUTH_IMAGE}
+                        alt="BLTDIF"
+                        fill
+                        className="object-cover"
+                        priority
+                      />
 
                       <div
                         className="absolute inset-0"
                         style={{
-                          background: "linear-gradient(135deg, rgba(0,0,0,0.08), rgba(206,0,40,0.08))",
+                          background:
+                            "linear-gradient(135deg, rgba(0,0,0,0.08), rgba(206,0,40,0.08))",
                         }}
                       />
                     </motion.div>
@@ -463,20 +629,31 @@ export default function AuthModal({ open, onClose, defaultMode = "register" }: P
   );
 }
 
-/* ----------------------------- Small UI ----------------------------- */
-
-function Tab({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
+function Tab({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
   return (
-    <button onClick={onClick} className="relative rounded-xs py-2 text-[13px] font-semibold cursor-pointer">
+    <button
+      onClick={onClick}
+      className="relative cursor-pointer rounded-xs py-2 text-[13px] font-semibold"
+    >
       {active && (
         <motion.div
           layoutId="authTabRect"
           className="absolute inset-0 rounded-xs"
-          style={{ background: `black` }}
+          style={{ background: "black" }}
           transition={{ type: "spring", stiffness: 260, damping: 24 }}
         />
       )}
-      <span className={`relative z-10 ${active ? "text-white" : "text-black/70"}`}>{children}</span>
+      <span className={`relative z-10 ${active ? "text-white" : "text-black/70"}`}>
+        {children}
+      </span>
     </button>
   );
 }
@@ -500,7 +677,9 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-[13px] font-semibold text-black/85">{label}</label>
+      <label className="mb-1 block text-[13px] font-semibold text-black/85">
+        {label}
+      </label>
 
       <div className="relative">
         <input
@@ -512,11 +691,17 @@ function Field({
             w-full rounded-xs border bg-black/[0.03]
             px-4 py-2.5 pr-12 text-[13px] text-black placeholder:text-black/35
             outline-none transition
-            ${error ? "border-red-500/60 focus:border-red-500/70" : "border-black/10 focus:border-[#CE0028]/40"}
+            ${
+              error
+                ? "border-red-500/60 focus:border-red-500/70"
+                : "border-black/10 focus:border-[#CE0028]/40"
+            }
             focus:bg-black/[0.045]
           `}
         />
-        {right ? <div className="absolute right-2 top-1/2 -translate-y-1/2">{right}</div> : null}
+        {right ? (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">{right}</div>
+        ) : null}
       </div>
 
       {error ? <p className="mt-1 text-[12px] text-red-600">{error}</p> : null}
@@ -524,7 +709,13 @@ function Field({
   );
 }
 
-function PrimaryButton({ label, disabled }: { label: string; disabled?: boolean }) {
+function PrimaryButton({
+  label,
+  disabled,
+}: {
+  label: string;
+  disabled?: boolean;
+}) {
   return (
     <motion.button
       whileTap={{ scale: disabled ? 1 : 0.98 }}
@@ -534,9 +725,9 @@ function PrimaryButton({ label, disabled }: { label: string; disabled?: boolean 
       className={`
         w-full rounded-xs py-2.5 text-[13px] font-semibold text-white
         drop-shadow-md
-        ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
+        ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}
       `}
-      style={{ background: `black` }}
+      style={{ background: "black" }}
     >
       {label}
     </motion.button>
@@ -549,7 +740,7 @@ function SecondaryButton({ label }: { label: string }) {
       whileTap={{ scale: 0.98 }}
       whileHover={{ y: -1 }}
       type="button"
-      className="w-full rounded-xs border border-black/10 bg-white py-2.5 text-[13px] font-semibold text-black hover:bg-black/[0.02] transition"
+      className="w-full rounded-xs border border-black/10 bg-white py-2.5 text-[13px] font-semibold text-black transition hover:bg-black/[0.02]"
       onClick={() => alert("Google auth not wired yet.")}
     >
       {label}

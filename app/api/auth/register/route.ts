@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/app/lib/supabase/server";
 import { prisma } from "@/app/lib/prisma";
 
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ error: message }, { status });
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -11,18 +15,25 @@ export async function POST(req: Request) {
     const email = String(body.email ?? "").trim().toLowerCase();
     const password = String(body.password ?? "");
 
+    if (!firstname) {
+      return jsonError("First name is required.", 400);
+    }
+
+    if (!lastname) {
+      return jsonError("Last name is required.", 400);
+    }
+
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required." },
-        { status: 400 }
-      );
+      return jsonError("Email and password are required.", 400);
+    }
+
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(email)) {
+      return jsonError("Please enter a valid email address.", 400);
     }
 
     if (password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters." },
-        { status: 400 }
-      );
+      return jsonError("Password must be at least 8 characters.", 400);
     }
 
     const supabase = await createClient();
@@ -39,14 +50,31 @@ export async function POST(req: Request) {
     });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      const msg = error.message.toLowerCase();
+
+      if (msg.includes("user already registered")) {
+        return jsonError(
+          "An account with this email already exists. Please login instead.",
+          409
+        );
+      }
+
+      if (msg.includes("password")) {
+        return jsonError("Password must be at least 8 characters.", 400);
+      }
+
+      if (
+        msg.includes("invalid email") ||
+        msg.includes("unable to validate email")
+      ) {
+        return jsonError("Please enter a valid email address.", 400);
+      }
+
+      return jsonError(error.message || "Unable to create account.", 400);
     }
 
     if (!data.user) {
-      return NextResponse.json(
-        { error: "Unable to create account." },
-        { status: 500 }
-      );
+      return jsonError("Unable to create account.", 500);
     }
 
     await prisma.profile.upsert({
@@ -66,15 +94,17 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        message: "Account created successfully.",
+        message:
+          "Account created successfully. Please check your email to verify your account.",
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+        },
       },
       { status: 200 }
     );
   } catch (error) {
     console.error("REGISTER ERROR:", error);
-    return NextResponse.json(
-      { error: "Something went wrong during registration." },
-      { status: 500 }
-    );
+    return jsonError("Something went wrong during registration.", 500);
   }
 }

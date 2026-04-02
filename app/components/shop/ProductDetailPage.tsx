@@ -78,7 +78,7 @@ export default function ProductDetailPage({
           <h1 className="mt-3 max-w-4xl text-3xl font-semibold md:text-5xl">
             {product.name}
           </h1>
-          <p className="mt-3 text-sm text-white/75">{product.sku}</p>
+          <p className="mt-3 text-sm text-white/75">{product.type}</p>
           <p className="mt-4 text-xl font-semibold text-white md:text-2xl">
             ₹{product.price}
           </p>
