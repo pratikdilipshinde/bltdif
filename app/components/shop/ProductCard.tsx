@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Product } from "../../lib/shop/types";
-import { BRAND_RED } from "../../lib/shop/catalog";
+
+const BRAND_RED = "#CE0028";
 
 export default function ProductCard({ product }: { product: Product }) {
   const isOut = !product.availability;
