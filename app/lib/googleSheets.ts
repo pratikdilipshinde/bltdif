@@ -4,8 +4,12 @@ function getSheetsClient() {
   const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
-  if (!clientEmail || !privateKey) {
-    throw new Error("Google Sheets credentials are missing.");
+  if (!clientEmail) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_EMAIL is missing.");
+  }
+
+  if (!privateKey) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY is missing.");
   }
 
   const auth = new google.auth.JWT({
@@ -24,14 +28,26 @@ export async function appendOrderToSheet(row: (string | number)[]) {
     throw new Error("GOOGLE_SHEETS_SPREADSHEET_ID is missing.");
   }
 
-  const sheets = getSheetsClient();
+  try {
+    const sheets = getSheetsClient();
 
-  await sheets.spreadsheets.values.append({
-    spreadsheetId,
-    range: "Orders!A:P",
-    valueInputOption: "USER_ENTERED",
-    requestBody: {
-      values: [row],
-    },
-  });
+    const response = await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: "Orders!A:P",
+      valueInputOption: "USER_ENTERED",
+      insertDataOption: "INSERT_ROWS",
+      requestBody: {
+        values: [row],
+      },
+    });
+
+    console.log("Google Sheet append success:", response.data.updates);
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Google Sheet append failed:",
+      error?.response?.data || error?.message || error
+    );
+    throw error;
+  }
 }

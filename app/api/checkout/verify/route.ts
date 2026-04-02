@@ -30,9 +30,11 @@ export async function POST(req: Request) {
     }
 
     const secret = process.env.RAZORPAY_KEY_SECRET;
+
     if (!secret) {
+      console.error("RAZORPAY_KEY_SECRET is missing.");
       return NextResponse.json(
-        { success: false, error: "Razorpay secret is not configured." },
+        { success: false, error: "Payment verification is not configured." },
         { status: 500 }
       );
     }
@@ -43,6 +45,12 @@ export async function POST(req: Request) {
       .digest("hex");
 
     if (generatedSignature !== razorpay_signature) {
+      console.error("Invalid Razorpay signature.", {
+        internalOrderId,
+        razorpay_order_id,
+        razorpay_payment_id,
+      });
+
       return NextResponse.json(
         { success: false, error: "Invalid payment signature." },
         { status: 400 }
@@ -53,12 +61,12 @@ export async function POST(req: Request) {
       ? items
           .map(
             (item: any) =>
-              `${item.name} x${item.quantity} (₹${item.price})`
+              `${item?.name || "Item"} x${item?.quantity || 1} (₹${item?.price || 0})`
           )
           .join(" | ")
       : "";
 
-    await appendOrderToSheet([
+    const sheetRow = [
       internalOrderId,
       razorpay_payment_id,
       new Date().toISOString(),
@@ -75,14 +83,40 @@ export async function POST(req: Request) {
       amount ? amount / 100 : "",
       currency || "INR",
       "paid",
-    ]);
+    ];
 
-    return NextResponse.json({
-      success: true,
-      message: "Payment verified and order saved to Google Sheet.",
-    });
-  } catch (error) {
-    console.error("VERIFY_ERROR", error);
+    let sheetSaved = true;
+
+    try {
+      await appendOrderToSheet(sheetRow);
+      console.log("Google Sheet updated successfully.", {
+        internalOrderId,
+        razorpay_payment_id,
+      });
+    } catch (sheetError: any) {
+      sheetSaved = false;
+      console.error("Google Sheet append failed.", {
+        internalOrderId,
+        razorpay_payment_id,
+        error: sheetError?.response?.data || sheetError?.message || sheetError,
+      });
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: sheetSaved
+          ? "Payment verified and order saved successfully."
+          : "Payment verified successfully.",
+        paymentVerified: true,
+        orderLoggedToSheet: sheetSaved,
+        orderId: internalOrderId,
+        paymentId: razorpay_payment_id,
+      },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("VERIFY_ERROR", error?.message || error);
 
     return NextResponse.json(
       { success: false, error: "Server error while verifying payment." },
