@@ -16,7 +16,7 @@ type Props = {
 };
 
 const BRAND_RED = "#CE0028";
-const AUTH_IMAGE = "/images/Login-img.jpg";
+const AUTH_IMAGE = "/images/logged-in-img.jpg";
 
 const swapVariants = {
   enter: (dir: number) => ({

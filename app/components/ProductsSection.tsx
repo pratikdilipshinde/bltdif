@@ -53,7 +53,7 @@ export default function ProductsSection() {
         .from("products")
         .select("*")
         .eq("category", "Cap")
-        .limit(3); // ✅ only 3 cards
+        .limit(3);
 
       if (error) {
         console.error(error.message);
@@ -68,24 +68,31 @@ export default function ProductsSection() {
 
   return (
     <section className="bg-white pb-12">
-      {/* Header */}
-      <div className="text-center mt-8">
-        <p className="text-sm tracking-[0.28em] uppercase text-black/50">
+      <div className="mt-8 text-center">
+        <p className="text-sm uppercase tracking-[0.28em] text-black/50">
           FEATURED CAPS
         </p>
       </div>
 
-      {/* Grid */}
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex justify-center px-2">
         <div
-          className="
-            grid grid-cols-2 gap-3
-            md:grid-cols-3 md:gap-6
-            max-w-[1100px] w-full
-          "
+          className={
+            products.length < 4
+              ? "flex flex-wrap justify-center gap-3 md:gap-6 w-full max-w-[1100px]"
+              : "grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 max-w-[1100px] w-full"
+          }
         >
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <div
+              key={product.id}
+              className={
+                products.length < 4
+                  ? "w-[48%] md:w-[280px] xl:w-[290px]"
+                  : "w-full"
+              }
+            >
+              <ProductCard product={product} />
+            </div>
           ))}
         </div>
       </div>

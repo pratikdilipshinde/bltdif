@@ -155,9 +155,24 @@ export default function CollectionPage({
               No products found.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
+            <div
+              className={
+                filteredProducts.length < 4
+                  ? "flex flex-wrap justify-center gap-4 md:gap-6"
+                  : "grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4"
+              }
+            >
               {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <div
+                  key={product.id}
+                  className={
+                    filteredProducts.length < 4
+                      ? "w-[48%] md:w-[280px] xl:w-[290px]"
+                      : "w-full"
+                  }
+                >
+                  <ProductCard product={product} />
+                </div>
               ))}
             </div>
           )}

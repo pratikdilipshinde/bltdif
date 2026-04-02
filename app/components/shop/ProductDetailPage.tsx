@@ -310,37 +310,85 @@ export default function ProductDetailPage({
               </div>
 
               <div className="mt-6 flex gap-4 overflow-x-auto pb-2">
-                {similarProducts.map((p) => (
-                  <Link
-                    key={p.id}
-                    href={`/products/${p.sku}`}
-                    className="group relative w-[220px] flex-none overflow-hidden rounded-xs border border-black/10 bg-[#f7f7f7] p-4 transition hover:shadow-[0_18px_60px_rgba(0,0,0,0.08)]"
-                  >
-                    <div className="relative h-44 w-full">
-                      <Image
-                        src={p.image}
-                        alt={p.name}
-                        fill
-                        className="object-contain drop-shadow-[0_16px_35px_rgba(0,0,0,0.20)] transition duration-300 group-hover:scale-[1.06]"
-                      />
-                    </div>
+                {similarProducts.map((p) => {
+                  const isOut = !p.availability;
 
-                    <div className="mt-3 flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-black">{p.name}</p>
-                        <p className="mt-1 text-xs text-black/55">{p.sku}</p>
+                  return (
+                    <Link
+                      key={p.id}
+                      href={`/products/${p.sku}`}
+                      className="group block w-[210px] flex-none"
+                    >
+                      <div
+                        className="
+                          relative overflow-hidden rounded-sm
+                          border border-black/6 bg-white
+                          shadow-[0_6px_22px_rgba(0,0,0,0.05)]
+                          transition-all duration-300
+                          group-hover:-translate-y-1
+                          group-hover:shadow-[0_18px_40px_rgba(0,0,0,0.10)]
+                        "
+                      >
+                        {/* Badge */}
+                        <div className="absolute left-3 top-3 z-10">
+                          <span
+                            className="rounded-full border border-black/10 bg-white/90 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.18em] backdrop-blur"
+                            style={{ color: isOut ? "#8a8a8a" : "#CE0028" }}
+                          >
+                            {isOut ? "Out" : "In Stock"}
+                          </span>
+                        </div>
+
+                        {/* Image */}
+                        <div className="relative h-44 w-full overflow-hidden bg-[#f1f1f3]">
+                          <Image
+                            src={p.image}
+                            alt={p.name}
+                            fill
+                            className="object-contain p-4 transition duration-500 ease-out group-hover:scale-[1.05]"
+                          />
+                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-3.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold text-black">
+                                {p.name}
+                              </p>
+                              <p className="mt-1 truncate text-[11px] uppercase tracking-[0.16em] text-black/40">
+                                {p.type}
+                              </p>
+                            </div>
+
+                            <p className="shrink-0 text-sm font-semibold text-black">
+                              ₹{p.price}
+                            </p>
+                          </div>
+
+                          <div className="mt-3 flex items-center justify-between">
+                            <span className="text-[10px] uppercase tracking-[0.24em] text-black/40">
+                              Explore
+                            </span>
+
+                            <div className="flex items-center gap-2">
+                              <span className="h-[1px] w-7 bg-black/20 transition-all duration-300 group-hover:w-12 group-hover:bg-[#CE0028]" />
+                              <span className="text-[11px] text-black/35 transition-colors duration-300 group-hover:text-[#CE0028]">
+                                →
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Out of stock overlay */}
+                        {isOut && (
+                          <div className="absolute inset-0 bg-white/65 backdrop-blur-[1.5px]" />
+                        )}
                       </div>
-                      <p className="text-sm font-semibold text-black">₹{p.price}</p>
-                    </div>
-
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-xs uppercase tracking-[0.22em] text-black/45">
-                        View
-                      </span>
-                      <span className="h-[2px] w-10 bg-black/15 transition duration-300 group-hover:w-16" />
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ) : null}
