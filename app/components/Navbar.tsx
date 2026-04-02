@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, ShoppingBag, Menu, X } from "lucide-react";
+import { User, ShoppingBag, Menu, X, LogOut } from "lucide-react";
 
 import AuthModal from "./auth/AuthModal";
+import { useAuth } from "@/app/providers/AuthProvider";
+import { useCart } from "@/app/context/CartContext";
 
 const BRAND_RED = "#CE0028";
 
@@ -19,10 +21,15 @@ const categories = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { user, loading, logout } = useAuth();
+  const { cartCount } = useCart();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
@@ -33,6 +40,7 @@ export default function Navbar() {
 
   useEffect(() => {
     closeMenu();
+    setAccountMenuOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
@@ -47,9 +55,40 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!accountMenuRef.current) return;
+      if (!accountMenuRef.current.contains(event.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const openAuth = () => {
     setAuthOpen(true);
     setIsMenuOpen(false);
+    setAccountMenuOpen(false);
+  };
+
+  const handleAccountClick = () => {
+    if (loading) return;
+
+    if (!user) {
+      openAuth();
+      return;
+    }
+
+    setAccountMenuOpen((prev) => !prev);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setAccountMenuOpen(false);
+    setAuthOpen(false);
+    closeMenu();
   };
 
   return (
@@ -57,13 +96,15 @@ export default function Navbar() {
       <motion.header
         initial={false}
         animate={{
-          backgroundColor: isSticky ? "rgba(255,255,255,1)" : "rgba(255,255,255,0)",
+          backgroundColor: isSticky
+            ? "rgba(255,255,255,1)"
+            : "rgba(255,255,255,0)",
           boxShadow: isSticky
             ? "0 1px 0 rgba(0,0,0,0.08)"
             : "0 0px 0 rgba(0,0,0,0)",
         }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className="fixed top-0 left-0 right-0 z-50"
+        className="fixed left-0 right-0 top-0 z-50"
       >
         <nav className="flex items-center justify-between px-4 py-2 md:px-6 md:py-2">
           {/* LEFT LOGO */}
@@ -122,36 +163,74 @@ export default function Navbar() {
             </div>
 
             {/* Account */}
-            <button
-              aria-label="Account"
-              onClick={openAuth}
-              className={`rounded-xs p-1 md:p-2 transition-colors duration-150 ${iconColor} ${
-                isSticky ? "hover:bg-black/5" : "hover:bg-white/10"
-              }`}
-            >
-              <User className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.8} />
-            </button>
+            <div className="relative" ref={accountMenuRef}>
+              <button
+                aria-label={user ? "Account menu" : "Account"}
+                onClick={handleAccountClick}
+                className={`rounded-xs p-1 md:p-2 transition-colors duration-150 ${iconColor} ${
+                  isSticky ? "hover:bg-black/5" : "hover:bg-white/10"
+                }`}
+              >
+                <User className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.8} />
+              </button>
+
+              <AnimatePresence>
+                {user && accountMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.18 }}
+                    className="absolute right-0 top-[calc(100%+10px)] z-50 min-w-[210px] rounded-xs border border-black/10 bg-white p-2 shadow-[0_18px_40px_rgba(0,0,0,0.12)]"
+                  >
+                    <div className="border-b border-black/10 px-3 py-2">
+                      <p className="text-[13px] font-semibold text-black">
+                        {user.firstname || "BLTDIF User"}
+                      </p>
+                      <p className="mt-0.5 text-[12px] text-black/55">
+                        {user.email}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleLogout}
+                      className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <span
-              className={`hidden md:inline-block h-6 w-px transition-colors duration-150 ${dividerColor}`}
+              className={`hidden h-6 w-px md:inline-block transition-colors duration-150 ${dividerColor}`}
             />
 
             {/* Cart */}
-            <button
+            <Link
+              href="/cart"
               aria-label="Cart"
-              className={`rounded-xs p-1 md:p-2 transition-colors duration-150 ${iconColor} ${
+              className={`relative rounded-xs p-1 md:p-2 transition-colors duration-150 ${iconColor} ${
                 isSticky ? "hover:bg-black/5" : "hover:bg-white/10"
               }`}
             >
               <ShoppingBag className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.8} />
-            </button>
+
+              {cartCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#CE0028] px-1 text-[10px] font-semibold leading-none text-white md:h-5 md:min-w-[18px] md:text-[11px]">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
+            </Link>
 
             {/* Mobile hamburger */}
             <button
               type="button"
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               onClick={toggleMenu}
-              className={`md:hidden inline-flex items-center justify-center rounded-xs p-1 transition-colors duration-150 ${iconColor} ${
+              className={`inline-flex items-center justify-center rounded-xs p-1 md:hidden transition-colors duration-150 ${iconColor} ${
                 isSticky ? "hover:bg-black/5" : "hover:bg-white/10"
               }`}
             >
@@ -172,7 +251,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.18 }}
-              className="md:hidden border-t border-black/10 bg-white shadow-md"
+              className="border-t border-black/10 bg-white shadow-md md:hidden"
             >
               <div className="px-4 py-3">
                 <nav className="flex flex-col gap-1 text-sm font-medium text-black">
@@ -198,14 +277,44 @@ export default function Navbar() {
                     );
                   })}
 
-                  <button
-                    onClick={openAuth}
+                  <Link
+                    href="/cart"
+                    onClick={closeMenu}
                     className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
-                    style={{ color: BRAND_RED }}
                   >
-                    <span>ACCOUNT</span>
-                    <span className="text-black">→</span>
-                  </button>
+                    <span>CART</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        cartCount > 0
+                          ? "bg-[#CE0028] text-white"
+                          : "bg-black/5 text-black"
+                      }`}
+                    >
+                      {cartCount}
+                    </span>
+                  </Link>
+
+                  {!loading && !user && (
+                    <button
+                      onClick={openAuth}
+                      className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
+                      style={{ color: BRAND_RED }}
+                    >
+                      <span>ACCOUNT</span>
+                      <span className="text-black">→</span>
+                    </button>
+                  )}
+
+                  {!loading && user && (
+                    <button
+                      onClick={handleLogout}
+                      className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
+                      style={{ color: BRAND_RED }}
+                    >
+                      <span>LOGOUT</span>
+                      <span className="text-black">→</span>
+                    </button>
+                  )}
                 </nav>
               </div>
             </motion.div>

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-export type AuthUser = {
+type AuthUser = {
   id: string;
   email: string;
   firstname?: string | null;
@@ -10,23 +10,31 @@ export type AuthUser = {
   role: "USER" | "ADMIN";
 } | null;
 
-type AuthCtx = {
+type AuthContextType = {
   user: AuthUser;
   loading: boolean;
   refresh: () => Promise<void>;
   logout: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthCtx | null>(null);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = async () => {
-    const r = await fetch("/api/auth/me", { cache: "no-store" });
-    const data = await r.json().catch(() => ({}));
-    setUser(data.user ?? null);
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data = await res.json().catch(() => null);
+      setUser(data?.user ?? null);
+    } catch {
+      setUser(null);
+    }
   };
 
   const logout = async () => {
@@ -36,11 +44,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      try {
-        await refresh();
-      } finally {
-        setLoading(false);
-      }
+      await refresh();
+      setLoading(false);
     })();
   }, []);
 
@@ -53,6 +58,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider />");
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 }

@@ -1,24 +1,42 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { SlidersHorizontal } from "lucide-react";
 
-import { CATEGORY_CONFIG, PRODUCTS, BRAND_RED } from "../../lib/shop/catalog";
-import { Filters, SortKey } from "../../lib/shop/types";
-import {
-  applyFilters,
-  applySort,
-  defaultFilters,
-  getPriceBounds,
-  activeFiltersCount,
-} from "../../lib/shop/filterSort";
+import { getProductsByCategory } from "../../lib/shop/getProducts";
+import type { Product } from "../../lib/shop/types";
+
+type CategoryConfig = {
+  key: string;
+  label: string;
+  heroImage: string;
+  heroSubtitle: string;
+};
+
+const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
+  caps: {
+    key: "caps",
+    label: "Caps",
+    heroImage: "/images/cap-hero-img.png",
+    heroSubtitle: "Built different. Worn daily.",
+  },
+  "t-shirts": {
+    key: "t-shirts",
+    label: "T-Shirts",
+    heroImage: "/images/tshirts-hero-img.jpg",
+    heroSubtitle: "New silhouettes arriving soon.",
+  },
+  hoodies: {
+    key: "hoodies",
+    label: "Hoodies",
+    heroImage: "/images/hoodie-hero-img.png",
+    heroSubtitle: "Heavyweight pieces landing soon.",
+  },
+};
 
 import ProductCard from "./ProductCard";
-import FilterModal from "./FilterModal";
-import SortDropdown from "./SortDropdown";
 
 export default function CollectionPage({
   categorySlug,
@@ -27,157 +45,124 @@ export default function CollectionPage({
 }) {
   const config = CATEGORY_CONFIG[categorySlug];
 
-  // fallback if someone hits invalid URL
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const isComingSoon =
+    categorySlug === "t-shirts" || categorySlug === "hoodies";
+
+  useEffect(() => {
+    async function loadProducts() {
+      if (isComingSoon) {
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+
+      const categoryMap: Record<string, string> = {
+        caps: "Cap",
+        "t-shirts": "T-Shirt",
+        hoodies: "Hoodie",
+      };
+
+      const dbCategory = categoryMap[categorySlug];
+      const data = await getProductsByCategory(dbCategory);
+
+      setProducts(data);
+      setLoading(false);
+    }
+
+    loadProducts();
+  }, [categorySlug, isComingSoon]);
+
+  const filteredProducts = useMemo(() => products, [products]);
+
   if (!config) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-16">
         <h1 className="text-2xl font-semibold">Category not found</h1>
-        <Link className="mt-4 inline-block underline" href="/">
+        <Link href="/" className="mt-4 inline-block underline">
           Go home
         </Link>
       </div>
     );
   }
 
-  const categoryProducts = useMemo(
-    () => PRODUCTS.filter((p) => p.category === config.key),
-    [config.key]
-  );
-
-  const bounds = useMemo(
-    () => getPriceBounds(categoryProducts),
-    [categoryProducts]
-  );
-
-  const baseFilters: Filters = useMemo(
-    () => ({ ...defaultFilters, priceMin: bounds.min, priceMax: bounds.max }),
-    [bounds.min, bounds.max]
-  );
-
-  const [filters, setFilters] = useState<Filters>(baseFilters);
-  const [sort, setSort] = useState<SortKey>("featured");
-  const [filterOpen, setFilterOpen] = useState(false);
-
-  // Keep filters aligned when category changes (simple)
-  useMemo(() => setFilters(baseFilters), [categorySlug, baseFilters]);
-
-  const filtered = useMemo(() => {
-    const f = applyFilters(categoryProducts, filters);
-    return applySort(f, sort);
-  }, [categoryProducts, filters, sort]);
-
-  const count = activeFiltersCount(filters, baseFilters);
-
-  console.log("categorySlug:", categorySlug);
-  console.log("available keys:", Object.keys(CATEGORY_CONFIG));
-
   return (
     <div className="bg-white">
       {/* HERO */}
-      <section className="relative h-[42vh] min-h-[320px] w-full overflow-hidden">
+      <section className="relative h-[65vh] w-full overflow-hidden -mt-[56px] md:-mt-[72px]">
         <Image
           src={config.heroImage}
           alt={`${config.label} hero`}
           fill
           priority
-          className="object-cover"
+          sizes="100vw"
+          className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-black/45" />
+        
 
         <div className="relative z-10 flex h-full items-center justify-center px-6 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
+            transition={{ duration: 0.6 }}
           >
-            <h1 className="text-4xl uppercase md:text-6xl font-bold tracking-[0.18em] text-white">
+            {/* <h1 className="text-3xl font-bold uppercase tracking-[0.18em] text-white sm:text-4xl md:text-6xl">
               {config.label}
             </h1>
-            <p className="mt-3 text-sm md:text-base text-white/80">
+            <p className="mt-3 text-sm text-white/80 md:text-base">
               {config.heroSubtitle}
-            </p>
+            </p> */}
           </motion.div>
         </div>
 
-
-        <div className="absolute bottom-5 left-6 z-10">
-          
-          {/* Breadcrumb */}
-        <div className="inline-flex items-center gap-2 rounded-xs border border-white/10 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur">
-          <Link href="/" className="hover:text-white transition">
-            Home
-          </Link>{" "}
-          
-          <span className="mx-2">›</span>
-          <span className="text-white/80">{config.label}</span>
-        </div>
-        </div>
-      </section>
-
-      {/* TOOLBAR */}
-      <section className="mx-auto max-w-7xl px-4 py-6">
-        <div className="flex flex-row gap-4 justify-between md:flex-row md:items-center md:justify-between">
-          <div className="flex items-start gap-3">
-            <button
-              onClick={() => setFilterOpen(true)}
-              className="inline-flex items-center gap-2 rounded-sm border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/80 shadow-sm hover:border-black/20"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
-              {count > 0 && (
-                <span
-                  className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold text-white"
-                  style={{ backgroundColor: BRAND_RED }}
-                >
-                  {count}
-                </span>
-              )}
-            </button>
-
-            {count > 0 && (
-              <button
-                onClick={() => setFilters(baseFilters)}
-                className="text-sm font-semibold text-black/60 hover:text-black"
-              >
-                Clear all
-              </button>
-            )}
-          </div>
-
-          <div className="flex flex-col-reverse md:flex-row items-end md:items-center justify-end gap-1 md:gap-3 md:justify-end">
-            <p className="text-sm text-black/60 pr-2">
-              Showing{" "}
-              <span className="font-semibold text-black/80">
-                {filtered.length}
-              </span>{" "}
-              items
-            </p>
-
-            <SortDropdown value={sort} onChange={setSort} />
+        <div className="absolute bottom-6 left-4 z-10 md:left-6">
+          <div className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur">
+            <Link href="/" className="transition hover:text-white">
+              Home
+            </Link>
+            <span className="mx-2">›</span>
+            <span className="text-white/80">{config.label}</span>
           </div>
         </div>
       </section>
 
-      {/* GRID */}
-      <section className="mx-auto max-w-7xl px-2 pb-10">
-        <div className="grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      </section>
-
-      {/* Filter Modal (reused for all) */}
-      <FilterModal
-        open={filterOpen}
-        onClose={() => setFilterOpen(false)}
-        categoryKey={config.key}
-        products={categoryProducts}
-        base={baseFilters}
-        value={filters}
-        onChange={setFilters}
-        onReset={() => setFilters(baseFilters)}
-      />
+      {/* CONTENT */}
+      {isComingSoon ? (
+        <section className="mx-auto max-w-7xl px-4 py-10 md:py-14">
+          <div className="overflow-hidden rounded-2xl">
+            <Image
+              src="/images/coming-soon-home.png"
+              alt={`${config.label} coming soon`}
+              width={1400}
+              height={700}
+              priority
+              className="h-auto w-fill object-contain"
+            />
+          </div>
+        </section>
+      ) : (
+        <section className="mx-auto max-w-7xl px-2 py-10">
+          {loading ? (
+            <div className="py-10 text-center text-black/60">
+              Loading products...
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="py-10 text-center text-black/60">
+              No products found.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }

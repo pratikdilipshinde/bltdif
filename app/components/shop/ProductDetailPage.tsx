@@ -5,330 +5,346 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Minus, Plus, Truck, RotateCcw, ShieldCheck } from "lucide-react";
+import { useCart } from "@/app/context/CartContext";
 
 import type { Product } from "../../lib/shop/types";
-import { BRAND_RED, PRODUCTS } from "../../lib/shop/catalog";
 
-type Props = {
-  product: Product;
+type ProductDetail = Product & {
+  images?: string[];
 };
 
-export default function ProductDetailPage({ product }: Props) {
+type Props = {
+  product: ProductDetail;
+  similarProducts: ProductDetail[];
+};
+
+function toBullets(value: string | null | undefined) {
+  if (!value) return [];
+  return value
+    .split("\n")
+    .map((item) => item.replace(/^\*\s?/, "").trim())
+    .filter(Boolean);
+}
+
+export default function ProductDetailPage({
+  product,
+  similarProducts,
+}: Props) {
+  const { addToCart } = useCart();
+
   const images = useMemo(() => {
-    // If you later add product.images[], it will use that.
-    const anyP = product as any;
-    if (Array.isArray(anyP.images) && anyP.images.length) return anyP.images as string[];
+    if (Array.isArray(product.images) && product.images.length) {
+      return product.images;
+    }
     return [product.image].filter(Boolean);
   }, [product]);
 
   const [activeIdx, setActiveIdx] = useState(0);
   const [qty, setQty] = useState(1);
-  const [selectedSize, setSelectedSize] = useState<string>(
-    product.sizes?.[0] ?? ""
-  );
 
-  const similar = useMemo(() => {
-    return PRODUCTS.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 10);
-  }, [product]);
+  const featureList = toBullets(product.features);
+  const materialList = toBullets(product.material);
+  const careList = toBullets(product.care_guide);
+  const deliveryList = toBullets(product.delivery);
+
+  const handleAddToCart = () => {
+    for (let i = 0; i < qty; i++) {
+      addToCart({
+        id: String(product.id ?? product.sku),
+        name: product.name,
+        price: Number(product.price),
+        image: product.image,
+      });
+    }
+  };
 
   return (
-    <section className="bg-white px-4 py-8 md:py-8">
-      <div className="">
-        {/* Breadcrumb */}
-        <div className="text-xs tracking-[0.22em] uppercase text-black/50">
-          <Link href="/" className="hover:text-black transition">
-            Home
-          </Link>{" "}
-          <span className="mx-2">›</span>
-          <Link href={`/${product.category}`} className="hover:text-black transition">
+    <section className="bg-white">
+      {/* HERO SECTION */}
+      <div className="relative -mt-[56px] h-[300px] w-full md:-mt-[72px] md:h-[380px]">
+        <Image
+          src="/images/supportive-bg.jpg"
+          alt={product.name}
+          fill
+          priority
+          className="object-cover"
+        />
+
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pt-[56px] text-center text-white md:pt-[72px]">
+          <p className="text-xs uppercase tracking-[0.28em] text-white/70">
+            BLTDIF <span className="font-bold text-[#CE0028]">·</span>{" "}
             {product.category}
-          </Link>{" "}
-          <span className="mx-2">›</span>
-          <span className="text-black/80">{product.name}</span>
+          </p>
+          <h1 className="mt-3 max-w-4xl text-3xl font-semibold md:text-5xl">
+            {product.name}
+          </h1>
+          <p className="mt-3 text-sm text-white/75">{product.sku}</p>
+          <p className="mt-4 text-xl font-semibold text-white md:text-2xl">
+            ₹{product.price}
+          </p>
         </div>
+      </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-2 lg:gap-6">
-          {/* LEFT: Gallery */}
-          <div>
-            <div className="relative overflow-hidden rounded-xs border border-black/10 bg-[#f7f7f7]">
-              <div className="absolute left-4 top-4 z-10">
-                {product.tag ? (
-                  <span className="rounded-xs bg-white/90 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] uppercase text-black shadow">
-                    {product.tag}
-                  </span>
-                ) : null}
-              </div>
-
-              <motion.div
-                key={images[activeIdx]}
-                initial={{ opacity: 0, scale: 0.98, y: 6 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="relative h-[360px] w-full md:h-[520px]"
-              >
-                <Image
-                  src={images[activeIdx]}
-                  alt={product.name}
-                  fill
-                  priority
-                  className="object-contain p-6 md:p-10 drop-shadow-[0_18px_45px_rgba(0,0,0,0.22)]"
-                />
-              </motion.div>
-            </div>
-
-            {/* Thumbnails */}
-            <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
-              {images.map((src, i) => {
-                const active = i === activeIdx;
-                return (
-                  <button
-                    key={src + i}
-                    onClick={() => setActiveIdx(i)}
-                    className={`
-                      relative h-20 w-20 flex-none overflow-hidden rounded-xs border bg-[#f7f7f7]
-                      ${active ? "border-black/30" : "border-black/10 hover:border-black/20"}
-                    `}
-                    aria-label={`View image ${i + 1}`}
-                  >
-                    <Image src={src} alt={`${product.name} ${i + 1}`} fill className="object-contain p-2" />
-                    {active && (
-                      <span
-                        className="absolute inset-x-3 bottom-2 h-[2px] rounded-xs"
-                        style={{ backgroundColor: BRAND_RED }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+      {/* MAIN CONTENT */}
+      <div className="px-4 py-8 md:py-10">
+        <div>
+          <div className="text-xs uppercase tracking-[0.22em] text-black/50">
+            <Link href="/" className="transition hover:text-black">
+              Home
+            </Link>
+            <span className="mx-2">›</span>
+            <Link
+              href={`/${product.category.toLowerCase()}s`}
+              className="transition hover:text-black"
+            >
+              {product.category}
+            </Link>
+            <span className="mx-2">›</span>
+            <span className="text-black/80">{product.name}</span>
           </div>
 
-          {/* RIGHT: Info */}
-          <div>
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <p className="text-xs tracking-[0.28em] uppercase text-black/50">
-                  BLTDIF <span className="text-[#CE0028] font-bold">·</span> {product.category}
-                </p>
-                <h1 className="mt-2 text-3xl font-semibold text-black md:text-4xl">
-                  {product.name}
-                </h1>
+          <div className="mt-6 grid gap-6 lg:grid-cols-2 lg:gap-6">
+            <div>
+              <div className="relative overflow-hidden rounded-xs border border-black/10 bg-[#f1f1f3]">
+                <motion.div
+                  key={images[activeIdx]}
+                  initial={{ opacity: 0, scale: 0.98, y: 6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative h-[360px] w-full md:h-[520px]"
+                >
+                  <Image
+                    src={images[activeIdx]}
+                    alt={product.name}
+                    fill
+                    priority
+                    className="object-contain p-6 md:p-10"
+                  />
+                </motion.div>
               </div>
 
-              <div className="text-right mt-2">
-                <p className="text-3xl font-semibold text-black">${product.price}</p>
-                <p className="mt-1 text-xs text-black/55">{product.availability ?? "In Stock"}</p>
+              <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+                {images.map((src, i) => {
+                  const active = i === activeIdx;
+                  return (
+                    <button
+                      key={`${src}-${i}`}
+                      onClick={() => setActiveIdx(i)}
+                      className={`relative h-20 w-20 flex-none overflow-hidden rounded-xs border bg-[#f7f7f7] ${
+                        active
+                          ? "border-black/30"
+                          : "border-black/10 hover:border-black/20"
+                      }`}
+                      aria-label={`View image ${i + 1}`}
+                    >
+                      <Image
+                        src={src}
+                        alt={`${product.name} ${i + 1}`}
+                        fill
+                        className="object-contain p-2"
+                      />
+                      {active && (
+                        <span className="absolute inset-x-3 bottom-2 h-[2px] rounded-xs bg-[#CE0028]" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Mini specs row */}
-            <div className="mt-5 flex flex-wrap gap-2 text-[11px] text-black/70">
-              {product.fit ? (
-                <span className="rounded-xs border border-black/10 bg-black/[0.03] px-3 py-1">
-                  Fit: {product.fit}
-                </span>
-              ) : null}
-              {product.colors?.length ? (
-                <span className="rounded-xs border border-black/10 bg-black/[0.03] px-3 py-1">
-                  Colors: {product.colors.join(", ")}
-                </span>
-              ) : null}
-              {product.sizes?.length ? (
-                <span className="rounded-xs border border-black/10 bg-black/[0.03] px-3 py-1">
-                  Sizes: {product.sizes.join(", ")}
-                </span>
-              ) : null}
-            </div>
+            <div>
+              <div className="flex items-start justify-between gap-6">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-black/50">
+                    BLTDIF <span className="font-bold text-[#CE0028]">·</span>{" "}
+                    {product.category}
+                  </p>
+                  <h1 className="mt-2 text-3xl font-semibold text-black md:text-4xl">
+                    {product.name}
+                  </h1>
+                  <p className="mt-2 text-sm text-black/50">{product.sku}</p>
+                </div>
 
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-black/65">
-              Premium build, clean silhouette, and a finish that feels expensive. Built for the ones who move different.
-            </p>
-
-            {/* Size */}
-            {product.sizes?.length ? (
-              <div className="mt-6">
-                <p className="text-xs font-semibold tracking-[0.22em] uppercase text-black/55">
-                  Size
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {product.sizes.map((s) => {
-                    const active = selectedSize === s;
-                    return (
-                      <button
-                        key={s}
-                        onClick={() => setSelectedSize(s)}
-                        className={`
-                          rounded-xs px-4 py-2 cursor-pointer text-sm font-semibold transition
-                          ${active ? "text-white" : "text-black"}
-                          border border-black/10 hover:border-black/20
-                        `}
-                        style={{
-                          background: active ? "black" : "transparent",
-                        }}
-                      >
-                        {s}
-                      </button>
-                    );
-                  })}
+                <div className="mt-2 text-right">
+                  <p className="text-3xl font-semibold text-black">
+                    ₹{product.price}
+                  </p>
+                  <p className="mt-1 text-xs text-black/55">
+                    {product.availability ? "In Stock" : "Out of Stock"}
+                  </p>
                 </div>
               </div>
-            ) : null}
 
-            {/* Qty + Add to cart */}
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="flex items-center justify-between rounded-xs border border-black/10 bg-white px-3 py-2 sm:w-[180px]">
-                <button
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="rounded-xs p-2 hover:bg-black/5 transition"
-                  aria-label="Decrease quantity"
+              <p className="mt-5 max-w-xl text-sm leading-relaxed text-black/65">
+                {product.description || "Premium build and elevated everyday wear."}
+              </p>
+
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex items-center justify-between rounded-xs border border-black/10 bg-white px-3 py-2 sm:w-[180px]">
+                  <button
+                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    className="rounded-xs p-2 transition hover:bg-black/5"
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus className="h-4 w-4 cursor-pointer text-black" />
+                  </button>
+
+                  <span className="text-sm font-semibold text-black">{qty}</span>
+
+                  <button
+                    onClick={() => setQty((q) => q + 1)}
+                    className="rounded-xs p-2 transition hover:bg-black/5"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus className="h-4 w-4 cursor-pointer text-black" />
+                  </button>
+                </div>
+
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ y: -1 }}
+                  className="w-full cursor-pointer rounded-xs bg-black px-6 py-3 text-sm font-semibold text-white drop-shadow-md sm:flex-1"
+                  onClick={handleAddToCart}
+                  disabled={!product.availability}
                 >
-                  <Minus className="h-4 w-4 text-black cursor-pointer" />
-                </button>
-
-                <span className="text-sm font-semibold text-black">{qty}</span>
+                  Add to cart
+                </motion.button>
 
                 <button
-                  onClick={() => setQty((q) => q + 1)}
-                  className="rounded-xs p-2 hover:bg-black/5 transition"
-                  aria-label="Increase quantity"
+                  className="w-full cursor-pointer rounded-xs border border-black/10 px-6 py-3 text-sm font-semibold text-black transition hover:bg-black/[0.03] sm:w-auto"
+                  disabled={!product.availability}
                 >
-                  <Plus className="h-4 w-4 text-black cursor-pointer" />
+                  Buy now
                 </button>
               </div>
 
-              <motion.button
-                whileTap={{ scale: 0.98 }}
-                whileHover={{ y: -1 }}
-                className="w-full rounded-xs px-6 py-3 text-sm cursor-pointer font-semibold text-white drop-shadow-md sm:flex-1"
-                style={{ background: `black` }}
-                onClick={() => {
-                  // UI-only for now (you'll wire this to CartContext later)
-                  console.log("Add to cart:", { product, qty, selectedSize });
-                }}
-              >
-                Add to cart
-              </motion.button>
-
-              <button className="w-full rounded-xs border cursor-pointer border-black/10 px-6 py-3 text-sm font-semibold text-black hover:bg-black/[0.03] transition sm:w-auto">
-                Buy now
-              </button>
-            </div>
-
-            {/* Service bullets */}
-            <div className="mt-7 grid gap-3 rounded-xs border border-black/10 bg-white p-5">
-              <div className="flex items-center gap-3 text-sm text-black/70">
-                <Truck className="h-4 w-4" />
-                <span>Fast shipping + premium packaging</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-black/70">
-                <RotateCcw className="h-4 w-4" />
-                <span>Easy returns within 7 days</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-black/70">
-                <ShieldCheck className="h-4 w-4" />
-                <span>Quality checked before dispatch</span>
+              <div className="mt-7 grid gap-3 rounded-xs border border-black/10 bg-white p-5">
+                <div className="flex items-center gap-3 text-sm text-black/70">
+                  <Truck className="h-4 w-4" />
+                  <span>Fast shipping + premium packaging</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-black/70">
+                  <RotateCcw className="h-4 w-4" />
+                  <span>Easy returns within 7 days</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-black/70">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>Quality checked before dispatch</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Details */}
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
-          <div className="rounded-xs border border-black/10 bg-white p-6">
-            <p className="text-xs font-semibold tracking-[0.26em] uppercase text-[#CE0028]">
-              Description
-            </p>
-            <p className="mt-3 text-sm leading-relaxed text-black/65">
-              Designed with premium fabric and built for daily wear. Clean branding, modern fit, and a feel that lasts.
-            </p>
-          </div>
-
-          <div className="rounded-xs border border-black/10 bg-white p-6">
-            <p className="text-xs font-semibold tracking-[0.26em] uppercase text-[#CE0028]">
-              Material & Fit
-            </p>
-            <ul className="mt-3 space-y-2 text-sm text-black/65">
-              <li>• Premium cotton blend</li>
-              <li>• Pre-shrunk finishing</li>
-              <li>• {product.fit ? `${product.fit} fit` : "Modern relaxed fit"}</li>
-            </ul>
-          </div>
-
-          <div className="rounded-xs border border-black/10 bg-white p-6">
-            <p className="text-xs font-semibold tracking-[0.26em] uppercase text-[#CE0028]">
-              Care
-            </p>
-            <ul className="mt-3 space-y-2 text-sm text-black/65">
-              <li>• Machine wash cold</li>
-              <li>• Do not bleach</li>
-              <li>• Dry low / air dry</li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Similar products */}
-        {similar.length ? (
-          <div className="mt-14">
-            <div className="flex items-end justify-between gap-6">
-              <div>
-                <p className="text-xs tracking-[0.28em] text-black/50 uppercase">
-                  More like this
-                </p>
-                <h2 className="mt-2 text-2xl md:text-3xl font-semibold text-black">
-                  Similar products
-                </h2>
-              </div>
-
-              <Link
-                href={`/${product.category}`}
-                className="rounded-xs border border-black/10 px-5 py-2 text-sm font-semibold text-black hover:bg-black/[0.03] transition"
-              >
-                View category
-              </Link>
+          <div className="mt-12 grid gap-6 lg:grid-cols-4">
+            <div className="rounded-xs border border-black/10 bg-white p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#CE0028]">
+                Description
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-black/65">
+                {product.description || "No description available."}
+              </p>
             </div>
 
-            <div className="mt-6 flex gap-4 overflow-x-auto pb-2">
-              {similar.map((p) => (
+            <div className="rounded-xs border border-black/10 bg-white p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#CE0028]">
+                Material
+              </p>
+              <ul className="mt-3 space-y-2 text-sm text-black/65">
+                {materialList.length ? (
+                  materialList.map((item) => <li key={item}>• {item}</li>)
+                ) : (
+                  <li>• No material information available</li>
+                )}
+              </ul>
+            </div>
+
+            <div className="rounded-xs border border-black/10 bg-white p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#CE0028]">
+                Features
+              </p>
+              <ul className="mt-3 space-y-2 text-sm text-black/65">
+                {featureList.length ? (
+                  featureList.map((item) => <li key={item}>• {item}</li>)
+                ) : (
+                  <li>• No feature information available</li>
+                )}
+              </ul>
+            </div>
+
+            <div className="rounded-xs border border-black/10 bg-white p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#CE0028]">
+                Care & Delivery
+              </p>
+              <ul className="mt-3 space-y-2 text-sm text-black/65">
+                {careList.map((item) => (
+                  <li key={`care-${item}`}>• {item}</li>
+                ))}
+                {deliveryList.map((item) => (
+                  <li key={`delivery-${item}`}>• {item}</li>
+                ))}
+                {!careList.length && !deliveryList.length && (
+                  <li>• No care or delivery information available</li>
+                )}
+              </ul>
+            </div>
+          </div>
+
+          {similarProducts.length ? (
+            <div className="mt-14">
+              <div className="flex items-end justify-between gap-6">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-black/50">
+                    More like this
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-black md:text-3xl">
+                    Similar products
+                  </h2>
+                </div>
+
                 <Link
-                  key={p.id}
-                  href={`/products/${p.id}`}
-                  className="group relative w-[220px] flex-none overflow-hidden rounded-xs border border-black/10 bg-[#f7f7f7] p-4 hover:shadow-[0_18px_60px_rgba(0,0,0,0.08)] transition"
+                  href={`/${product.category.toLowerCase()}s`}
+                  className="rounded-xs border border-black/10 px-5 py-2 text-sm font-semibold text-black transition hover:bg-black/[0.03]"
                 >
-                  <div className="absolute left-3 top-3 rounded-xs bg-white/90 px-2.5 py-1 text-[10px] font-semibold tracking-[0.18em] uppercase text-black">
-                    {p.tag ?? "BLTDIF"}
-                  </div>
-
-                  <div className="relative h-44 w-full">
-                    <Image
-                      src={p.image}
-                      alt={p.name}
-                      fill
-                      className="object-contain drop-shadow-[0_16px_35px_rgba(0,0,0,0.20)] transition duration-300 group-hover:scale-[1.06]"
-                    />
-                  </div>
-
-                  <div className="mt-3 flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-black">{p.name}</p>
-                      <p className="mt-1 text-xs text-black/55">Premium fit · BLTDIF</p>
-                    </div>
-                    <p className="text-sm font-semibold text-black">${p.price}</p>
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-xs tracking-[0.22em] uppercase text-black/45">
-                      View
-                    </span>
-                    <span
-                      className="h-[2px] w-10 bg-black/15 transition duration-300 group-hover:w-16"
-                      style={{ backgroundColor: "rgba(0,0,0,0.18)" }}
-                    />
-                  </div>
+                  View category
                 </Link>
-              ))}
+              </div>
+
+              <div className="mt-6 flex gap-4 overflow-x-auto pb-2">
+                {similarProducts.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/products/${p.sku}`}
+                    className="group relative w-[220px] flex-none overflow-hidden rounded-xs border border-black/10 bg-[#f7f7f7] p-4 transition hover:shadow-[0_18px_60px_rgba(0,0,0,0.08)]"
+                  >
+                    <div className="relative h-44 w-full">
+                      <Image
+                        src={p.image}
+                        alt={p.name}
+                        fill
+                        className="object-contain drop-shadow-[0_16px_35px_rgba(0,0,0,0.20)] transition duration-300 group-hover:scale-[1.06]"
+                      />
+                    </div>
+
+                    <div className="mt-3 flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-black">{p.name}</p>
+                        <p className="mt-1 text-xs text-black/55">{p.sku}</p>
+                      </div>
+                      <p className="text-sm font-semibold text-black">₹{p.price}</p>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-[0.22em] text-black/45">
+                        View
+                      </span>
+                      <span className="h-[2px] w-10 bg-black/15 transition duration-300 group-hover:w-16" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
     </section>
   );

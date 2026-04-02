@@ -8,7 +8,8 @@ const SLIDE_INTERVAL = 4500;
 
 const slides = [
   {
-    image: "/images/Hero-main-img.png",
+    desktopImage: "/images/Hero-main-img.png",
+    mobileImage: "/images/Hero-main-img-mob.jpg",
     title: "/images/Hero-title.png",
     subtitle: "",
     href: "/",
@@ -35,26 +36,31 @@ export default function HeroSection() {
       {/* IMAGE SLIDER */}
       <AnimatePresence mode="sync">
         <motion.div
-          key={slide.image}
+          key={`${slide.desktopImage}-${slide.mobileImage}`}
           initial={{ opacity: 0, scale: 1.04 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.04 }}
           transition={{ duration: 0.8, ease: "easeInOut" }}
           className="absolute inset-0"
         >
+          {/* Desktop / Tablet Image */}
           <Image
-            src={slide.image}
-            alt="Hero Background"
+            src={slide.desktopImage}
+            alt="Hero Desktop"
             fill
             priority
             sizes="100vw"
-            className="
-              object-cover
-              object-center
-              sm:object-center
-              md:object-center
-              lg:object-center
-            "
+            className="hidden md:block object-cover object-center"
+          />
+
+          {/* Mobile Image */}
+          <Image
+            src={slide.mobileImage}
+            alt="Hero Mobile"
+            fill
+            priority
+            sizes="100vw"
+            className="block md:hidden object-cover object-center"
           />
         </motion.div>
       </AnimatePresence>

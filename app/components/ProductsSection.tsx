@@ -1,41 +1,90 @@
 "use client";
 
-import Link from "next/link";
-import { PRODUCTS } from "../lib/shop/catalog";
+import { useEffect, useState } from "react";
+import { createClient } from "../lib/supabase/client";
+import type { Product } from "../lib/shop/types";
 import ProductCard from "./shop/ProductCard";
 
+type DbProductRow = {
+  id: number;
+  sku: string;
+  name: string;
+  type: string;
+  category: string;
+  description: string | null;
+  material: string | null;
+  features: string | null;
+  care_guide: string | null;
+  delivery: string | null;
+  count: number;
+  price: number | null;
+  image_url?: string | null;
+  images?: string[] | null;
+  availability?: boolean | null;
+};
+
+function mapDbToProduct(row: DbProductRow): Product {
+  return {
+    id: row.id,
+    sku: row.sku,
+    name: row.name,
+    type: row.type,
+    category: row.category,
+    description: row.description,
+    material: row.material,
+    features: row.features,
+    care_guide: row.care_guide,
+    delivery: row.delivery,
+    count: row.count,
+    price: row.price ?? 0,
+    image: row.images?.[0] || row.image_url || "/images/placeholder.jpg",
+    availability: row.availability ?? row.count > 0,
+  };
+}
+
 export default function ProductsSection() {
-  // 🔴 Only Drop 01 products
-  const drop01Products = PRODUCTS.filter(
-    (product) => product.tag === "Drop 01"
-  );
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("category", "Cap")
+        .limit(3); // ✅ only 3 cards
+
+      if (error) {
+        console.error(error.message);
+        return;
+      }
+
+      setProducts((data ?? []).map(mapDbToProduct));
+    }
+
+    fetchProducts();
+  }, []);
 
   return (
-    <section className="bg-white pb-10">
-      <div className="mx-4">
-        {/* Header */}
-        <div className="relative text-center">
-          <div className="mb-2 mt-8">
-            <p className="text-sm tracking-[0.28em] text-black/50 uppercase">
-              FEATURED CAPS
-            </p>
-          </div>
+    <section className="bg-white pb-12">
+      {/* Header */}
+      <div className="text-center mt-8">
+        <p className="text-sm tracking-[0.28em] uppercase text-black/50">
+          FEATURED CAPS
+        </p>
+      </div>
 
-          {/* <Link
-            href="/products"
-            className="
-              rounded-full border border-black/60 bg-white text-black/60
-              px-6 md:px-8 py-3 text-xs md:text-sm font-semibold tracking-[0.18em]
-              transition hover:-translate-y-0.5 hover:border-[#CE0028] hover:text-[#CE0028]
-            "
-          >
-            SHOP ALL
-          </Link> */}
-        </div>
-
-        {/* Product grid */}
-        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {drop01Products.map((product) => (
+      {/* Grid */}
+      <div className="mt-8 flex justify-center">
+        <div
+          className="
+            grid grid-cols-2 gap-3
+            md:grid-cols-3 md:gap-6
+            max-w-[1100px] w-full
+          "
+        >
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

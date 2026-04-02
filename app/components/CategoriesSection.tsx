@@ -8,25 +8,25 @@ const BRAND_RED = "#CE0028";
 
 const cards = [
   {
-    title: "Cap",
-    href: "/caps",
-    image: "/images/cap-cat-img.png",
-  },
-  {
     title: "T-Shirt",
     href: "/t-shirts",
-    image: "/images/tshirt-cat-img.png",
+    image: "/images/Tee-mock.jpg",
+  },
+  {
+    title: "Cap",
+    href: "/caps",
+    image: "/images/Cap-mock.jpg",
   },
   {
     title: "Hoodie",
     href: "/hoodies",
-    image: "/images/hoodie-cat-img.png",
+    image: "/images/Hoodie-mock.jpg",
   },
 ];
 
 export default function CategoriesSection() {
   return (
-    <section className="bg-white py-1 md:py-1">
+    <section className="bg-white py-1 mt-2 md:py-1">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-x-2 md:gap-x-2 lg:gap-x-3 gap-y-2">
         {cards.map((card, idx) => (
           <motion.div
@@ -44,9 +44,8 @@ export default function CategoriesSection() {
               href={card.href}
               className="group relative block overflow-hidden bg-black"
             >
-              {/* fixed equal card size */}
               <div className="relative w-full aspect-[6/5]">
-                {/* image */}
+                {/* Image */}
                 <motion.div
                   className="absolute inset-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
                   initial={{ scale: 1 }}
@@ -64,17 +63,21 @@ export default function CategoriesSection() {
                   />
                 </motion.div>
 
-                {/* bottom dark gradient */}
-                <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
-
-                {/* title */}
-                <div className="absolute left-4 bottom-4 md:left-5 md:bottom-5 z-10">
+                {/* Bottom Content (Title + Button aligned properly) */}
+                <div className="absolute inset-x-0 bottom-4 md:bottom-5 px-4 md:px-5 z-10 flex items-center justify-between">
+                  
+                  {/* Title */}
                   <h3 className="text-white text-2xl md:text-[22px] lg:text-[24px] font-normal leading-none">
                     {card.title}
                   </h3>
+
+                  {/* Shop Button */}
+                  <span className="bg-white rounded-full text-black px-4 py-1.5 text-xs md:text-sm font-medium transition hover:bg-neutral-200">
+                    Shop
+                  </span>
                 </div>
 
-                {/* top accent line on hover */}
+                {/* Top Accent Line */}
                 <div
                   className="pointer-events-none absolute left-0 top-0 h-[3px] w-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                   style={{

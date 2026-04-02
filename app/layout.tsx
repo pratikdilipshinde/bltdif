@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { Manrope } from "next/font/google";
 import { AuthProvider } from "./providers/AuthProvider";
+import { CartProvider } from "./context/CartContext";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -26,7 +27,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-black text-neutral-100">
         <div className="flex min-h-screen flex-col">
           
-          <main className="flex-1"><AuthProvider><Navbar />{children}<Footer /></AuthProvider></main>
+          <main className="flex-1"><AuthProvider><CartProvider> <Navbar />{children}<Footer /></CartProvider></AuthProvider></main>
           
         </div>
       </body>

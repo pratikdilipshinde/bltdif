@@ -1,17 +1,22 @@
 export type CategoryKey = "hoodies" | "t-shirts" | "caps";
 
 export type Product = {
-  id: string;
-  category: CategoryKey;
+  id: number;
+  sku: string;
   name: string;
+  type: string;
+  category: string;
+  description: string | null;
+  material: string | null;
+  features: string | null;
+  care_guide: string | null;
+  delivery: string | null;
+  count: number;
+  created_at?: string;
+  updated_at?: string;
   price: number;
-  tag?: string; // New / Drop 01 / Essentials / Limited
   image: string;
-  availability: "In Stock" | "Low Stock" | "Out of Stock";
-  sizes?: string[]; // t-shirts/hoodies
-  colors?: string[]; // all
-  fit?: "Oversized" | "Relaxed" | "Regular" | "Boxy"; // hoodies/t-shirts
-  material?: string; // optional
+  availability: boolean;
 };
 
 export type CategoryConfig = {
@@ -24,7 +29,6 @@ export type CategoryConfig = {
 export type Filters = {
   availability: Product["availability"][];
   sizes: string[];
-  fits: NonNullable<Product["fit"]>[];
   colors: string[];
   priceMin: number;
   priceMax: number;
