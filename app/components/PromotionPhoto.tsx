@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function PromotionPhoto() {
   return (
@@ -47,9 +48,12 @@ export default function PromotionPhoto() {
           </h2>
 
           {/* Button */}
-          <button className="bg-white rounded-full text-black px-6 py-2 md:px-8 md:py-3 text-sm md:text-base font-medium hover:bg-neutral-200 transition">
+          <Link
+            href="/caps"
+            className="bg-white rounded-full text-black px-6 py-2 md:px-8 md:py-3 text-sm md:text-base font-medium hover:bg-neutral-200 transition inline-block"
+            >
             Shop Now
-          </button>
+        </Link>
         </div>
       </motion.div>
     </section>

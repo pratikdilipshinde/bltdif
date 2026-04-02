@@ -40,7 +40,7 @@ function getErrorMessage(payload: any) {
   return "Something went wrong.";
 }
 
-export default function AuthModal({ open, onClose, defaultMode = "login" }: Props) {
+export default function AuthModal({ open, onClose, defaultMode = "register" }: Props) {
   const router = useRouter();
   const { refresh } = useAuth();
 

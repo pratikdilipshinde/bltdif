@@ -327,7 +327,7 @@ export default function Navbar() {
       <AuthModal
         open={authOpen}
         onClose={() => setAuthOpen(false)}
-        defaultMode="login"
+        defaultMode="register"
       />
     </>
   );

@@ -162,7 +162,7 @@ export default function ProductDetailPage({
                   <h1 className="mt-2 text-3xl font-semibold text-black md:text-4xl">
                     {product.name}
                   </h1>
-                  <p className="mt-2 text-sm text-black/50">{product.sku}</p>
+                  <p className="mt-2 text-sm text-black/50">{product.type}</p>
                 </div>
 
                 <div className="mt-2 text-right">
@@ -210,12 +210,12 @@ export default function ProductDetailPage({
                   Add to cart
                 </motion.button>
 
-                <button
+                {/* <button
                   className="w-full cursor-pointer rounded-xs border border-black/10 px-6 py-3 text-sm font-semibold text-black transition hover:bg-black/[0.03] sm:w-auto"
                   disabled={!product.availability}
                 >
                   Buy now
-                </button>
+                </button> */}
               </div>
 
               <div className="mt-7 grid gap-3 rounded-xs border border-black/10 bg-white p-5">

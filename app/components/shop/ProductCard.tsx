@@ -60,7 +60,7 @@ export default function ProductCard({ product }: { product: Product }) {
                 </p>
 
                 <p className="mt-0.5 text-xs text-black/55">
-                  {product.type} · BLTDIF
+                  {product.type}
                 </p>
               </div>
 
