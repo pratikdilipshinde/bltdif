@@ -134,14 +134,27 @@ export default function CollectionPage({
       {isComingSoon ? (
         <section className="mx-auto max-w-7xl px-4 py-10 md:py-14">
           <div className="overflow-hidden rounded-2xl">
+
+            {/* Desktop Image */}
+            <Image
+              src="/images/COMING-SOON-linear-text.png"
+              alt={`${config.label} coming soon`}
+              width={1400}
+              height={400}
+              priority
+              className="hidden w-full object-contain md:block"
+            />
+
+            {/* Mobile Image */}
             <Image
               src="/images/coming-soon-home.png"
               alt={`${config.label} coming soon`}
-              width={1400}
+              width={700}
               height={700}
               priority
-              className="h-auto w-fill object-contain"
+              className="block w-full object-contain md:hidden"
             />
+
           </div>
         </section>
       ) : (

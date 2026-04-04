@@ -44,7 +44,18 @@ export default function NewsletterSection() {
             <button
               type="button"
               onClick={() => setAuthOpen(true)} // 👈 same as navbar openAuth
-              className="flex h-[38px] cursor-pointer items-center justify-center rounded-full bg-[#e8e6e6] px-6 text-[15px] font-medium text-black/40 transition hover:bg-[#dfdddd] sm:h-[42px] sm:px-7 sm:text-[16px] md:min-w-[130px]"
+              className="
+                border border-[#CE0028]
+                text-[#CE0028]
+                px-6 py-3
+                font-medium
+                rounded-full
+                transition-all duration-100
+                hover:bg-[#CE0028]
+                hover:text-white
+                cursor-pointer
+                hover:shadow-md
+              "
             >
               Subscribe
             </button>

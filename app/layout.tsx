@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import { Manrope } from "next/font/google";
 import { AuthProvider } from "./providers/AuthProvider";
 import { CartProvider } from "./context/CartContext";
+import { Toaster } from "react-hot-toast";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -27,7 +28,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-black text-neutral-100">
         <div className="flex min-h-screen flex-col">
           
-          <main className="flex-1"><AuthProvider><CartProvider> <Navbar />{children}<Footer /></CartProvider></AuthProvider></main>
+          <main className="flex-1"><AuthProvider><CartProvider> <Navbar />{children}<Toaster position="top-center" /><Footer /></CartProvider></AuthProvider></main>
           
         </div>
       </body>

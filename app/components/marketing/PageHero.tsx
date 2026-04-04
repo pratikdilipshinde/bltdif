@@ -19,7 +19,7 @@ export default function PageHero({
   secondaryCta?: { label: string; href: string };
 }) {
   return (
-    <section className="relative w-full overflow-hidden bg-black">
+    <section className="relative w-full overflow-hidden bg-black -mt-20">
       {/* background image */}
       <div className="absolute inset-0 bg-[#CE0028]">
         {/* <div className="bg-[]">

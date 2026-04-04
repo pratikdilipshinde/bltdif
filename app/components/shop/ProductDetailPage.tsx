@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Minus, Plus, Truck, RotateCcw, ShieldCheck } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
+import toast from "react-hot-toast";
 
 import type { Product } from "../../lib/shop/types";
 
@@ -204,7 +205,16 @@ export default function ProductDetailPage({
                   whileTap={{ scale: 0.98 }}
                   whileHover={{ y: -1 }}
                   className="w-full cursor-pointer rounded-xs bg-black px-6 py-3 text-sm font-semibold text-white drop-shadow-md sm:flex-1"
-                  onClick={handleAddToCart}
+                  onClick={() => {
+                    handleAddToCart();
+                    toast.success("Added to cart 🛒", {
+                      style: {
+                        border: "1px solid #000",
+                        padding: "12px 16px",
+                        fontSize: "13px",
+                      },
+                    });
+                  }}
                   disabled={!product.availability}
                 >
                   Add to cart

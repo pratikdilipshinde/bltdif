@@ -5,17 +5,41 @@ import { motion } from "framer-motion";
 
 export default function TwoCardSection() {
   return (
-    <section className="relative w-full overflow-hidden py-16 md:py-20">
-      {/* Background image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/images/coming-soon-home.png"
-          alt="Coming soon background"
-          fill
-          priority
-          className="object-contain opacity-[0.76]"
-        />
-      </div>
+    <section className="relative w-full overflow-hidden py-14 md:py-20">
+        {/* Background image */}
+        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-28 md:gap-12">
+
+            <Image
+                src="/images/COMING-text.png"
+                alt="Coming text"
+                width={1000}
+                height={300}
+                priority
+                className="
+                w-[90%] 
+                md:w-[80%] 
+                lg:w-[70%]
+                object-contain 
+                opacity-[0.75]
+                "
+            />
+
+            <Image
+                src="/images/SOON-text.png"
+                alt="Soon text"
+                width={700}
+                height={300}
+                priority
+                className="
+                w-[63%] 
+                md:w-[56%] 
+                lg:w-[49%]
+                object-contain 
+                opacity-[0.75]
+                "
+            />
+
+            </div>
 
       
 
