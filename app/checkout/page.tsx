@@ -2,10 +2,10 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Script from "next/script";
 import { useCart } from "@/app/context/CartContext";
 import { useAuth } from "@/app/providers/AuthProvider";
 import Image from "next/image";
+import { loadRazorpayWithRetry } from "@/app/lib/loadRazorpay";
 
 declare global {
   interface Window {
@@ -43,7 +43,6 @@ export default function CheckoutPage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
   const [error, setError] = useState("");
 
   const totalItems = useMemo(
@@ -64,6 +63,12 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    loadRazorpayWithRetry(2, 1000).catch(() => {
+      // silent prewarm only
+    });
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -83,12 +88,13 @@ export default function CheckoutPage() {
     if (!form.state.trim()) return "State is required.";
     if (!form.postalCode.trim()) return "Postal code is required.";
     if (!form.country.trim()) return "Country is required.";
-    if (!scriptLoaded) return "Payment SDK is still loading. Please try again.";
     return "";
   };
 
   const handleCheckout = async (e: FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
     setError("");
 
     const validationError = validateForm();
@@ -113,8 +119,16 @@ export default function CheckoutPage() {
 
       const createOrderData = await createOrderRes.json();
 
-      if (!createOrderRes.ok) {
-        throw new Error(createOrderData.error || "Failed to create order.");
+      if (!createOrderRes.ok || !createOrderData?.success) {
+        throw new Error(createOrderData?.error || "Failed to create order.");
+      }
+
+      const sdkLoaded = await loadRazorpayWithRetry(3, 1500);
+
+      if (!sdkLoaded || !window.Razorpay) {
+        throw new Error(
+          "Unable to load payment gateway. Please check your internet connection and try again."
+        );
       }
 
       const options = {
@@ -131,6 +145,7 @@ export default function CheckoutPage() {
           contact: form.phone,
         },
         notes: {
+          internalOrderId: createOrderData.internalOrderId,
           address: [
             form.addressLine1,
             form.addressLine2,
@@ -145,53 +160,70 @@ export default function CheckoutPage() {
         theme: {
           color: "#CE0028",
         },
+        modal: {
+          backdropclose: false,
+          escape: true,
+          handleback: true,
+          ondismiss: function () {
+            setLoading(false);
+          },
+        },
         handler: async function (response: {
           razorpay_payment_id: string;
           razorpay_order_id: string;
           razorpay_signature: string;
         }) {
-          const verifyRes = await fetch("/api/checkout/verify", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              ...response,
-              customer: form,
-              items: cartItems,
-              amount: createOrderData.amount,
-              currency: createOrderData.currency,
-              internalOrderId: createOrderData.internalOrderId,
-            }),
-          });
+          try {
+            const verifyRes = await fetch("/api/checkout/verify", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                ...response,
+                customer: form,
+                items: cartItems,
+                amount: createOrderData.amount,
+                currency: createOrderData.currency,
+                internalOrderId: createOrderData.internalOrderId,
+              }),
+            });
 
-          const verifyData = await verifyRes.json();
+            const verifyData = await verifyRes.json();
 
-          if (!verifyRes.ok || !verifyData.success) {
-            setError(verifyData.error || "Payment verification failed.");
-            return;
-          }
+            if (!verifyRes.ok || !verifyData.success) {
+              throw new Error(
+                verifyData.error || "Payment verification failed."
+              );
+            }
 
-          clearCart();
-          router.push(`/checkout/success?order=${createOrderData.internalOrderId}`);
-        },
-        modal: {
-          ondismiss: function () {
+            clearCart();
+            router.push(
+              `/checkout/success?order=${createOrderData.internalOrderId}`
+            );
+          } catch (err: any) {
+            setError(
+              err?.message ||
+                "Payment completed but verification failed. Please contact support."
+            );
+          } finally {
             setLoading(false);
-          },
+          }
         },
       };
 
       const rzp = new window.Razorpay(options);
+
       rzp.on("payment.failed", function (response: any) {
         setError(
-          response?.error?.description || "Payment failed. Please try again."
+          response?.error?.description ||
+            response?.error?.reason ||
+            "Payment failed. Please try again."
         );
         setLoading(false);
       });
 
       rzp.open();
-      setLoading(false);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong.";
@@ -220,14 +252,7 @@ export default function CheckoutPage() {
   }
 
   return (
-  <>
-    <Script
-      src="https://checkout.razorpay.com/v1/checkout.js"
-      onLoad={() => setScriptLoaded(true)}
-    />
-
     <section className="bg-white">
-      {/* 🔥 HERO SECTION */}
       <div className="relative -mt-[56px] h-[240px] w-full md:-mt-[72px] md:h-[320px]">
         <Image
           src="/images/PAYMENT-CHECKOUT-bg.jpg"
@@ -236,11 +261,8 @@ export default function CheckoutPage() {
           priority
           className="object-cover"
         />
-
-
       </div>
 
-      {/* 🔽 ORIGINAL CONTENT */}
       <div className="px-4 py-8 md:py-10">
         <div className="mx-auto max-w-6xl">
           <div className="mb-8">
@@ -343,9 +365,9 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-6 w-full rounded-xs bg-black px-6 py-3 text-sm font-semibold text-white disabled:opacity-60"
+                className="mt-6 w-full rounded-xs bg-black px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Processing..." : "Pay with Razorpay"}
+                {loading ? "Preparing secure payment..." : "Pay with Razorpay"}
               </button>
             </form>
 
@@ -393,6 +415,5 @@ export default function CheckoutPage() {
         </div>
       </div>
     </section>
-  </>
-);
+  );
 }

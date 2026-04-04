@@ -9,13 +9,14 @@ import { Toaster } from "react-hot-toast";
 
 const manrope = Manrope({
   subsets: ["latin"],
-  weight: ["200","300","400","500","600","700","800"],
+  weight: ["200", "300", "400", "500", "600", "700", "800"],
   variable: "--font-manrope",
 });
 
 export const metadata: Metadata = {
   title: "BLTDIF | Built Different",
-  description: "Modern streetwear and performance apparel by Build Different (BLTDIF).",
+  description:
+    "Modern streetwear and performance apparel by Build Different (BLTDIF).",
 };
 
 export default function RootLayout({
@@ -24,13 +25,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={manrope.variable}>
+      <head>
+        <link rel="preconnect" href="https://checkout.razorpay.com" />
+        <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
+      </head>
       <body className="min-h-screen bg-black text-neutral-100">
-        <div className="flex min-h-screen flex-col">
-          
-          <main className="flex-1"><AuthProvider><CartProvider> <Navbar />{children}<Toaster position="top-center" /><Footer /></CartProvider></AuthProvider></main>
-          
-        </div>
+        <AuthProvider>
+          <CartProvider>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Toaster position="top-center" />
+              <Footer />
+            </div>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );
