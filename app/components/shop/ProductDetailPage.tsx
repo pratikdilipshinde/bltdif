@@ -112,21 +112,22 @@ export default function ProductDetailPage({
                   initial={{ opacity: 0, scale: 0.98, y: 6 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative h-[360px] w-full md:h-[520px]"
+                  className="relative h-[420px] w-full md:h-[600px]"
                 >
                   <Image
                     src={images[activeIdx]}
                     alt={product.name}
                     fill
                     priority
-                    className="object-contain p-6 md:p-10"
+                    className="object-contain"
                   />
                 </motion.div>
               </div>
 
-              <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+              <div className="mt-3 flex gap-2 overflow-x-auto">
                 {images.map((src, i) => {
                   const active = i === activeIdx;
+
                   return (
                     <button
                       key={`${src}-${i}`}
@@ -142,10 +143,10 @@ export default function ProductDetailPage({
                         src={src}
                         alt={`${product.name} ${i + 1}`}
                         fill
-                        className="object-contain p-2"
+                        className="object-contain"
                       />
                       {active && (
-                        <span className="absolute inset-x-3 bottom-2 h-[2px] rounded-xs bg-[#CE0028]" />
+                        <span className="absolute inset-x-2 bottom-2 h-[2px] rounded-xs bg-[#CE0028]" />
                       )}
                     </button>
                   );

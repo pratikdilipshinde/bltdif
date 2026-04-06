@@ -58,7 +58,7 @@ const socials = [
   },
   {
     label: "X",
-    href: "https://x.com/",
+    href: "https://x.com/BLTDIF?s=20",
     icon: FaXTwitter,
   },
   // {
