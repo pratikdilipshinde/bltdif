@@ -112,14 +112,14 @@ export default function ProductDetailPage({
                   initial={{ opacity: 0, scale: 0.98, y: 6 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative h-[420px] w-full md:h-[600px]"
+                  className="relative h-[400px] w-full md:h-[550px]"
                 >
                   <Image
                     src={images[activeIdx]}
                     alt={product.name}
                     fill
                     priority
-                    className="object-contain"
+                    className="object-cover"
                   />
                 </motion.div>
               </div>
