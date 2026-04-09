@@ -37,6 +37,28 @@ model UserProfile {
   @@map("UserProfile")
 }
 
+model Product {
+  id           BigInt   @id @default(autoincrement())
+  sku          String   @unique
+  name         String
+  type         String
+  category     String
+  description  String?
+  material     String?
+  features     String?
+  careGuide    String?  @map("care_guide")
+  delivery     String?
+  count        Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  price        Decimal? @db.Decimal
+  imageUrl     String?  @map("image_url")
+  availability Boolean? @default(true)
+  images       String[] @default([])
+
+  @@map("products")
+}
+
 model Order {
   id              String      @id @default(cuid())
   orderNumber     String      @unique
@@ -70,36 +92,15 @@ model OrderItem {
   @@map("OrderItem")
 }
 
-model Product {
-  id           BigInt   @id @default(autoincrement())
-  sku          String   @unique
-  name         String
-  type         String
-  category     String
-  description  String?
-  material     String?
-  features     String?
-  careGuide    String?  @map("care_guide")
-  delivery     String?
-  count        Int      @default(0)
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  price        Decimal? @db.Decimal
-  imageUrl     String?  @map("image_url")
-  availability Boolean? @default(true)
-
-  @@map("products")
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
 enum OrderStatus {
   PENDING
   CONFIRMED
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+enum Role {
+  USER
+  ADMIN
 }

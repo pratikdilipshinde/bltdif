@@ -25,6 +25,19 @@ type CheckoutForm = {
   country: string;
 };
 
+type SavedUserProfile = {
+  email: string;
+  firstname: string;
+  lastname: string;
+  phoneNumber: string;
+  currentAddress: string;
+  shippingAddress: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+};
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, cartTotal, clearCart } = useCart();
@@ -43,6 +56,7 @@ export default function CheckoutPage() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [error, setError] = useState("");
 
   const totalItems = useMemo(
@@ -61,6 +75,61 @@ export default function CheckoutPage() {
         email: prev.email || user.email || "",
       }));
     }
+  }, [user]);
+
+  useEffect(() => {
+    const loadSavedProfile = async () => {
+      if (!user) return;
+
+      try {
+        setProfileLoading(true);
+
+        const res = await fetch("/api/user-profile", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data?.profile) {
+          return;
+        }
+
+        const profile: SavedUserProfile = data.profile;
+
+        setForm((prev) => {
+          const derivedFullName =
+            [profile.firstname, profile.lastname]
+              .filter(Boolean)
+              .join(" ")
+              .trim() || "";
+
+          const savedAddress =
+            profile.shippingAddress?.trim() ||
+            profile.currentAddress?.trim() ||
+            "";
+
+          return {
+            ...prev,
+            fullName: prev.fullName || derivedFullName,
+            email: prev.email || profile.email || user.email || "",
+            phone: prev.phone || profile.phoneNumber || "",
+            addressLine1: prev.addressLine1 || savedAddress,
+            addressLine2: prev.addressLine2 || "",
+            city: prev.city || profile.city || "",
+            state: prev.state || profile.state || "",
+            postalCode: prev.postalCode || profile.zipCode || "",
+            country: prev.country || profile.country || prev.country || "India",
+          };
+        });
+      } catch (err) {
+        console.error("Failed to load saved profile", err);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    loadSavedProfile();
   }, [user]);
 
   useEffect(() => {
@@ -279,9 +348,17 @@ export default function CheckoutPage() {
               onSubmit={handleCheckout}
               className="rounded-xs border border-black/10 bg-white p-5 md:p-7"
             >
-              <h2 className="text-lg font-semibold text-black">
-                Delivery details
-              </h2>
+              <div className="flex items-start justify-between gap-4">
+                <h2 className="text-lg font-semibold text-black">
+                  Delivery details
+                </h2>
+
+                {profileLoading ? (
+                  <span className="text-xs font-medium text-black/45">
+                    Loading saved info...
+                  </span>
+                ) : null}
+              </div>
 
               <div className="mt-5 grid gap-4 md:grid-cols-2">
                 <input

@@ -191,6 +191,10 @@ export default function Navbar() {
                         {user.email}
                       </p>
                     </div>
+                    <Link href="/account/profile" 
+                          className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]">
+                      My Profile
+                    </Link>
 
                     <button
                       onClick={handleLogout}

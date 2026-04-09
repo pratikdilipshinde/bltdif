@@ -1,108 +1,170 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { createClient } from "@/app/lib/supabase/server";
+import { profileFormSchema } from "@/app/lib/validators/profile";
 
-export async function GET(request: NextRequest) {
+function normalizeOptional(value?: string | null) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: "userId is required" },
-        { status: 400 }
-      );
+    if (authError || !user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const profile = await prisma.userProfile.findUnique({
-      where: { userId },
+    const profile = await prisma.profile.findUnique({
+      where: { email: user.email },
       include: {
-        user: true,
+        userProfile: true,
       },
     });
 
-    return NextResponse.json(
-      { success: true, data: profile },
-      { status: 200 }
-    );
+    if (!profile) {
+      return NextResponse.json(
+        {
+          profile: {
+            email: user.email,
+            firstname: "",
+            lastname: "",
+            phoneNumber: "",
+            currentAddress: "",
+            shippingAddress: "",
+            city: "",
+            state: "",
+            zipCode: "",
+            country: "",
+          },
+        },
+        { status: 200 }
+      );
+    }
+
+    return NextResponse.json({
+      profile: {
+        email: profile.email,
+        firstname: profile.firstname ?? "",
+        lastname: profile.lastname ?? "",
+        phoneNumber: profile.userProfile?.phoneNumber ?? "",
+        currentAddress: profile.userProfile?.currentAddress ?? "",
+        shippingAddress: profile.userProfile?.shippingAddress ?? "",
+        city: profile.userProfile?.city ?? "",
+        state: profile.userProfile?.state ?? "",
+        zipCode: profile.userProfile?.zipCode ?? "",
+        country: profile.userProfile?.country ?? "",
+      },
+    });
   } catch (error) {
     console.error("GET /api/user-profile error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to fetch user profile" },
+      { error: "Failed to fetch profile" },
       { status: 500 }
     );
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function PUT(req: Request) {
   try {
-    const body = await request.json();
-
+    const supabase = await createClient();
     const {
-      userId,
-      phoneNumber,
-      currentAddress,
-      shippingAddress,
-      city,
-      state,
-      zipCode,
-      country,
-    } = body;
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-    if (!userId) {
+    if (authError || !user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const parsed = profileFormSchema.safeParse(body);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "userId is required" },
+        {
+          error: "Invalid input",
+          issues: parsed.error.flatten(),
+        },
         { status: 400 }
       );
     }
 
-    const existingUser = await prisma.profile.findUnique({
-      where: { id: userId },
-    });
+    const data = parsed.data;
 
-    if (!existingUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid userId. Matching Profile record not found.",
-        },
-        { status: 404 }
-      );
-    }
-
-    const savedProfile = await prisma.userProfile.upsert({
-      where: { userId },
-      update: {
-        phoneNumber: phoneNumber || null,
-        currentAddress: currentAddress || null,
-        shippingAddress: shippingAddress || null,
-        city: city || null,
-        state: state || null,
-        zipCode: zipCode || null,
-        country: country || null,
-      },
+    const savedProfile = await prisma.profile.upsert({
+      where: { email: user.email },
       create: {
-        userId,
-        phoneNumber: phoneNumber || null,
-        currentAddress: currentAddress || null,
-        shippingAddress: shippingAddress || null,
-        city: city || null,
-        state: state || null,
-        zipCode: zipCode || null,
-        country: country || null,
+        email: user.email,
+        firstname: normalizeOptional(data.firstname),
+        lastname: normalizeOptional(data.lastname),
+        userProfile: {
+          create: {
+            phoneNumber: normalizeOptional(data.phoneNumber),
+            currentAddress: normalizeOptional(data.currentAddress),
+            shippingAddress: normalizeOptional(data.shippingAddress),
+            city: normalizeOptional(data.city),
+            state: normalizeOptional(data.state),
+            zipCode: normalizeOptional(data.zipCode),
+            country: normalizeOptional(data.country),
+          },
+        },
+      },
+      update: {
+        firstname: normalizeOptional(data.firstname),
+        lastname: normalizeOptional(data.lastname),
+        userProfile: {
+          upsert: {
+            create: {
+              phoneNumber: normalizeOptional(data.phoneNumber),
+              currentAddress: normalizeOptional(data.currentAddress),
+              shippingAddress: normalizeOptional(data.shippingAddress),
+              city: normalizeOptional(data.city),
+              state: normalizeOptional(data.state),
+              zipCode: normalizeOptional(data.zipCode),
+              country: normalizeOptional(data.country),
+            },
+            update: {
+              phoneNumber: normalizeOptional(data.phoneNumber),
+              currentAddress: normalizeOptional(data.currentAddress),
+              shippingAddress: normalizeOptional(data.shippingAddress),
+              city: normalizeOptional(data.city),
+              state: normalizeOptional(data.state),
+              zipCode: normalizeOptional(data.zipCode),
+              country: normalizeOptional(data.country),
+            },
+          },
+        },
       },
       include: {
-        user: true,
+        userProfile: true,
       },
     });
 
-    return NextResponse.json(
-      { success: true, data: savedProfile },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      message: "Profile saved successfully",
+      profile: {
+        email: savedProfile.email,
+        firstname: savedProfile.firstname ?? "",
+        lastname: savedProfile.lastname ?? "",
+        phoneNumber: savedProfile.userProfile?.phoneNumber ?? "",
+        currentAddress: savedProfile.userProfile?.currentAddress ?? "",
+        shippingAddress: savedProfile.userProfile?.shippingAddress ?? "",
+        city: savedProfile.userProfile?.city ?? "",
+        state: savedProfile.userProfile?.state ?? "",
+        zipCode: savedProfile.userProfile?.zipCode ?? "",
+        country: savedProfile.userProfile?.country ?? "",
+      },
+    });
   } catch (error) {
-    console.error("POST /api/user-profile error:", error);
+    console.error("PUT /api/user-profile error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to save user profile" },
+      { error: "Failed to save profile" },
       { status: 500 }
     );
   }
