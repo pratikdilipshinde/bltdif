@@ -53,13 +53,13 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
 
           {/* Image */}
-          <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#f1f1f3]">
+          <div className="relative aspect-square w-full overflow-hidden bg-[#f1f1f3]">
             <Image
               src={product.image}
               alt={product.name}
               fill
               className="
-                object-contain p-4
+                object-contain p-1
                 transition duration-500 ease-out
                 group-hover:scale-[1.05]
               "
