@@ -6,6 +6,7 @@ import { Manrope } from "next/font/google";
 import { AuthProvider } from "./providers/AuthProvider";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from '@vercel/analytics/next';
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -35,7 +36,7 @@ export default function RootLayout({
           <CartProvider>
             <div className="flex min-h-screen flex-col">
               <Navbar />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1">{children} <Analytics /></main>
               <Toaster position="top-center" />
               <Footer />
             </div>

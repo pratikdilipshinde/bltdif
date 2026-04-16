@@ -11,6 +11,7 @@ import ProductsSection from "./components/ProductsSection";
 import PromotionPhoto from "./components/PromotionPhoto";
 import TwoCardSection from "./components/TwoCardSection";
 
+
 export default function HomePage() {
   return (
     <>
