@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@/app/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const email = String(body.email ?? "").trim().toLowerCase();
+    const email = body?.email?.trim();
 
     if (!email) {
       return NextResponse.json(
@@ -13,24 +13,31 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const origin = req.nextUrl.origin;
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/update-password`,
+      redirectTo: `${origin}/reset-password`,
     });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json(
-      {
-        message: "Password reset email sent. Please check your inbox.",
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      message:
+        "If an account exists for this email, a password reset link has been sent.",
+    });
   } catch (error) {
-    console.error("FORGOT PASSWORD ERROR:", error);
+    console.error("Forgot password error:", error);
+
     return NextResponse.json(
       { error: "Something went wrong while sending reset email." },
       { status: 500 }
