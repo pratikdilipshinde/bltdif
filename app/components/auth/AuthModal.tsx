@@ -64,7 +64,10 @@ function getErrorMessage(payload: any, isRegister: boolean) {
     return "Password must be at least 8 characters.";
   }
 
-  if (msg.includes("unable to validate email address") || msg.includes("invalid email")) {
+  if (
+    msg.includes("unable to validate email address") ||
+    msg.includes("invalid email")
+  ) {
     return "Please enter a valid email address.";
   }
 
@@ -156,14 +159,11 @@ export default function AuthModal({
   const resetFields = () => {
     setShowPwd(false);
     setShowCnfmPwd(false);
-
     setFirstname("");
     setLastname("");
     setEmail("");
-
     setPassword("");
     setConfirmPassword("");
-
     setFormError(null);
     setSuccessMessage(null);
     setLoading(false);
@@ -192,57 +192,6 @@ export default function AuthModal({
       if (successMessage) setSuccessMessage(null);
       setter(e.target.value);
     };
-
-  async function handleForgotPassword() {
-    setFormError(null);
-    setSuccessMessage(null);
-
-    const trimmedEmail = email.trim().toLowerCase();
-
-    if (!trimmedEmail) {
-      setFormError("Please enter your email above to reset your password.");
-      return;
-    }
-
-    if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
-      setFormError("Please enter a valid email address.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: trimmedEmail }),
-      });
-
-      let data = null;
-      try {
-        data = await res.json();
-      } catch {
-        data = null;
-      }
-
-      if (!res.ok) {
-        setFormError(data?.error || "Failed to send reset email.");
-        return;
-      }
-
-      setSuccessMessage(
-        data?.message ||
-          "If an account exists, a reset link has been sent to your email."
-      );
-    } catch (error) {
-      console.error("Forgot password error:", error);
-      setFormError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -566,25 +515,28 @@ export default function AuthModal({
                               <label className="flex items-center gap-2 text-[13px] text-black/60">
                                 <input
                                   type="checkbox"
-                                  className="h-4 w-4 cursor-pointer accent-[#CE0028]"
+                                  className="h-4 w-4 accent-[#CE0028]"
                                 />
                                 Remember me
                               </label>
 
                               <button
                                 type="button"
-                                className="text-[13px] cursor-pointer text-black/60 transition hover:text-black disabled:cursor-not-allowed disabled:opacity-60"
-                                onClick={handleForgotPassword}
-                                disabled={loading}
+                                className="text-[13px] text-black/60 transition hover:text-black"
+                                onClick={() => {
+                                  resetFields();
+                                  onClose();
+                                  router.push("/forgot-password");
+                                }}
                               >
-                                {loading ? "Please wait..." : "Forgot password?"}
+                                Forgot password?
                               </button>
                             </div>
                           ) : (
                             <label className="flex items-start gap-2 pt-0.5 text-[13px] text-black/60">
                               <input
                                 type="checkbox"
-                                className="mt-1 cursor-pointer h-4 w-4 accent-[#CE0028]"
+                                className="mt-1 h-4 w-4 accent-[#CE0028]"
                                 required
                               />
                               <span className="leading-relaxed">
@@ -608,8 +560,8 @@ export default function AuthModal({
                                   ? "Creating..."
                                   : "Logging in..."
                                 : isRegister
-                                ? "Create account"
-                                : "Login"
+                                  ? "Create account"
+                                  : "Login"
                             }
                             disabled={!canSubmit}
                           />
@@ -623,7 +575,7 @@ export default function AuthModal({
                             <button
                               type="button"
                               onClick={() => switchMode(isRegister ? "login" : "register")}
-                              className="font-semibold cursor-pointer underline underline-offset-4"
+                              className="font-semibold underline underline-offset-4"
                               style={{ color: BRAND_RED }}
                               disabled={loading}
                             >
