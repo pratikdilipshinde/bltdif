@@ -522,7 +522,7 @@ export default function AuthModal({
 
                               <button
                                 type="button"
-                                className="text-[13px] text-black/60 transition hover:text-black"
+                                className="text-[13px] cursor-pointer text-black/60 transition hover:text-black"
                                 onClick={() => {
                                   resetFields();
                                   onClose();

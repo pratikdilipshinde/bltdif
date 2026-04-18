@@ -126,76 +126,9 @@ export default function ResetPasswordPage() {
         secondaryCta={{ label: "Contact Support", href: "/contact" }}
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-10 md:py-14">
-        <div className="grid gap-4 md:grid-cols-3">
-          <StatCard
-            title="Password Rule"
-            value="Minimum 8 Characters"
-            desc="Your new password follows the same rule used during account registration."
-          />
-          <StatCard
-            title="Secure Flow"
-            value="Token Verified"
-            desc="Only valid reset links can be used to create a new password."
-          />
-          <StatCard
-            title="Fast Recovery"
-            value="Login Again"
-            desc="Once updated, you can return and sign in with your new password."
-          />
-        </div>
-      </section>
-
       <section className="w-full border-y border-black/10 bg-black/[0.02]">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-2 md:items-center md:py-16">
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-black/45">
-              Reset access
-            </p>
-
-            <h2 className="mt-3 text-3xl font-semibold leading-tight text-black md:text-4xl">
-              New password,{" "}
-              <span style={{ color: BRAND_RED }}>same clean flow.</span>
-            </h2>
-
-            <ul className="mt-6 space-y-4 text-sm leading-relaxed text-black/70 md:text-[15px]">
-              <li className="flex gap-3">
-                <Dot />
-                Open the reset link sent to your email inbox.
-              </li>
-              <li className="flex gap-3">
-                <Dot />
-                Enter your new password and confirm it carefully.
-              </li>
-              <li className="flex gap-3">
-                <Dot />
-                Your password must be at least 8 characters.
-              </li>
-              <li className="flex gap-3">
-                <Dot />
-                Once updated, return to login and access your account.
-              </li>
-            </ul>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/"
-                className="rounded-xs px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
-                style={{ background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)` }}
-              >
-                Back to login
-              </Link>
-
-              <Link
-                href="/contact"
-                className="rounded-xs border border-black/15 bg-white px-6 py-3 text-[12px] font-semibold text-black transition hover:bg-black/[0.02]"
-              >
-                Need support
-              </Link>
-            </div>
-          </div>
-
-          <div className="rounded-xs border border-black/10 bg-white p-6 md:p-8">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-6 md:grid-cols-2 md:items-center">
+            <div className="rounded-xs border border-black/10 bg-white p-6 md:p-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
               Create new password
             </p>
@@ -377,6 +310,54 @@ export default function ResetPasswordPage() {
               </form>
             )}
           </div>
+          <div>
+            <p className="text-xs uppercase tracking-[0.28em] text-black/45">
+              Reset access
+            </p>
+
+            <h2 className="mt-3 text-3xl font-semibold leading-tight text-black md:text-4xl">
+              New password,{" "}
+              <span style={{ color: BRAND_RED }}>same clean flow.</span>
+            </h2>
+
+            <ul className="mt-6 space-y-4 text-sm leading-relaxed text-black/70 md:text-[15px]">
+              <li className="flex gap-3">
+                <Dot />
+                Open the reset link sent to your email inbox.
+              </li>
+              <li className="flex gap-3">
+                <Dot />
+                Enter your new password and confirm it carefully.
+              </li>
+              <li className="flex gap-3">
+                <Dot />
+                Your password must be at least 8 characters.
+              </li>
+              <li className="flex gap-3">
+                <Dot />
+                Once updated, return to login and access your account.
+              </li>
+            </ul>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/"
+                className="rounded-xs px-6 py-3 text-[12px] font-semibold text-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]"
+                style={{ background: `linear-gradient(135deg, ${BRAND_RED}, #8B001C)` }}
+              >
+                Back to login
+              </Link>
+
+              <Link
+                href="/contact"
+                className="rounded-xs border border-black/15 bg-white px-6 py-3 text-[12px] font-semibold text-black transition hover:bg-black/[0.02]"
+              >
+                Need support
+              </Link>
+            </div>
+          </div>
+
+          
         </div>
       </section>
 
