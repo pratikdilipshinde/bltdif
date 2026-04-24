@@ -1,66 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "../lib/supabase/client";
-import type { Product } from "../lib/shop/types";
+import {
+  getCatalogProductsByCategory,
+  type CatalogProduct,
+} from "../lib/shop-v2";
 import ProductCard from "./shop/ProductCard";
 
-type DbProductRow = {
-  id: number;
-  sku: string;
-  name: string;
-  type: string;
-  category: string;
-  description: string | null;
-  material: string | null;
-  features: string | null;
-  care_guide: string | null;
-  delivery: string | null;
-  count: number;
-  price: number | null;
-  image_url?: string | null;
-  images?: string[] | null;
-  availability?: boolean | null;
-};
-
-function mapDbToProduct(row: DbProductRow): Product {
-  return {
-    id: row.id,
-    sku: row.sku,
-    name: row.name,
-    type: row.type,
-    category: row.category,
-    description: row.description,
-    material: row.material,
-    features: row.features,
-    care_guide: row.care_guide,
-    delivery: row.delivery,
-    count: row.count,
-    price: row.price ?? 0,
-    image: row.images?.[0] || row.image_url || "/images/placeholder.jpg",
-    availability: row.availability ?? row.count > 0,
-  };
-}
-
 export default function ProductsSection() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
 
   useEffect(() => {
     async function fetchProducts() {
-      const supabase = createClient();
-
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("category", "Cap")
-        .limit(3);
-
-      if (error) {
-        console.error(error.message);
-        return;
-      }
-
-      setProducts((data ?? []).map(mapDbToProduct));
+      const data = await getCatalogProductsByCategory("caps");
+      setProducts(data.slice(0, 3));
     }
 
     fetchProducts();
@@ -78,8 +31,8 @@ export default function ProductsSection() {
         <div
           className={
             products.length < 4
-              ? "flex flex-wrap justify-center gap-3 md:gap-6 w-full max-w-[1100px]"
-              : "grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 max-w-[1100px] w-full"
+              ? "flex w-full max-w-[1100px] flex-wrap justify-center gap-3 md:gap-6"
+              : "grid w-full max-w-[1100px] grid-cols-2 gap-3 md:grid-cols-3 md:gap-6"
           }
         >
           {products.map((product) => (

@@ -37,6 +37,8 @@ model UserProfile {
   @@map("UserProfile")
 }
 
+/// OLD PRODUCT TABLE
+/// Keeping untouched for now
 model Product {
   id           BigInt   @id @default(autoincrement())
   sku          String   @unique
@@ -90,6 +92,109 @@ model OrderItem {
   order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("OrderItem")
+}
+
+model CatalogCategory {
+  id        BigInt           @id @default(autoincrement())
+  code      String           @unique
+  name      String
+  sortOrder Int              @default(0) @map("sort_order")
+  isActive  Boolean          @default(true) @map("is_active")
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  products  CatalogProduct[]
+
+  @@map("catalog_categories")
+}
+
+model CatalogSize {
+  id        BigInt                  @id @default(autoincrement())
+  code      String                  @unique
+  label     String
+  sortOrder Int                     @default(0) @map("sort_order")
+  isActive  Boolean                 @default(true) @map("is_active")
+  createdAt DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  variants  CatalogProductVariant[]
+
+  @@map("catalog_sizes")
+}
+
+model CatalogProduct {
+  id               BigInt                  @id @default(autoincrement())
+  productCode      String                  @unique @map("product_code")
+  slug             String                  @unique
+  name             String
+  categoryId       BigInt                  @map("category_id")
+  productType      String?                 @map("product_type")
+  shortDescription String?                 @map("short_description")
+  description      String?
+  material         String?
+  features         String?
+  careGuide        String?                 @map("care_guide")
+  deliveryInfo     String?                 @map("delivery_info")
+  brand            String                  @default("BLTDIF")
+  status           String                  @default("DRAFT")
+  basePrice        Decimal                 @map("base_price") @db.Decimal(10, 2)
+  compareAtPrice   Decimal?                @map("compare_at_price") @db.Decimal(10, 2)
+  currencyCode     String                  @default("USD") @map("currency_code")
+  isFeatured       Boolean                 @default(false) @map("is_featured")
+  isNewArrival     Boolean                 @default(false) @map("is_new_arrival")
+  seoTitle         String?                 @map("seo_title")
+  seoDescription   String?                 @map("seo_description")
+  createdAt        DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  images           CatalogProductImage[]
+  variants         CatalogProductVariant[]
+  category         CatalogCategory         @relation(fields: [categoryId], references: [id], onUpdate: NoAction)
+
+  @@index([categoryId], map: "idx_catalog_products_category_id")
+  @@index([isFeatured], map: "idx_catalog_products_featured")
+  @@index([status], map: "idx_catalog_products_status")
+  @@map("catalog_products")
+}
+
+model CatalogProductVariant {
+  id                BigInt                @id @default(autoincrement())
+  productId         BigInt                @map("product_id")
+  sku               String                @unique
+  sizeId            BigInt?               @map("size_id")
+  color             String?
+  colorCode         String?               @map("color_code")
+  price             Decimal?              @db.Decimal(10, 2)
+  compareAtPrice    Decimal?              @map("compare_at_price") @db.Decimal(10, 2)
+  stockQuantity     Int                   @default(0) @map("stock_quantity")
+  reservedQuantity  Int                   @default(0) @map("reserved_quantity")
+  lowStockThreshold Int                   @default(5) @map("low_stock_threshold")
+  weightGrams       Int?                  @map("weight_grams")
+  isActive          Boolean               @default(true) @map("is_active")
+  isDefault         Boolean               @default(false) @map("is_default")
+  barcode           String?
+  createdAt         DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  images            CatalogProductImage[]
+  product           CatalogProduct        @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  size              CatalogSize?          @relation(fields: [sizeId], references: [id], onUpdate: NoAction)
+
+  @@unique([productId, sizeId, color], map: "uq_catalog_variant")
+  @@index([productId], map: "idx_catalog_variants_product_id")
+  @@index([sizeId], map: "idx_catalog_variants_size_id")
+  @@map("catalog_product_variants")
+}
+
+model CatalogProductImage {
+  id        BigInt                 @id @default(autoincrement())
+  productId BigInt?                @map("product_id")
+  variantId BigInt?                @map("variant_id")
+  imageUrl  String                 @map("image_url")
+  altText   String?                @map("alt_text")
+  sortOrder Int                    @default(0) @map("sort_order")
+  isPrimary Boolean                @default(false) @map("is_primary")
+  createdAt DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  product   CatalogProduct?        @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  variant   CatalogProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([productId], map: "idx_catalog_images_product_id")
+  @@index([variantId], map: "idx_catalog_images_variant_id")
+  @@map("catalog_product_images")
 }
 
 enum OrderStatus {

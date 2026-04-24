@@ -14,9 +14,9 @@ import { useCart } from "@/app/context/CartContext";
 const BRAND_RED = "#CE0028";
 
 const categories = [
-  { label: "HOODIE", href: "/hoodies" },
-  { label: "T-SHIRT", href: "/t-shirts" },
-  { label: "CAP", href: "/caps" },
+  { label: "HOODIE", href: "/products/hoodies" },
+  { label: "T-SHIRT", href: "/products/t-shirts" },
+  { label: "CAP", href: "/products/caps" },
 ];
 
 export default function Navbar() {

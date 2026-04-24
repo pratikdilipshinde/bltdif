@@ -1,90 +1,34 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-import { getProductsByCategory } from "../../lib/shop/getProducts";
-import type { Product } from "../../lib/shop/types";
-
-type CategoryConfig = {
-  key: string;
-  label: string;
-  heroImage: string;
-  heroSubtitle: string;
-};
-
-const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
-  caps: {
-    key: "caps",
-    label: "Caps",
-    heroImage: "/images/cap-hero-img.png",
-    heroSubtitle: "Built different. Worn daily.",
-  },
-  "t-shirts": {
-    key: "t-shirts",
-    label: "T-Shirts",
-    heroImage: "/images/tshirts-hero-img.jpg",
-    heroSubtitle: "New silhouettes arriving soon.",
-  },
-  hoodies: {
-    key: "hoodies",
-    label: "Hoodies",
-    heroImage: "/images/hoodie-hero-img.png",
-    heroSubtitle: "Heavyweight pieces landing soon.",
-  },
-};
-
+import type { CatalogProduct } from "../../lib/shop-v2";
 import ProductCard from "./ProductCard";
+import { CATEGORY_CONFIG } from "../../lib/shop-v2/collection-config";
 
 export default function CollectionPage({
   categorySlug,
+  products = [],
 }: {
   categorySlug: string;
+  products: CatalogProduct[];
 }) {
   const config = CATEGORY_CONFIG[categorySlug];
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const isComingSoon =
-    categorySlug === "t-shirts" || categorySlug === "hoodies";
-
-  useEffect(() => {
-    async function loadProducts() {
-      if (isComingSoon) {
-        setProducts([]);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-
-      const categoryMap: Record<string, string> = {
-        caps: "Cap",
-        "t-shirts": "T-Shirt",
-        hoodies: "Hoodie",
-      };
-
-      const dbCategory = categoryMap[categorySlug];
-      const data = await getProductsByCategory(dbCategory);
-
-      setProducts(data);
-      setLoading(false);
-    }
-
-    loadProducts();
-  }, [categorySlug, isComingSoon]);
-
-  const filteredProducts = useMemo(() => products, [products]);
 
   if (!config) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-16">
-        <h1 className="text-2xl font-semibold">Category not found</h1>
-        <Link href="/" className="mt-4 inline-block underline">
-          Go home
+        <h1 className="text-2xl font-semibold text-black">
+          Category not found
+        </h1>
+
+        <Link
+          href="/products"
+          className="mt-4 inline-block text-sm font-semibold text-black underline"
+        >
+          Back to shop
         </Link>
       </div>
     );
@@ -93,7 +37,7 @@ export default function CollectionPage({
   return (
     <div className="bg-white">
       {/* HERO */}
-      <section className="relative h-[65vh] w-full overflow-hidden -mt-[56px] md:-mt-[72px]">
+      <section className="relative -mt-[56px] h-[60vh] min-h-[420px] w-full overflow-hidden md:-mt-[72px] md:h-[65vh]">
         <Image
           src={config.heroImage}
           alt={`${config.label} hero`}
@@ -102,40 +46,32 @@ export default function CollectionPage({
           sizes="100vw"
           className="object-cover object-center"
         />
-        
 
-        <div className="relative z-10 flex h-full items-center justify-center px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            {/* <h1 className="text-3xl font-bold uppercase tracking-[0.18em] text-white sm:text-4xl md:text-6xl">
-              {config.label}
-            </h1>
-            <p className="mt-3 text-sm text-white/80 md:text-base">
-              {config.heroSubtitle}
-            </p> */}
-          </motion.div>
-        </div>
+        
 
         <div className="absolute bottom-6 left-4 z-10 md:left-6">
           <div className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur">
             <Link href="/" className="transition hover:text-white">
               Home
             </Link>
+
             <span className="mx-2">›</span>
+
+            <Link href="/products" className="transition hover:text-white">
+              Products
+            </Link>
+
+            <span className="mx-2">›</span>
+
             <span className="text-white/80">{config.label}</span>
           </div>
         </div>
       </section>
 
-      {/* CONTENT */}
-      {isComingSoon ? (
+      {/* COMING SOON */}
+      {config.comingSoon ? (
         <section className="mx-auto max-w-7xl px-4 py-10 md:py-14">
           <div className="overflow-hidden rounded-2xl">
-
-            {/* Desktop Image */}
             <Image
               src="/images/COMING-SOON-linear-text.png"
               alt={`${config.label} coming soon`}
@@ -145,7 +81,6 @@ export default function CollectionPage({
               className="hidden w-full object-contain md:block"
             />
 
-            {/* Mobile Image */}
             <Image
               src="/images/coming-soon-home.png"
               alt={`${config.label} coming soon`}
@@ -154,36 +89,52 @@ export default function CollectionPage({
               priority
               className="block w-full object-contain md:hidden"
             />
-
           </div>
         </section>
       ) : (
-        <section className="mx-auto max-w-7xl px-2 py-10">
-          {loading ? (
-            <div className="py-10 text-center text-black/60">
-              Loading products...
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
+          <div className="mb-8 flex flex-col gap-2 border-b border-black/10 pb-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#CE0028]">
+                Shop Collection
+              </p>
+
+              <h2 className="mt-2 text-3xl font-semibold uppercase tracking-[-0.04em] text-black md:text-5xl">
+                {config.label}
+              </h2>
             </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="py-10 text-center text-black/60">
-              No products found.
+
+            <p className="text-sm text-black/50">
+              {products.length} {products.length === 1 ? "product" : "products"}
+            </p>
+          </div>
+
+          {products.length === 0 ? (
+            <div className="flex min-h-[260px] items-center justify-center rounded-xs border border-black/10 bg-[#f7f5f1] px-4 text-center">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
+                  No products found
+                </p>
+
+                <p className="mt-2 text-sm text-black/50">
+                  Products will appear here once they are available.
+                </p>
+              </div>
             </div>
           ) : (
             <div
-              className={
-                filteredProducts.length < 4
-                  ? "flex flex-wrap justify-center gap-4 md:gap-6"
-                  : "grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4"
-              }
+              className="
+                grid grid-cols-1
+                gap-5
+                sm:grid-cols-2
+                md:grid-cols-3
+                xl:grid-cols-3
+                xl:mx-auto
+                xl:max-w-5xl
+              "
             >
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className={
-                    filteredProducts.length < 4
-                      ? "w-[48%] md:w-[280px] xl:w-[290px]"
-                      : "w-full"
-                  }
-                >
+              {products.map((product) => (
+                <div key={product.product_code} className="w-full">
                   <ProductCard product={product} />
                 </div>
               ))}
