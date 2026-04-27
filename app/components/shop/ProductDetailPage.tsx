@@ -152,7 +152,7 @@ export default function ProductDetailPage({
           <span className="mx-2">›</span>
 
           <Link
-            href={`/products/${product.category_code}`}
+            href="/products/t-shirts"
             className="transition hover:text-black"
           >
             {product.category_name}

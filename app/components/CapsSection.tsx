@@ -12,8 +12,15 @@ export default function CapsSection() {
 
   useEffect(() => {
     async function fetchProducts() {
-      const data = await getCatalogProductsByCategory("caps");
-      setProducts(data.slice(0, 3));
+        const data = await getCatalogProductsByCategory("caps");
+      
+        const sortedProducts = [...data].sort(
+        (a, b) =>
+            Number(a.variants?.[0]?.price || 0) -
+            Number(b.variants?.[0]?.price || 0)
+        );
+
+        setProducts(sortedProducts.slice(0, 3));
     }
 
     fetchProducts();

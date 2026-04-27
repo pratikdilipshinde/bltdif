@@ -33,6 +33,13 @@ export default function CollectionPage({
     );
   }
 
+  // ✅ SORT PRODUCTS BY LOWEST PRICE (FROM VARIANTS)
+  const sortedProducts = [...products].sort(
+    (a, b) =>
+      Number(a.variants?.[0]?.price || 0) -
+      Number(b.variants?.[0]?.price || 0)
+  );
+
   return (
     <div className="bg-white">
       {/* HERO */}
@@ -52,11 +59,11 @@ export default function CollectionPage({
               Home
             </Link>
 
-            <span className="mx-2">›</span>
+            {/* <span className="mx-2">›</span>
 
             <Link href="/products" className="transition hover:text-white">
               Products
-            </Link>
+            </Link> */}
 
             <span className="mx-2">›</span>
 
@@ -91,6 +98,7 @@ export default function CollectionPage({
       ) : (
         <section className="bg-white px-4 py-5 md:px-5 lg:px-8 xl:px-10 2xl:px-14">
           <div className="mx-auto max-w-[1800px]">
+            {/* HEADER */}
             <div className="mb-5 flex flex-col gap-2 border-b border-black/10 pb-2 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#CE0028]">
@@ -103,12 +111,13 @@ export default function CollectionPage({
               </div>
 
               <p className="text-sm text-black/50">
-                {products.length}{" "}
-                {products.length === 1 ? "product" : "products"}
+                {sortedProducts.length}{" "}
+                {sortedProducts.length === 1 ? "product" : "products"}
               </p>
             </div>
 
-            {products.length === 0 ? (
+            {/* EMPTY STATE */}
+            {sortedProducts.length === 0 ? (
               <div className="flex min-h-[260px] items-center justify-center rounded-xs border border-black/10 bg-[#f7f5f1] px-4 text-center">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
@@ -121,8 +130,9 @@ export default function CollectionPage({
                 </div>
               </div>
             ) : (
+              /* PRODUCT GRID */
               <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8 xl:gap-9 2xl:gap-10">
-                {products.map((product) => (
+                {sortedProducts.map((product) => (
                   <div
                     key={product.id}
                     className="

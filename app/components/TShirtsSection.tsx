@@ -12,8 +12,15 @@ export default function TShirtsSection() {
 
   useEffect(() => {
     async function fetchProducts() {
-      const data = await getCatalogProductsByCategory("tshirts");
-      setProducts(data.slice(0, 3));
+        const data = await getCatalogProductsByCategory("tshirts");
+
+        const sortedProducts = [...data].sort(
+        (a, b) =>
+            Number(a.variants?.[0]?.price || 0) -
+            Number(b.variants?.[0]?.price || 0)
+        );
+
+        setProducts(sortedProducts.slice(0, 3));
     }
 
     fetchProducts();
