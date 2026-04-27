@@ -19,8 +19,18 @@ const categories = [
   { label: "CAP", href: "/products/caps" },
 ];
 
+const categorySlugs = categories.map((c) => c.href.split("/")[2]);
+
 export default function Navbar() {
   const pathname = usePathname();
+
+  const pathParts = pathname.split("/");
+
+  const isProductDetailsPage =
+    pathname.startsWith("/products/") &&
+    pathParts.length === 3 &&
+    !categorySlugs.includes(pathParts[2]);
+
   const { user, loading, logout } = useAuth();
   const { cartCount } = useCart();
 
@@ -34,9 +44,14 @@ export default function Navbar() {
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
 
-  const textColor = isSticky ? "text-black" : "text-white";
-  const iconColor = isSticky ? "text-black" : "text-white";
-  const dividerColor = isSticky ? "bg-black/70" : "bg-white/70";
+  const textColor =
+    isProductDetailsPage ? "text-black" : isSticky ? "text-black" : "text-white";
+
+  const iconColor =
+    isProductDetailsPage ? "text-black" : isSticky ? "text-black" : "text-white";
+
+  const dividerColor =
+    isProductDetailsPage ? "bg-black/70" : isSticky ? "bg-black/70" : "bg-white/70";
 
   useEffect(() => {
     closeMenu();
@@ -112,7 +127,7 @@ export default function Navbar() {
             <Link href="/" aria-label="BLTDIF Home" className="relative">
               <div className="relative h-5 w-[80px] md:h-6 md:w-[100px]">
                 <Image
-                  src="/images/Logo-white.png"
+                  src={isProductDetailsPage ? "/images/Logo.png" : "/images/Logo-white.png"}
                   alt="BLTDIF White Logo"
                   fill
                   priority

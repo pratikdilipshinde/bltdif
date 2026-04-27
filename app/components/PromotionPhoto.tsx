@@ -49,7 +49,7 @@ export default function PromotionPhoto() {
 
           {/* Button */}
           <Link
-            href="/caps"
+            href="/products/caps"
             className="bg-white rounded-full text-black px-6 py-2 md:px-8 md:py-3 text-sm md:text-base font-medium hover:bg-neutral-200 transition inline-block"
             >
             Shop Now

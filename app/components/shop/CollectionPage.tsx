@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 
 import type { CatalogProduct } from "../../lib/shop-v2";
 import ProductCard from "./ProductCard";
@@ -47,8 +46,6 @@ export default function CollectionPage({
           className="object-cover object-center"
         />
 
-        
-
         <div className="absolute bottom-6 left-4 z-10 md:left-6">
           <div className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur">
             <Link href="/" className="transition hover:text-white">
@@ -92,54 +89,58 @@ export default function CollectionPage({
           </div>
         </section>
       ) : (
-        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
-          <div className="mb-8 flex flex-col gap-2 border-b border-black/10 pb-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#CE0028]">
-                Shop Collection
-              </p>
-
-              <h2 className="mt-2 text-3xl font-semibold uppercase tracking-[-0.04em] text-black md:text-5xl">
-                {config.label}
-              </h2>
-            </div>
-
-            <p className="text-sm text-black/50">
-              {products.length} {products.length === 1 ? "product" : "products"}
-            </p>
-          </div>
-
-          {products.length === 0 ? (
-            <div className="flex min-h-[260px] items-center justify-center rounded-xs border border-black/10 bg-[#f7f5f1] px-4 text-center">
+        <section className="bg-white px-4 py-5 md:px-5 lg:px-8 xl:px-10 2xl:px-14">
+          <div className="mx-auto max-w-[1800px]">
+            <div className="mb-5 flex flex-col gap-2 border-b border-black/10 pb-2 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
-                  No products found
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#CE0028]">
+                  Shop Collection
                 </p>
 
-                <p className="mt-2 text-sm text-black/50">
-                  Products will appear here once they are available.
-                </p>
+                <h2 className="mt-2 text-2xl font-semibold uppercase tracking-[-0.04em] text-black md:text-3xl">
+                  {config.label}
+                </h2>
               </div>
+
+              <p className="text-sm text-black/50">
+                {products.length}{" "}
+                {products.length === 1 ? "product" : "products"}
+              </p>
             </div>
-          ) : (
-            <div
-              className="
-                grid grid-cols-1
-                gap-5
-                sm:grid-cols-2
-                md:grid-cols-3
-                xl:grid-cols-3
-                xl:mx-auto
-                xl:max-w-5xl
-              "
-            >
-              {products.map((product) => (
-                <div key={product.product_code} className="w-full">
-                  <ProductCard product={product} />
+
+            {products.length === 0 ? (
+              <div className="flex min-h-[260px] items-center justify-center rounded-xs border border-black/10 bg-[#f7f5f1] px-4 text-center">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
+                    No products found
+                  </p>
+
+                  <p className="mt-2 text-sm text-black/50">
+                    Products will appear here once they are available.
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8 xl:gap-9 2xl:gap-10">
+                {products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="
+                      w-full
+                      sm:min-h-[440px]
+                      lg:min-h-[500px]
+                      xl:min-h-[500px]
+                      2xl:min-h-[660px]
+                      min-[2560px]:min-h-[760px]
+                      min-[3840px]:min-h-[900px]
+                    "
+                  >
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
       )}
     </div>

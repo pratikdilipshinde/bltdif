@@ -8,7 +8,7 @@ const SLIDE_INTERVAL = 4500;
 
 const slides = [
   {
-    desktopImage: "/images/Hero-main-img.png",
+    desktopImage: "/images/Hero-main-img-v2.jpg",
     mobileImage: "/images/Hero-main-img-mob.jpg",
     title: "/images/Hero-title.png",
     subtitle: "",
@@ -32,38 +32,58 @@ export default function HeroSection() {
   const slide = slides[index];
 
   return (
-    <section className="relative w-full overflow-hidden h-[65vh] md:h-[78vh] lg:h-[100dvh] -mt-[56px] md:-mt-[72px]">
-      {/* IMAGE SLIDER */}
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={`${slide.desktopImage}-${slide.mobileImage}`}
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.04 }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
-          className="absolute inset-0"
-        >
-          {/* Desktop / Tablet Image */}
-          <Image
-            src={slide.desktopImage}
-            alt="Hero Desktop"
-            fill
-            priority
-            sizes="100vw"
-            className="hidden md:block object-cover object-center"
-          />
+    // <section className="relative w-full overflow-hidden h-[65vh] md:h-[78vh] lg:h-[100dvh] -mt-[56px] md:-mt-[72px]">
+      <section
+        className="
+          relative w-full overflow-hidden
+          -mt-[56px] md:-mt-[72px]
 
-          {/* Mobile Image */}
-          <Image
-            src={slide.mobileImage}
-            alt="Hero Mobile"
-            fill
-            priority
-            sizes="100vw"
-            className="block md:hidden object-cover object-center"
-          />
-        </motion.div>
-      </AnimatePresence>
+          h-[430px]
+
+          sm:h-[500px]
+          md:h-[500px]
+
+          lg:h-[500px]
+          xl:h-[550px]
+
+          2xl:h-[760px]
+
+          min-[2560px]:h-[150dvh]
+          min-[3840px]:h-[180dvh]
+        "
+      >
+        {/* IMAGE SLIDER */}
+        <AnimatePresence mode="sync">
+          <motion.div
+            key={`${slide.desktopImage}-${slide.mobileImage}`}
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.04 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            className="absolute inset-0"
+          >
+            {/* Desktop / Tablet Image */}
+            <Image
+              src={slide.desktopImage}
+              alt="Hero Desktop"
+              fill
+              priority
+              sizes="100vw"
+              className="hidden md:block object-cover object-center"
+            />
+
+            {/* Mobile Image */}
+            <Image
+              src={slide.mobileImage}
+              alt="Hero Mobile"
+              fill
+              priority
+              sizes="100vw"
+              className="block md:hidden object-cover object-center"
+            />
+          </motion.div>
+        </AnimatePresence>
+      
 
       {/* DARK OVERLAY */}
       {/* <div className="absolute inset-0 bg-black/30 sm:bg-black/35" /> */}

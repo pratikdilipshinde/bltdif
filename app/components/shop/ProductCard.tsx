@@ -100,11 +100,11 @@ export default function ProductCard({
                   {product.product_type ?? product.category_name}
                 </p>
 
-                {product.sizes.length > 0 && (
+                {/* {product.sizes.length > 0 && (
                   <p className="mt-1 text-[11px] tracking-wide text-black/40">
                     {product.sizes.join(" / ")}
                   </p>
-                )}
+                )} */}
               </div>
 
               <div className="shrink-0 text-right">
