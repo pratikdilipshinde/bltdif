@@ -578,7 +578,7 @@ export default function ProductDetailPage({
       <AnimatePresence>
         {showSizeChart && (
           <motion.div
-            className="fixed inset-0 z-[9999] flex w-full items-center justify-center overflow-x-hidden bg-black/70 px-3 backdrop-blur-sm sm:px-4"
+            className="fixed inset-0 z-[9999] flex w-full items-center justify-center overflow-hidden bg-black/80 px-3 py-4 backdrop-blur-md sm:px-5"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -588,17 +588,24 @@ export default function ProductDetailPage({
               initial={{ opacity: 0, y: 24, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 24, scale: 0.96 }}
-              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+              transition={{ duration: 0.24, ease: [0.25, 1, 0.5, 1] }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+              className="
+                relative w-full overflow-hidden bg-white shadow-2xl
+                rounded-2xl
+                max-w-[96vw]
+                md:max-w-5xl
+                xl:max-w-6xl
+              "
             >
+              {/* HEADER */}
               <div className="flex items-center justify-between gap-4 border-b border-black/10 px-4 py-4 md:px-7">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#CE0028]">
                     BLTDIF
                   </p>
 
-                  <h3 className="mt-1 break-words text-lg font-semibold text-black md:text-2xl">
+                  <h3 className="mt-1 text-lg font-semibold text-black md:text-2xl">
                     T-Shirt Size Guide
                   </h3>
                 </div>
@@ -613,19 +620,31 @@ export default function ProductDetailPage({
                 </button>
               </div>
 
-              <div className="max-h-[78vh] overflow-auto bg-white p-3">
+              {/* BODY */}
+              <div className="max-h-[78vh] overflow-y-auto bg-white p-3 sm:p-4 md:p-5">
+                {/* Desktop / Tablet Size Guide */}
                 <Image
                   src="/images/TEE-SIZE-GUIDE.png"
-                  alt="BLTDIF T-Shirt Size Guide"
+                  alt="BLTDIF T-Shirt Size Guide Desktop"
                   width={2048}
                   height={577}
-                  className="h-auto w-full rounded-xl object-contain"
+                  className="hidden h-auto w-full rounded-xl object-contain md:block"
                   priority
                 />
 
-                <p className="mt-2 text-center text-xs leading-relaxed text-black/50">
-                  Measurements are approximate and may vary slightly due to
-                  garment construction and fabric behavior.
+                {/* Mobile Size Guide */}
+                <Image
+                  src="/images/TEE-SIZE-GUIDE-mobile.png"
+                  alt="BLTDIF T-Shirt Size Guide Mobile"
+                  width={1120}
+                  height={1372}
+                  className="block h-auto w-full rounded-xl object-contain md:hidden"
+                  priority
+                />
+
+                <p className="mt-3 px-2 text-center text-[11px] leading-relaxed text-black/50 sm:text-xs">
+                  Measurements are approximate and may vary slightly due to garment
+                  construction and fabric behavior.
                 </p>
               </div>
             </motion.div>

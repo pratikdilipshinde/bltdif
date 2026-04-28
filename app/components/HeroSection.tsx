@@ -2,133 +2,155 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, PanInfo } from "framer-motion";
 
-const SLIDE_INTERVAL = 4500;
+const SLIDE_INTERVAL = 3500;
+const SWIPE_THRESHOLD = 50;
 
 const slides = [
   {
-    desktopImage: "/images/Hero-main-img-v2.jpg",
-    mobileImage: "/images/Hero-main-img-mob.jpg",
-    title: "/images/Hero-title.png",
+    desktopImage: "/images/home-hero-desktop-caps-v2.jpg",
+    mobileImage: "/images/home-hero-mobile-caps-v2.jpg",
     subtitle: "",
-    href: "/",
+    href: "/products/caps",
+  },
+  {
+    desktopImage: "/images/home-hero-desktop-v2.jpg",
+    mobileImage: "/images/home-hero-mobile-v2.jpg",
+    subtitle: "",
+    href: "/products/t-shirts",
   },
 ];
 
 export default function HeroSection() {
   const [index, setIndex] = useState(0);
 
+  const goToNext = () => {
+    setIndex((prev) => (prev + 1) % slides.length);
+  };
+
+  const goToPrev = () => {
+    setIndex((prev) => (prev - 1 + slides.length) % slides.length);
+  };
+
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.x < -SWIPE_THRESHOLD) {
+      goToNext();
+    }
+
+    if (info.offset.x > SWIPE_THRESHOLD) {
+      goToPrev();
+    }
+  };
+
   useEffect(() => {
     if (slides.length <= 1) return;
 
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % slides.length);
+    const timer = window.setInterval(() => {
+      goToNext();
     }, SLIDE_INTERVAL);
 
-    return () => clearInterval(timer);
+    return () => window.clearInterval(timer);
   }, []);
 
   const slide = slides[index];
 
   return (
-    // <section className="relative w-full overflow-hidden h-[65vh] md:h-[78vh] lg:h-[100dvh] -mt-[56px] md:-mt-[72px]">
-      <section
-        className="
-          relative w-full overflow-hidden
-          -mt-[56px] md:-mt-[72px]
+    <section
+      className="
+        relative w-full overflow-hidden bg-black
+        -mt-[56px] md:-mt-[72px] 
+        h-[400px] 
+        sm:h-[450px] 
+        md:h-[320px] 
+        lg:h-[480px] 
+        xl:h-[550px] 
+        2xl:h-[760px] 
+        min-[2560px]:h-[150dvh] 
+        min-[3840px]:h-[180dvh]
+      "
+    >
+      {/* IMAGE SLIDER */}
+      <AnimatePresence mode="sync">
+        <motion.div
+          key={index}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.18}
+          onDragEnd={handleDragEnd}
+          initial={{ opacity: 0, scale: 1.08 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1.02 }}
+          transition={{
+            opacity: { duration: 0.3 },
+            scale: { duration: 0.7 },
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          className="absolute inset-0 cursor-grab active:cursor-grabbing"
+        >
+          <Image
+            src={slide.desktopImage}
+            alt="BLTDIF Hero Desktop"
+            fill
+            priority={index === 0}
+            sizes="100vw"
+            className="hidden object-cover object-center md:block"
+          />
 
-          h-[430px]
+          <Image
+            src={slide.mobileImage}
+            alt="BLTDIF Hero Mobile"
+            fill
+            priority={index === 0}
+            sizes="100vw"
+            className="block object-cover object-center md:hidden"
+          />
+        </motion.div>
+      </AnimatePresence>
 
-          sm:h-[500px]
-          md:h-[500px]
-
-          lg:h-[500px]
-          xl:h-[550px]
-
-          2xl:h-[760px]
-
-          min-[2560px]:h-[150dvh]
-          min-[3840px]:h-[180dvh]
-        "
-      >
-        {/* IMAGE SLIDER */}
-        <AnimatePresence mode="sync">
-          <motion.div
-            key={`${slide.desktopImage}-${slide.mobileImage}`}
-            initial={{ opacity: 0, scale: 1.04 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.04 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="absolute inset-0"
+      {/* LEFT / RIGHT ARROWS */}
+      {slides.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={goToPrev}
+            aria-label="Previous slide"
+            className="
+              absolute left-4 top-1/2 z-30 hidden h-10 w-10 -translate-y-1/2
+              items-center justify-center rounded-full border border-white/25
+              bg-black/25 text-white backdrop-blur-md transition
+              hover:bg-black/45 md:flex
+            "
           >
-            {/* Desktop / Tablet Image */}
-            <Image
-              src={slide.desktopImage}
-              alt="Hero Desktop"
-              fill
-              priority
-              sizes="100vw"
-              className="hidden md:block object-cover object-center"
-            />
+            ‹
+          </button>
 
-            {/* Mobile Image */}
-            <Image
-              src={slide.mobileImage}
-              alt="Hero Mobile"
-              fill
-              priority
-              sizes="100vw"
-              className="block md:hidden object-cover object-center"
-            />
-          </motion.div>
-        </AnimatePresence>
-      
-
-      {/* DARK OVERLAY */}
-      {/* <div className="absolute inset-0 bg-black/30 sm:bg-black/35" /> */}
-
-      {/* HERO TITLE IMAGE */}
-      {/* <div className="absolute top-6 sm:top-8 md:top-10 lg:top-12 left-1/2 -translate-x-1/2 z-20 px-4">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={slide.title}
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -18 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          <button
+            type="button"
+            onClick={goToNext}
+            aria-label="Next slide"
+            className="
+              absolute right-4 top-1/2 z-30 hidden h-10 w-10 -translate-y-1/2
+              items-center justify-center rounded-full border border-white/25
+              bg-black/25 text-white backdrop-blur-md transition
+              hover:bg-black/45 md:flex
+            "
           >
-            <Image
-              src={slide.title}
-              alt="Hero Title"
-              width={350}
-              height={100}
-              priority
-              sizes="(max-width: 640px) 150px, (max-width: 768px) 150px, (max-width: 1024px) 180px, 250px"
-              className="w-[150px] sm:w-[150px] md:w-[150px] lg:w-[220px] xl:w-[250px] h-auto object-contain"
-            />
-          </motion.div>
-        </AnimatePresence>
-      </div> */}
-
-      {/* OPTIONAL SUBTITLE */}
-      {slide.subtitle && (
-        <div className="absolute top-[32%] sm:top-[34%] left-1/2 -translate-x-1/2 text-center z-20 px-4">
-          <p className="text-white/80 text-xs sm:text-sm md:text-lg">
-            {slide.subtitle}
-          </p>
-        </div>
+            ›
+          </button>
+        </>
       )}
 
       {/* DOTS */}
       {slides.length > 1 && (
-        <div className="absolute bottom-4 sm:bottom-5 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2 sm:bottom-5 md:bottom-6">
           {slides.map((_, i) => (
             <button
               key={i}
+              type="button"
               onClick={() => setIndex(i)}
-              className={`h-2.5 w-2.5 rounded-full transition ${
-                i === index ? "bg-white" : "bg-white/40"
+              className={`h-2.5 rounded-full transition-all duration-300 ${
+                i === index ? "w-8 bg-white" : "w-2.5 bg-white/40"
               }`}
               aria-label={`Slide ${i + 1}`}
             />
