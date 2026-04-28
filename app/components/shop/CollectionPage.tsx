@@ -43,27 +43,36 @@ export default function CollectionPage({
   return (
     <div className="bg-white">
       {/* HERO */}
-      <section className="relative -mt-[56px] h-[60vh] min-h-[420px] w-full overflow-hidden md:-mt-[72px] md:h-[65vh]">
+      <section className="relative -mt-[56px] h-[50vh] min-h-[380px] w-full overflow-hidden md:-mt-[72px] md:h-[55vh] lg:h-[60vh] lg:min-h-[480px]">
+        {/* Desktop / Tablet Hero */}
         <Image
-          src={config.heroImage}
-          alt={`${config.label} hero`}
+          src={config.heroImageDesktop}
+          alt={`${config.label} desktop hero`}
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center"
+          className="hidden object-cover object-center md:block"
         />
 
-        <div className="absolute bottom-6 left-4 z-10 md:left-6">
-          <div className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur">
+        {/* Mobile Hero */}
+        <Image
+          src={config.heroImageMobile}
+          alt={`${config.label} mobile hero`}
+          fill
+          priority
+          sizes="100vw"
+          className="block object-cover object-center md:hidden"
+        />
+
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
+
+        {/* Breadcrumb */}
+        <div className="absolute bottom-6 left-4 z-10 md:left-8">
+          <div className="inline-flex items-center gap-2 rounded-sm border border-white/15 bg-black/20 px-4 py-2 text-xs text-white/90 backdrop-blur-md">
             <Link href="/" className="transition hover:text-white">
               Home
             </Link>
-
-            {/* <span className="mx-2">›</span>
-
-            <Link href="/products" className="transition hover:text-white">
-              Products
-            </Link> */}
 
             <span className="mx-2">›</span>
 
