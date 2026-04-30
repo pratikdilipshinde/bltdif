@@ -16,6 +16,7 @@ model Profile {
   updatedAt   DateTime     @updatedAt
   orders      Order[]
   userProfile UserProfile?
+  shopOrders  ShopOrder[]
 
   @@map("Profile")
 }
@@ -145,6 +146,8 @@ model CatalogProduct {
   images           CatalogProductImage[]
   variants         CatalogProductVariant[]
   category         CatalogCategory         @relation(fields: [categoryId], references: [id], onUpdate: NoAction)
+  shopOrderItems   ShopOrderItem[]
+  stockMovements   StockMovement[]
 
   @@index([categoryId], map: "idx_catalog_products_category_id")
   @@index([isFeatured], map: "idx_catalog_products_featured")
@@ -173,6 +176,8 @@ model CatalogProductVariant {
   images            CatalogProductImage[]
   product           CatalogProduct        @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   size              CatalogSize?          @relation(fields: [sizeId], references: [id], onUpdate: NoAction)
+  shopOrderItems    ShopOrderItem[]
+  stockMovements    StockMovement[]
 
   @@unique([productId, sizeId, color], map: "uq_catalog_variant")
   @@index([productId], map: "idx_catalog_variants_product_id")
@@ -195,6 +200,133 @@ model CatalogProductImage {
   @@index([productId], map: "idx_catalog_images_product_id")
   @@index([variantId], map: "idx_catalog_images_variant_id")
   @@map("catalog_product_images")
+}
+
+model ShopOrder {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderNumber     String            @unique @map("order_number")
+  userId          String?           @map("user_id")
+  customerName    String            @map("customer_name")
+  customerEmail   String            @map("customer_email")
+  customerPhone   String?           @map("customer_phone")
+  shippingName    String?           @map("shipping_name")
+  shippingPhone   String?           @map("shipping_phone")
+  addressLine1    String            @map("address_line_1")
+  addressLine2    String?           @map("address_line_2")
+  city            String
+  state           String
+  zipCode         String            @map("zip_code")
+  country         String            @default("USA")
+  subtotalAmount  Decimal           @default(0) @map("subtotal_amount") @db.Decimal(10, 2)
+  shippingAmount  Decimal           @default(0) @map("shipping_amount") @db.Decimal(10, 2)
+  discountAmount  Decimal           @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  taxAmount       Decimal           @default(0) @map("tax_amount") @db.Decimal(10, 2)
+  totalAmount     Decimal           @default(0) @map("total_amount") @db.Decimal(10, 2)
+  currencyCode    String            @default("USD") @map("currency_code")
+  orderStatus     ShopOrderStatus   @default(PENDING) @map("order_status")
+  paymentStatus   ShopPaymentStatus @default(PENDING) @map("payment_status")
+  paymentProvider String?           @map("payment_provider")
+  paymentId       String?           @map("payment_id")
+  paymentOrderId  String?           @map("payment_order_id")
+  trackingNumber  String?           @map("tracking_number")
+  courierName     String?           @map("courier_name")
+  trackingUrl     String?           @map("tracking_url")
+  customerNote    String?           @map("customer_note")
+  adminNote       String?           @map("admin_note")
+  paidAt          DateTime?         @map("paid_at") @db.Timestamptz(6)
+  shippedAt       DateTime?         @map("shipped_at") @db.Timestamptz(6)
+  deliveredAt     DateTime?         @map("delivered_at") @db.Timestamptz(6)
+  cancelledAt     DateTime?         @map("cancelled_at") @db.Timestamptz(6)
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  items           ShopOrderItem[]
+  user            Profile?          @relation(fields: [userId], references: [id], onUpdate: NoAction)
+  stockMovements  StockMovement[]
+
+  @@index([userId], map: "idx_shop_orders_user_id")
+  @@index([customerEmail], map: "idx_shop_orders_customer_email")
+  @@index([orderStatus], map: "idx_shop_orders_order_status")
+  @@index([paymentStatus], map: "idx_shop_orders_payment_status")
+  @@index([createdAt(sort: Desc)], map: "idx_shop_orders_created_at")
+  @@map("shop_orders")
+}
+
+model ShopOrderItem {
+  id           String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId      String                @map("order_id") @db.Uuid
+  productId    BigInt                @map("product_id")
+  variantId    BigInt                @map("variant_id")
+  productCode  String                @map("product_code")
+  sku          String
+  productName  String                @map("product_name")
+  categoryCode String?               @map("category_code")
+  sizeCode     String?               @map("size_code")
+  sizeLabel    String?               @map("size_label")
+  color        String?
+  imageUrl     String?               @map("image_url")
+  quantity     Int
+  unitPrice    Decimal               @map("unit_price") @db.Decimal(10, 2)
+  totalPrice   Decimal               @map("total_price") @db.Decimal(10, 2)
+  createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  order        ShopOrder             @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  product      CatalogProduct        @relation(fields: [productId], references: [id], onUpdate: NoAction)
+  variant      CatalogProductVariant @relation(fields: [variantId], references: [id], onUpdate: NoAction)
+
+  @@index([orderId], map: "idx_shop_order_items_order_id")
+  @@index([productId], map: "idx_shop_order_items_product_id")
+  @@index([variantId], map: "idx_shop_order_items_variant_id")
+  @@map("shop_order_items")
+}
+
+model StockMovement {
+  id            String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId     BigInt                @map("product_id")
+  variantId     BigInt                @map("variant_id")
+  orderId       String?               @map("order_id") @db.Uuid
+  movementType  StockMovementType     @map("movement_type")
+  quantity      Int
+  previousStock Int?                  @map("previous_stock")
+  newStock      Int?                  @map("new_stock")
+  reason        String?
+  note          String?
+  createdAt     DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  order         ShopOrder?            @relation(fields: [orderId], references: [id], onUpdate: NoAction)
+  product       CatalogProduct        @relation(fields: [productId], references: [id], onUpdate: NoAction)
+  variant       CatalogProductVariant @relation(fields: [variantId], references: [id], onUpdate: NoAction)
+
+  @@index([productId], map: "idx_stock_movements_product_id")
+  @@index([variantId], map: "idx_stock_movements_variant_id")
+  @@index([orderId], map: "idx_stock_movements_order_id")
+  @@index([createdAt(sort: Desc)], map: "idx_stock_movements_created_at")
+  @@map("stock_movements")
+}
+
+enum ShopOrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum ShopPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum StockMovementType {
+  STOCK_IN
+  STOCK_OUT
+  RESERVED
+  RELEASED
+  SOLD
+  CANCELLED
+  ADJUSTMENT
 }
 
 enum OrderStatus {

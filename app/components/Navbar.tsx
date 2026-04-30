@@ -211,6 +211,12 @@ export default function Navbar() {
                       My Profile
                     </Link>
 
+                    <Link
+                      href="/account/orders"
+                      className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]">
+                    My Orders
+                    </Link>
+
                     <button
                       onClick={handleLogout}
                       className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Minus, Plus, Truck, RotateCcw, ShieldCheck } from "lucide-react";
+import { Minus, Plus, Truck, RotateCcw, ShieldCheck, ChevronDown  } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { useCart } from "@/app/context/CartContext";
@@ -45,6 +45,7 @@ export default function ProductDetailPage({
   const [direction, setDirection] = useState(1);
   const [qty, setQty] = useState(1);
   const [showSizeChart, setShowSizeChart] = useState(false);
+  const [openInfo, setOpenInfo] = useState<string | null>("material");
   const [selectedVariant, setSelectedVariant] = useState(
     product.default_variant
   );
@@ -341,14 +342,14 @@ export default function ProductDetailPage({
               </div>
             </div>
 
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-black/65">
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-black/65">
               {product.description ||
                 "Premium build and elevated everyday wear."}
             </p>
 
             {/* Variants */}
             {product.variants.length > 0 && (
-              <div className="mt-7">
+              <div className="mt-5">
                 <div className="flex min-w-0 items-center justify-between gap-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-black/50">
                     Select Size
@@ -410,7 +411,7 @@ export default function ProductDetailPage({
             )}
 
             {/* Quantity + Add to Cart */}
-            <div className="mt-7 flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mt-3 flex w-full flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex w-full items-center justify-between rounded-xs border border-black/10 bg-white px-3 py-2 sm:w-[180px]">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
@@ -447,7 +448,7 @@ export default function ProductDetailPage({
             </div>
 
             {/* Service Info */}
-            <div className="mt-7 grid gap-3 rounded-xs border border-black/10 bg-white p-5">
+            <div className="mt-5 grid gap-3 rounded-xs border border-black/10 bg-white p-5">
               <div className="flex min-w-0 items-center gap-3 text-sm text-black/70">
                 <Truck className="h-4 w-4 shrink-0" />
                 <span className="min-w-0 break-words">
@@ -455,12 +456,12 @@ export default function ProductDetailPage({
                 </span>
               </div>
 
-              <div className="flex min-w-0 items-center gap-3 text-sm text-black/70">
+              {/* <div className="flex min-w-0 items-center gap-3 text-sm text-black/70">
                 <RotateCcw className="h-4 w-4 shrink-0" />
                 <span className="min-w-0 break-words">
                   Easy returns within 7 days
                 </span>
-              </div>
+              </div> */}
 
               <div className="flex min-w-0 items-center gap-3 text-sm text-black/70">
                 <ShieldCheck className="h-4 w-4 shrink-0" />
@@ -469,77 +470,87 @@ export default function ProductDetailPage({
                 </span>
               </div>
             </div>
+
+            {/* Product Info Accordion */}
+            <div className="mt-1 overflow-hidden rounded-xs border border-black/10 bg-white">
+              {[
+                {
+                  key: "material",
+                  title: "Material",
+                  items: materialList,
+                  empty: "No material information available",
+                },
+                {
+                  key: "care",
+                  title: "Care",
+                  items: careList,
+                  empty: "No care information available",
+                },
+                {
+                  key: "delivery",
+                  title: "Delivery",
+                  items: deliveryList,
+                  empty: "No delivery information available",
+                },
+              ].map((section, index) => {
+                const isOpen = openInfo === section.key;
+
+                return (
+                  <div
+                    key={section.key}
+                    className={index !== 0 ? "border-t border-black/10" : ""}
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenInfo(isOpen ? null : section.key)
+                      }
+                      className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                    >
+                      <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#CE0028]">
+                        {section.title}
+                      </span>
+
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-black transition-transform duration-300 ${
+                          isOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25, ease: "easeOut" }}
+                          className="overflow-hidden"
+                        >
+                          <div className="mx-5 mb-5 max-h-[150px] overflow-y-auto pr-2 text-sm leading-relaxed text-black/65">
+                            <ul className="space-y-2">
+                              {section.items.length ? (
+                                section.items.map((item) => (
+                                  <li key={`${section.key}-${item}`} className="break-words">
+                                    • {item}
+                                  </li>
+                                ))
+                              ) : (
+                                <li>• {section.empty}</li>
+                              )}
+                            </ul>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* DETAILS CARDS */}
-        <div className="mt-12 grid min-w-0 grid-cols-1 gap-6 overflow-hidden md:grid-cols-2 lg:grid-cols-3">
-          {/* <div className="min-w-0 rounded-xs border border-black/10 bg-white p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#CE0028]">
-              Description
-            </p>
-
-            <p className="mt-3 break-words text-sm leading-relaxed text-black/65">
-              {product.description || "No description available."}
-            </p>
-          </div> */}
-
-          <div className="min-w-0 rounded-xs border border-black/10 bg-white p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#CE0028]">
-              Material
-            </p>
-
-            <ul className="mt-3 space-y-2 text-sm text-black/65">
-              {materialList.length ? (
-                materialList.map((item) => (
-                  <li key={item} className="break-words">
-                    • {item}
-                  </li>
-                ))
-              ) : (
-                <li>• No material information available</li>
-              )}
-            </ul>
-          </div>
-
-          <div className="min-w-0 rounded-xs border border-black/10 bg-white p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#CE0028]">
-              Care
-            </p>
-
-            <ul className="mt-3 space-y-2 text-sm text-black/65">
-              {careList.map((item) => (
-                <li key={`care-${item}`} className="break-words">
-                  • {item}
-                </li>
-              ))}
-
-              {!careList.length && (
-                <li>• No delivery information available</li>
-              )}
-            </ul>
-          </div>
-
-          <div className="min-w-0 rounded-xs border border-black/10 bg-white p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#CE0028]">
-              Delivery
-            </p>
-
-            <ul className="mt-3 space-y-2 text-sm text-black/65">
-              
-
-              {deliveryList.map((item) => (
-                <li key={`delivery-${item}`} className="break-words">
-                  • {item}
-                </li>
-              ))}
-
-              {!deliveryList.length && (
-                <li>• No delivery information available</li>
-              )}
-            </ul>
-          </div>
-        </div>
+        
 
         {/* SIMILAR PRODUCTS */}
         {similarProducts.length > 0 && (

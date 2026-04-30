@@ -9,17 +9,18 @@ const SWIPE_THRESHOLD = 50;
 
 const slides = [
   {
-    desktopImage: "/images/home-hero-desktop-caps-v2.jpg",
-    mobileImage: "/images/home-hero-mobile-caps-v2.jpg",
-    subtitle: "",
-    href: "/products/caps",
-  },
-  {
     desktopImage: "/images/home-hero-desktop-v2.jpg",
     mobileImage: "/images/home-hero-mobile-v2.jpg",
     subtitle: "",
     href: "/products/t-shirts",
   },
+  {
+    desktopImage: "/images/home-hero-desktop-caps-v2.jpg",
+    mobileImage: "/images/home-hero-mobile-caps-v2.jpg",
+    subtitle: "",
+    href: "/products/caps",
+  },
+  
 ];
 
 export default function HeroSection() {
@@ -71,7 +72,7 @@ export default function HeroSection() {
       "
     >
       {/* IMAGE SLIDER */}
-      <AnimatePresence mode="sync">
+      <AnimatePresence mode="wait">
         <motion.div
           key={index}
           drag="x"
@@ -80,7 +81,7 @@ export default function HeroSection() {
           onDragEnd={handleDragEnd}
           initial={{ opacity: 0, scale: 1.08 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.02 }}
+          exit={{ opacity: 1 }}
           transition={{
             opacity: { duration: 0.3 },
             scale: { duration: 0.7 },

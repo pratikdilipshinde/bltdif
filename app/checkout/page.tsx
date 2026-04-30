@@ -181,8 +181,22 @@ export default function CheckoutPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          customer: form,
-          items: cartItems,
+          customer: {
+            userId: user?.id ?? null,
+            fullName: form.fullName,
+            email: form.email,
+            phone: form.phone,
+            addressLine1: form.addressLine1,
+            addressLine2: form.addressLine2,
+            city: form.city,
+            state: form.state,
+            postalCode: form.postalCode,
+            country: form.country,
+          },
+          items: cartItems.map((item) => ({
+            variantId: Number(item.id),
+            quantity: Number(item.quantity),
+          })),
         }),
       });
 
@@ -207,28 +221,23 @@ export default function CheckoutPage() {
         name: "BLTDIF",
         description: `Order for ${totalItems} item${totalItems > 1 ? "s" : ""}`,
         image: "/images/Logo.png",
-        order_id: createOrderData.orderId,
+        order_id: createOrderData.razorpayOrderId,
+
         prefill: {
           name: form.fullName,
           email: form.email,
           contact: form.phone,
         },
+
         notes: {
           internalOrderId: createOrderData.internalOrderId,
-          address: [
-            form.addressLine1,
-            form.addressLine2,
-            form.city,
-            form.state,
-            form.postalCode,
-            form.country,
-          ]
-            .filter(Boolean)
-            .join(", "),
+          orderNumber: createOrderData.orderNumber,
         },
+
         theme: {
           color: "#CE0028",
         },
+
         modal: {
           backdropclose: false,
           escape: true,
@@ -237,6 +246,7 @@ export default function CheckoutPage() {
             setLoading(false);
           },
         },
+
         handler: async function (response: {
           razorpay_payment_id: string;
           razorpay_order_id: string;
@@ -249,11 +259,9 @@ export default function CheckoutPage() {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                ...response,
-                customer: form,
-                items: cartItems,
-                amount: createOrderData.amount,
-                currency: createOrderData.currency,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
                 internalOrderId: createOrderData.internalOrderId,
               }),
             });
@@ -267,8 +275,9 @@ export default function CheckoutPage() {
             }
 
             clearCart();
+
             router.push(
-              `/checkout/success?order=${createOrderData.internalOrderId}`
+              `/checkout/success?order=${verifyData.orderNumber || createOrderData.orderNumber}&id=${createOrderData.internalOrderId}`
             );
           } catch (err: any) {
             setError(
