@@ -14,14 +14,14 @@ export default function MyOrdersPage() {
       />
 
       <section className="mx-auto max-w-5xl px-4 py-10 md:px-6 md:py-14">
-        <div className="mb-8 md:mb-10">
+        <div className="mb-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
-            BLTDIF · ACCOUNT
+            BLTDIF · ORDERS
           </p>
 
-          <h1 className="mt-3 text-3xl font-semibold leading-tight text-black md:text-5xl">
+          {/* <h1 className="mt-3 text-3xl font-semibold leading-tight text-black md:text-5xl">
             My Orders
-          </h1>
+          </h1> */}
 
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-black/60 md:text-[15px]">
             View your order history, track current shipments, and check the

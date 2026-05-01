@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, Package, Truck } from "lucide-react";
+import { ChevronDown, Package } from "lucide-react";
 import { createClient } from "@/app/lib/supabase/client";
 
 type OrderItem = {
@@ -107,7 +107,7 @@ export default function MyOrdersClient() {
 
   if (loading) {
     return (
-      <div className="rounded-xs border border-black/10 bg-white p-8">
+      <div className="rounded-xl border border-black/10 bg-white p-4">
         <p className="text-sm text-black/55">Loading your orders...</p>
       </div>
     );
@@ -115,14 +115,15 @@ export default function MyOrdersClient() {
 
   if (!email) {
     return (
-      <div className="rounded-xs border border-black/10 bg-[#fafafa] p-8 md:p-10">
-        <h2 className="text-2xl font-semibold text-black">Please log in</h2>
-        <p className="mt-3 text-sm text-black/60">
-          Log in with the same email used during checkout to view your orders.
+      <div className="rounded-xl border border-black/10 bg-[#fafafa] p-5">
+        <h2 className="text-xl font-semibold text-black">Please log in</h2>
+        <p className="mt-2 text-sm text-black/60">
+          Log in with the same email used during checkout.
         </p>
+
         <Link
           href="/login"
-          className="mt-6 inline-flex rounded-xs bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#CE0028]"
+          className="mt-4 inline-flex rounded-full bg-black px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#CE0028]"
         >
           Login
         </Link>
@@ -132,22 +133,22 @@ export default function MyOrdersClient() {
 
   if (orders.length === 0) {
     return (
-      <div className="rounded-xs border border-black/10 bg-[#fafafa] p-8 md:p-10">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/40">
+      <div className="rounded-xl border border-black/10 bg-[#fafafa] p-5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#CE0028]">
           No Orders Found
         </p>
 
-        <h2 className="mt-3 text-2xl font-semibold text-black">
-          You have not placed any orders with this email.
+        <h2 className="mt-2 text-xl font-semibold text-black">
+          No orders linked to this email.
         </h2>
 
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-black/60">
-          We checked orders for <span className="font-medium">{email}</span>.
+        <p className="mt-2 text-sm text-black/60">
+          Checked orders for <span className="font-medium">{email}</span>.
         </p>
 
         <Link
           href="/products"
-          className="mt-6 inline-flex rounded-xs bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#CE0028]"
+          className="mt-4 inline-flex rounded-full bg-black px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#CE0028]"
         >
           Start Shopping
         </Link>
@@ -156,113 +157,101 @@ export default function MyOrdersClient() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       {orders.map((order) => {
         const isOpen = expandedOrderId === order.id;
 
         return (
           <div
             key={order.id}
-            className="overflow-hidden rounded-xs border border-black/10 bg-white transition hover:border-black/25"
+            className="overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm"
           >
             <button
               type="button"
               onClick={() => setExpandedOrderId(isOpen ? null : order.id)}
-              className="w-full p-5 text-left md:p-6"
+              className="w-full px-3 py-3 text-left md:px-4"
             >
-              <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#CE0028]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#CE0028]">
                     Order
                   </p>
 
-                  <h2 className="mt-2 text-xl font-semibold text-black">
+                  <h2 className="mt-1 truncate text-base font-bold text-black md:text-lg">
                     {order.orderNumber}
                   </h2>
 
-                  <p className="mt-1 text-sm text-black/50">
-                    Placed on{" "}
+                  <p className="mt-0.5 text-xs text-black/50">
                     {new Date(order.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
+                      month: "short",
                       day: "numeric",
+                      year: "numeric",
                     })}
+                    {" · "}
+                    {order.items.length} item(s)
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <span
-                    className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] ${statusClass(
-                      order.orderStatus
-                    )}`}
-                  >
-                    {order.orderStatus}
-                  </span>
-
-                  <span
-                    className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] ${statusClass(
-                      order.paymentStatus
-                    )}`}
-                  >
-                    {order.paymentStatus}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between gap-5 md:min-w-[180px] md:justify-end">
-                  <div className="md:text-right">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-black/40">
-                      Total
-                    </p>
-
-                    <p className="mt-2 text-lg font-semibold text-black">
-                      {order.currencyCode} {order.totalAmount}
-                    </p>
-                  </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-base font-bold text-black">
+                    {order.currencyCode} {order.totalAmount}
+                  </p>
 
                   <ChevronDown
-                    className={`h-5 w-5 text-black/45 transition ${
+                    className={`ml-auto mt-1 h-4 w-4 text-black/45 transition ${
                       isOpen ? "rotate-180" : ""
                     }`}
                   />
                 </div>
               </div>
 
-              <div className="mt-5 border-t border-black/10 pt-4">
-                <div className="flex flex-col gap-2 text-sm text-black/55 md:flex-row md:items-center md:justify-between">
-                  <p>{order.items.length} item(s)</p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <span
+                  className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${statusClass(
+                    order.orderStatus
+                  )}`}
+                >
+                  {order.orderStatus}
+                </span>
 
-                  {order.trackingNumber ? (
-                    <p>
-                      {order.courierName || "Tracking"}:{" "}
-                      <span className="font-medium text-black">
-                        {order.trackingNumber}
-                      </span>
-                    </p>
-                  ) : (
-                    <p>Tracking will appear once shipped.</p>
-                  )}
-                </div>
+                <span
+                  className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${statusClass(
+                    order.paymentStatus
+                  )}`}
+                >
+                  {order.paymentStatus}
+                </span>
+
+                {order.trackingNumber ? (
+                  <span className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-black/55">
+                    Tracking Added
+                  </span>
+                ) : (
+                  <span className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-black/45">
+                    Awaiting Tracking
+                  </span>
+                )}
               </div>
             </button>
 
             {isOpen && (
-              <div className="border-t border-black/10 bg-[#fafafa] p-5 md:p-6">
-                <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
+              <div className="border-t border-black/10 bg-[#fafafa] px-3 py-3 md:px-4">
+                <div className="grid gap-3 lg:grid-cols-[1fr_280px]">
+                  <div>
+                    <div className="mb-2 flex items-center gap-2">
                       <Package className="h-4 w-4 text-[#CE0028]" />
-                      <h3 className="text-lg font-semibold text-black">
-                        Items in this order
+                      <h3 className="text-sm font-bold text-black">
+                        Items
                       </h3>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {order.items.map((item) => (
                         <div
                           key={item.id}
-                          className="grid gap-4 rounded-xs border border-black/10 bg-white p-4 md:grid-cols-[88px_1fr_auto] md:items-center"
+                          className="grid grid-cols-[64px_1fr] gap-3 rounded-lg border border-black/10 bg-white p-2.5 md:grid-cols-[72px_1fr_auto]"
                         >
-                          <div className="relative h-24 w-full overflow-hidden rounded-xs bg-[#f1f1f3] md:w-22">
+                          <div className="relative h-16 w-16 overflow-hidden rounded-md bg-[#f1f1f3] md:h-18 md:w-18">
                             {item.imageUrl ? (
                               <Image
                                 src={item.imageUrl}
@@ -271,45 +260,45 @@ export default function MyOrdersClient() {
                                 className="object-cover"
                               />
                             ) : (
-                              <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-black/25">
+                              <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-black/25">
                                 BLTDIF
                               </div>
                             )}
                           </div>
 
-                          <div>
-                            <h4 className="text-sm font-semibold text-black">
+                          <div className="min-w-0">
+                            <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-black">
                               {item.productName}
                             </h4>
 
                             {item.sku && (
-                              <p className="mt-1 text-xs text-black/45">
+                              <p className="mt-0.5 truncate text-[11px] text-black/40">
                                 SKU: {item.sku}
                               </p>
                             )}
 
-                            <div className="mt-3 flex flex-wrap gap-2">
+                            <div className="mt-2 flex flex-wrap gap-1">
                               {item.sizeLabel && (
-                                <span className="rounded-full border border-black/10 px-3 py-1 text-xs text-black/60">
+                                <span className="rounded-full bg-black/[0.04] px-2 py-0.5 text-[11px] text-black/60">
                                   Size: {item.sizeLabel}
                                 </span>
                               )}
 
                               {item.color && (
-                                <span className="rounded-full border border-black/10 px-3 py-1 text-xs text-black/60">
-                                  Color: {item.color}
+                                <span className="rounded-full bg-black/[0.04] px-2 py-0.5 text-[11px] text-black/60">
+                                  {item.color}
                                 </span>
                               )}
 
-                              <span className="rounded-full border border-black/10 px-3 py-1 text-xs text-black/60">
+                              <span className="rounded-full bg-black/[0.04] px-2 py-0.5 text-[11px] text-black/60">
                                 Qty: {item.quantity}
                               </span>
                             </div>
                           </div>
 
-                          <div className="text-left md:text-right">
-                            <p className="text-xs text-black/45">Total</p>
-                            <p className="mt-1 text-sm font-semibold text-black">
+                          <div className="col-span-2 flex items-center justify-between border-t border-black/5 pt-2 md:col-span-1 md:block md:border-t-0 md:pt-0 md:text-right">
+                            <p className="text-[11px] text-black/40">Total</p>
+                            <p className="text-sm font-bold text-black">
                               {order.currencyCode}{" "}
                               {item.totalPrice || order.totalAmount}
                             </p>
@@ -319,13 +308,13 @@ export default function MyOrdersClient() {
                     </div>
                   </div>
 
-                  <aside className="space-y-4">
-                    <div className="rounded-xs border border-black/10 bg-white p-5">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-black/40">
-                        Order Summary
+                  <aside className="space-y-3">
+                    <div className="rounded-lg border border-black/10 bg-white p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/40">
+                        Summary
                       </p>
 
-                      <div className="mt-4 space-y-3 text-sm">
+                      <div className="mt-3 space-y-2 text-sm">
                         <div className="flex justify-between text-black/60">
                           <span>Subtotal</span>
                           <span>
@@ -348,16 +337,8 @@ export default function MyOrdersClient() {
                           </span>
                         </div>
 
-                        {/* <div className="flex justify-between text-black/60">
-                          <span>Discount</span>
-                          <span>
-                            - {order.currencyCode}{" "}
-                            {order.discountAmount || "0.00"}
-                          </span>
-                        </div> */}
-
-                        <div className="border-t border-black/10 pt-4">
-                          <div className="flex justify-between text-base font-semibold text-black">
+                        <div className="border-t border-black/10 pt-2">
+                          <div className="flex justify-between text-base font-bold text-black">
                             <span>Total</span>
                             <span>
                               {order.currencyCode} {order.totalAmount}
@@ -367,54 +348,38 @@ export default function MyOrdersClient() {
                       </div>
                     </div>
 
-                    {/* <div className="rounded-xs border border-black/10 bg-white p-5">
-                      <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-[#CE0028]" />
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-black/40">
-                          Shipping
+                    {order.trackingNumber && (
+                      <div className="rounded-lg border border-black/10 bg-white p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/40">
+                          Tracking
                         </p>
+
+                        <p className="mt-2 text-sm text-black/65">
+                          {order.courierName || "Courier"}:{" "}
+                          <span className="font-semibold text-black">
+                            {order.trackingNumber}
+                          </span>
+                        </p>
+
+                        {order.trackingUrl && (
+                          <a
+                            href={order.trackingUrl}
+                            target="_blank"
+                            className="mt-3 inline-flex w-full justify-center rounded-full bg-black px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#CE0028]"
+                          >
+                            Track Shipment
+                          </a>
+                        )}
                       </div>
-
-                      {order.trackingNumber ? (
-                        <div className="mt-4 text-sm text-black/65">
-                          <p>
-                            Courier:{" "}
-                            <span className="font-semibold text-black">
-                              {order.courierName || "Courier Partner"}
-                            </span>
-                          </p>
-                          <p className="mt-2">
-                            Tracking:{" "}
-                            <span className="font-semibold text-black">
-                              {order.trackingNumber}
-                            </span>
-                          </p>
-
-                          {order.trackingUrl && (
-                            <a
-                              href={order.trackingUrl}
-                              target="_blank"
-                              className="mt-4 inline-flex rounded-xs bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#CE0028]"
-                            >
-                              Track Shipment
-                            </a>
-                          )}
-                        </div>
-                      ) : (
-                        <p className="mt-4 text-sm leading-relaxed text-black/60">
-                          Tracking details will be added once your order is
-                          packed and shipped.
-                        </p>
-                      )}
-                    </div> */}
+                    )}
 
                     {order.addressLine1 && (
-                      <div className="rounded-xs border border-black/10 bg-white p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-black/40">
+                      <div className="rounded-lg border border-black/10 bg-white p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/40">
                           Delivery Address
                         </p>
 
-                        <p className="mt-4 text-sm leading-7 text-black/65">
+                        <p className="mt-2 text-sm leading-6 text-black/65">
                           <span className="font-semibold text-black">
                             {order.customerName}
                           </span>
