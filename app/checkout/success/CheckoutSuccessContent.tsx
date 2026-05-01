@@ -26,14 +26,14 @@ export default function CheckoutSuccessContent() {
             BLTDIF · CHECKOUT
           </p>
 
-          <h1 className="mt-3 text-3xl font-semibold leading-tight text-black md:text-5xl">
+          {/* <h1 className="mt-3 text-3xl font-semibold leading-tight text-black md:text-5xl">
             Order Confirmed
-          </h1>
+          </h1> */}
 
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-black/60 md:text-[15px]">
+          {/* <p className="mt-4 max-w-2xl text-sm leading-relaxed text-black/60 md:text-[15px]">
             Thank you for shopping with BLTDIF. Your order is successfully
             placed and the invoice has been sent to your email.
-          </p>
+          </p> */}
         </div>
 
         <div className="rounded-xs border border-black/10 bg-[#fafafa] p-6 md:p-10">

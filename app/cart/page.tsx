@@ -37,7 +37,7 @@ export default function CartPage() {
             </p>
 
             <Link
-              href="/products"
+              href="/"
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-xs bg-black px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#CE0028]"
             >
               Continue Shopping
@@ -194,7 +194,7 @@ export default function CartPage() {
               </Link>
 
               <Link
-                href="/products"
+                href="/"
                 className="mt-3 flex w-full items-center justify-center rounded-xs border border-black/10 px-6 py-3 text-sm font-semibold text-black transition hover:bg-black/[0.03]"
               >
                 Continue Shopping

@@ -360,7 +360,7 @@ export default function ProductDetailPage({
                       type="button"
                       onClick={() => setShowSizeChart(true)}
                       className="
-                        relative shrink-0 text-xs font-semibold uppercase tracking-[0.16em]
+                        relative cursor-pointer shrink-0 text-xs font-semibold uppercase tracking-[0.16em]
                         text-[#CE0028]
                         after:absolute after:left-0 after:-bottom-[2px]
                         after:h-[1px] after:w-0 after:bg-[#CE0028]

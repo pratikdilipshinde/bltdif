@@ -17,9 +17,9 @@ const footerLinks = [
   {
     title: "Shop",
     links: [
-      { label: "Hoodies", href: "/hoodies" },
-      { label: "T-Shirts", href: "/t-shirts" },
-      { label: "Caps", href: "/caps" },
+      { label: "Hoodies", href: "/products/hoodies" },
+      { label: "T-Shirts", href: "/products/t-shirts" },
+      { label: "Caps", href: "/products/caps" },
     ],
   },
   {
@@ -27,7 +27,7 @@ const footerLinks = [
     links: [
       { label: "About BLTDIF", href: "/about" },
       { label: "Contact", href: "/contact" },
-      { label: "FAQ", href: "/faq" },
+      // { label: "FAQ", href: "/faq" },
     ],
   },
   {
@@ -35,7 +35,7 @@ const footerLinks = [
     links: [
       { label: "Shipping & Delivery", href: "/shipping" },
       { label: "Returns & Exchanges", href: "/returns" },
-      { label: "Size Guide", href: "/size-guide" },
+      // { label: "Size Guide", href: "/size-guide" },
     ],
   },
 ];

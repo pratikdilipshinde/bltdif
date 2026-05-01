@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, PanInfo } from "framer-motion";
 
-const SLIDE_INTERVAL = 3500;
+const SLIDE_INTERVAL = 4500;
 const SWIPE_THRESHOLD = 50;
 
 const slides = [
@@ -20,21 +20,33 @@ const slides = [
     subtitle: "",
     href: "/products/caps",
   },
-  
 ];
 
 export default function HeroSection() {
   const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
 
   const goToNext = () => {
+    setDirection(1);
     setIndex((prev) => (prev + 1) % slides.length);
   };
 
   const goToPrev = () => {
+    setDirection(-1);
     setIndex((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
-  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const goToSlide = (slideIndex: number) => {
+    if (slideIndex === index) return;
+
+    setDirection(slideIndex > index ? 1 : -1);
+    setIndex(slideIndex);
+  };
+
+  const handleDragEnd = (
+    _event: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
     if (info.offset.x < -SWIPE_THRESHOLD) {
       goToNext();
     }
@@ -59,41 +71,40 @@ export default function HeroSection() {
   return (
     <section
       className="
-        relative w-full overflow-hidden bg-black
-        -mt-[56px] md:-mt-[72px] 
-        h-[400px] 
-        sm:h-[450px] 
-        md:h-[320px] 
-        lg:h-[480px] 
-        xl:h-[550px] 
-        2xl:h-[760px] 
-        min-[2560px]:h-[150dvh] 
+        relative w-full overflow-hidden bg-white
+        -mt-[56px] md:-mt-[72px]
+        h-[400px]
+        sm:h-[450px]
+        md:h-[320px]
+        lg:h-[480px]
+        xl:h-[550px]
+        2xl:h-[760px]
+        min-[2560px]:h-[150dvh]
         min-[3840px]:h-[180dvh]
       "
     >
       {/* IMAGE SLIDER */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
           key={index}
+          custom={direction}
+          initial={{ x: direction > 0 ? "100%" : "-100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: direction > 0 ? "-100%" : "100%" }}
+          transition={{
+            x: { type: "spring", stiffness: 420, damping: 38 },
+          }}
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.18}
+          dragElastic={0.12}
           onDragEnd={handleDragEnd}
-          initial={{ opacity: 0, scale: 1.08 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 1 }}
-          transition={{
-            opacity: { duration: 0.3 },
-            scale: { duration: 0.7 },
-            ease: [0.22, 1, 0.36, 1],
-          }}
           className="absolute inset-0 cursor-grab active:cursor-grabbing"
         >
           <Image
             src={slide.desktopImage}
             alt="BLTDIF Hero Desktop"
             fill
-            priority={index === 0}
+            priority
             sizes="100vw"
             className="hidden object-cover object-center md:block"
           />
@@ -102,7 +113,7 @@ export default function HeroSection() {
             src={slide.mobileImage}
             alt="BLTDIF Hero Mobile"
             fill
-            priority={index === 0}
+            priority
             sizes="100vw"
             className="block object-cover object-center md:hidden"
           />
@@ -149,7 +160,7 @@ export default function HeroSection() {
             <button
               key={i}
               type="button"
-              onClick={() => setIndex(i)}
+              onClick={() => goToSlide(i)}
               className={`h-2.5 rounded-full transition-all duration-300 ${
                 i === index ? "w-8 bg-white" : "w-2.5 bg-white/40"
               }`}
