@@ -1,10 +1,10 @@
 export function formatPrice(
   amount: number | null | undefined,
-  currencyCode = "USD"
+  currencyCode = "INR"
 ): string {
   const safeAmount = amount ?? 0;
 
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: currencyCode,
     minimumFractionDigits: 2,

@@ -140,7 +140,7 @@ export default function CartPage() {
 
                     <button
                       onClick={() => removeFromCart(item.id)}
-                      className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-black/45 transition hover:text-[#CE0028] md:ml-auto"
+                      className="inline-flex cursor-pointer w-fit items-center gap-2 text-sm font-semibold text-black/45 transition hover:text-[#CE0028] md:ml-auto"
                     >
                       <Trash2 className="h-4 w-4" />
                       Remove
