@@ -3,9 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, ShoppingBag, Menu, X, LogOut } from "lucide-react";
+import {
+  User,
+  ShoppingBag,
+  Menu,
+  X,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
 
 import AuthModal from "./auth/AuthModal";
 import { useAuth } from "@/app/providers/AuthProvider";
@@ -23,6 +30,7 @@ const categorySlugs = categories.map((c) => c.href.split("/")[2]);
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const pathParts = pathname.split("/");
 
@@ -31,7 +39,7 @@ export default function Navbar() {
     pathParts.length === 3 &&
     !categorySlugs.includes(pathParts[2]);
 
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, isAdmin } = useAuth();
   const { cartCount } = useCart();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -51,12 +59,15 @@ export default function Navbar() {
     isProductDetailsPage ? "text-black" : isSticky ? "text-black" : "text-white";
 
   const dividerColor =
-    isProductDetailsPage ? "bg-black/70" : isSticky ? "bg-black/70" : "bg-white/70";
+    isProductDetailsPage
+      ? "bg-black/70"
+      : isSticky
+      ? "bg-black/70"
+      : "bg-white/70";
 
   useEffect(() => {
     closeMenu();
     setAccountMenuOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   useEffect(() => {
@@ -73,12 +84,14 @@ export default function Navbar() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (!accountMenuRef.current) return;
+
       if (!accountMenuRef.current.contains(event.target as Node)) {
         setAccountMenuOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
@@ -100,10 +113,22 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    await logout();
-    setAccountMenuOpen(false);
-    setAuthOpen(false);
-    closeMenu();
+    try {
+      await logout();
+
+      setAccountMenuOpen(false);
+      setAuthOpen(false);
+      closeMenu();
+
+      router.replace("/");
+      router.refresh();
+
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 100);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (
@@ -122,12 +147,15 @@ export default function Navbar() {
         className="fixed left-0 right-0 top-0 z-50"
       >
         <nav className="flex items-center justify-between px-4 py-2 md:px-6 md:py-2">
-          {/* LEFT LOGO */}
           <div className="flex items-center">
             <Link href="/" aria-label="BLTDIF Home" className="relative">
               <div className="relative h-5 w-[80px] md:h-6 md:w-[100px]">
                 <Image
-                  src={isProductDetailsPage ? "/images/Logo.png" : "/images/Logo-white.png"}
+                  src={
+                    isProductDetailsPage
+                      ? "/images/Logo.png"
+                      : "/images/Logo-white.png"
+                  }
                   alt="BLTDIF White Logo"
                   fill
                   priority
@@ -135,6 +163,7 @@ export default function Navbar() {
                     isSticky ? "opacity-0" : "opacity-100"
                   }`}
                 />
+
                 <Image
                   src="/images/Logo.png"
                   alt="BLTDIF Red Logo"
@@ -148,11 +177,9 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* RIGHT SIDE */}
           <div className="flex items-center gap-2 md:gap-6">
-            {/* Desktop menu */}
             <div
-              className={`hidden md:flex items-center gap-7 text-[13px] font-medium tracking-[0.14em] transition-colors duration-150 ${textColor}`}
+              className={`hidden items-center gap-7 text-[13px] font-medium tracking-[0.14em] transition-colors duration-150 md:flex ${textColor}`}
             >
               {categories.map((item) => {
                 const isActive = pathname.startsWith(item.href);
@@ -165,6 +192,7 @@ export default function Navbar() {
                     style={{ color: isActive ? BRAND_RED : undefined }}
                   >
                     {item.label}
+
                     {isActive && (
                       <motion.span
                         layoutId="nav-category-underline"
@@ -177,12 +205,11 @@ export default function Navbar() {
               })}
             </div>
 
-            {/* Account */}
             <div className="relative" ref={accountMenuRef}>
               <button
                 aria-label={user ? "Account menu" : "Account"}
                 onClick={handleAccountClick}
-                className={`rounded-xs p-1 md:p-2 transition-colors duration-150 ${iconColor} ${
+                className={`cursor-pointer rounded-xs p-1 transition-colors duration-150 md:p-2 ${iconColor} ${
                   isSticky ? "hover:bg-black/5" : "hover:bg-white/10"
                 }`}
               >
@@ -202,24 +229,41 @@ export default function Navbar() {
                       <p className="text-[13px] font-semibold text-black">
                         {user.firstname || "BLTDIF User"}
                       </p>
+
                       <p className="mt-0.5 text-[12px] text-black/55">
                         {user.email}
                       </p>
                     </div>
-                    <Link href="/account/profile" 
-                          className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]">
-                      My Profile
-                    </Link>
 
-                    <Link
-                      href="/account/orders"
-                      className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]">
-                    My Orders
-                    </Link>
+                    {isAdmin ? (
+                      <Link
+                        href="/admin/dashboard"
+                        className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    ) : (
+                      <>
+                        <Link
+                          href="/account/profile"
+                          className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"
+                        >
+                          My Profile
+                        </Link>
+
+                        <Link
+                          href="/account/orders"
+                          className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"
+                        >
+                          My Orders
+                        </Link>
+                      </>
+                    )}
 
                     <button
                       onClick={handleLogout}
-                      className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"
+                      className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"
                     >
                       <LogOut className="h-4 w-4" />
                       Logout
@@ -230,18 +274,20 @@ export default function Navbar() {
             </div>
 
             <span
-              className={`hidden h-6 w-px md:inline-block transition-colors duration-150 ${dividerColor}`}
+              className={`hidden h-6 w-px transition-colors duration-150 md:inline-block ${dividerColor}`}
             />
 
-            {/* Cart */}
             <Link
               href="/cart"
               aria-label="Cart"
-              className={`relative rounded-xs p-1 md:p-2 transition-colors duration-150 ${iconColor} ${
+              className={`relative rounded-xs p-1 transition-colors duration-150 md:p-2 ${iconColor} ${
                 isSticky ? "hover:bg-black/5" : "hover:bg-white/10"
               }`}
             >
-              <ShoppingBag className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.8} />
+              <ShoppingBag
+                className="h-4 w-4 md:h-5 md:w-5"
+                strokeWidth={1.8}
+              />
 
               {cartCount > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#CE0028] px-1 text-[10px] font-semibold leading-none text-white md:h-5 md:min-w-[18px] md:text-[11px]">
@@ -250,12 +296,11 @@ export default function Navbar() {
               )}
             </Link>
 
-            {/* Mobile hamburger */}
             <button
               type="button"
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               onClick={toggleMenu}
-              className={`inline-flex items-center justify-center rounded-xs p-1 md:hidden transition-colors duration-150 ${iconColor} ${
+              className={`inline-flex items-center justify-center rounded-xs p-1 transition-colors duration-150 md:hidden ${iconColor} ${
                 isSticky ? "hover:bg-black/5" : "hover:bg-white/10"
               }`}
             >
@@ -268,7 +313,6 @@ export default function Navbar() {
           </div>
         </nav>
 
-        {/* Mobile dropdown */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
@@ -292,6 +336,7 @@ export default function Navbar() {
                         style={{ color: isActive ? BRAND_RED : undefined }}
                       >
                         <span>{item.label}</span>
+
                         {isActive && (
                           <span
                             className="h-[2px] w-10 rounded-xs"
@@ -308,6 +353,7 @@ export default function Navbar() {
                     className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
                   >
                     <span>CART</span>
+
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                         cartCount > 0
@@ -331,14 +377,48 @@ export default function Navbar() {
                   )}
 
                   {!loading && user && (
-                    <button
-                      onClick={handleLogout}
-                      className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
-                      style={{ color: BRAND_RED }}
-                    >
-                      <span>LOGOUT</span>
-                      <span className="text-black">→</span>
-                    </button>
+                    <>
+                      {isAdmin ? (
+                        <Link
+                          href="/admin/dashboard"
+                          onClick={closeMenu}
+                          className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
+                          style={{ color: BRAND_RED }}
+                        >
+                          <span>DASHBOARD</span>
+                          <span className="text-black">→</span>
+                        </Link>
+                      ) : (
+                        <>
+                          <Link
+                            href="/account/profile"
+                            onClick={closeMenu}
+                            className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
+                          >
+                            <span>MY PROFILE</span>
+                            <span className="text-black">→</span>
+                          </Link>
+
+                          <Link
+                            href="/account/orders"
+                            onClick={closeMenu}
+                            className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
+                          >
+                            <span>MY ORDERS</span>
+                            <span className="text-black">→</span>
+                          </Link>
+                        </>
+                      )}
+
+                      <button
+                        onClick={handleLogout}
+                        className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
+                        style={{ color: BRAND_RED }}
+                      >
+                        <span>LOGOUT</span>
+                        <span className="text-black">→</span>
+                      </button>
+                    </>
                   )}
                 </nav>
               </div>

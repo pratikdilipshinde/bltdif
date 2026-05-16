@@ -61,11 +61,21 @@ function statusClass(status: string) {
   return "border-black/10 bg-white text-black/60";
 }
 
+function canCancelOrder(status: string) {
+  return ["PENDING", "CONFIRMED", "PROCESSING"].includes(status);
+}
+
 export default function MyOrdersClient() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(
+    null
+  );
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [cancelSuccess, setCancelSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchOrders() {
@@ -104,6 +114,56 @@ export default function MyOrdersClient() {
 
     fetchOrders();
   }, []);
+
+  async function handleCancelOrder(orderId: string) {
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this order?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setCancellingOrderId(orderId);
+      setCancelError(null);
+      setCancelSuccess(null);
+
+      const res = await fetch("/api/shop/orders/cancel", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orderId,
+          email,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setCancelError(data.error || "Unable to cancel order.");
+        return;
+      }
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId
+            ? {
+                ...order,
+                orderStatus: "CANCELLED",
+              }
+            : order
+        )
+      );
+
+      setCancelSuccess("Order cancelled successfully.");
+    } catch (error) {
+      console.error("Cancel order failed:", error);
+      setCancelError("Something went wrong while cancelling the order.");
+    } finally {
+      setCancellingOrderId(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -147,7 +207,7 @@ export default function MyOrdersClient() {
         </p>
 
         <Link
-          href="/products"
+          href="/"
           className="mt-4 inline-flex rounded-full bg-black px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#CE0028]"
         >
           Start Shopping
@@ -160,6 +220,8 @@ export default function MyOrdersClient() {
     <div className="space-y-3">
       {orders.map((order) => {
         const isOpen = expandedOrderId === order.id;
+        const isCancellable = canCancelOrder(order.orderStatus);
+        const isCancelling = cancellingOrderId === order.id;
 
         return (
           <div
@@ -168,7 +230,11 @@ export default function MyOrdersClient() {
           >
             <button
               type="button"
-              onClick={() => setExpandedOrderId(isOpen ? null : order.id)}
+              onClick={() => {
+                setExpandedOrderId(isOpen ? null : order.id);
+                setCancelError(null);
+                setCancelSuccess(null);
+              }}
               className="w-full px-3 py-3 text-left md:px-4"
             >
               <div className="flex items-start justify-between gap-3">
@@ -240,9 +306,7 @@ export default function MyOrdersClient() {
                   <div>
                     <div className="mb-2 flex items-center gap-2">
                       <Package className="h-4 w-4 text-[#CE0028]" />
-                      <h3 className="text-sm font-bold text-black">
-                        Items
-                      </h3>
+                      <h3 className="text-sm font-bold text-black">Items</h3>
                     </div>
 
                     <div className="space-y-2">
@@ -309,6 +373,50 @@ export default function MyOrdersClient() {
                   </div>
 
                   <aside className="space-y-3">
+                    <div className="rounded-lg border border-black/10 bg-white p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/40">
+                        Order Action
+                      </p>
+
+                      {isCancellable ? (
+                        <>
+                          <p className="mt-2 text-sm text-black/60">
+                            You can cancel this order before it is shipped.
+                          </p>
+
+                          <button
+                            type="button"
+                            disabled={isCancelling}
+                            onClick={() => handleCancelOrder(order.id)}
+                            className="mt-3 inline-flex w-full justify-center rounded-full bg-[#CE0028] px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isCancelling ? "Cancelling..." : "Cancel Order"}
+                          </button>
+                        </>
+                      ) : (
+                        <p className="mt-2 text-sm text-black/55">
+                          This order cannot be cancelled because its current
+                          status is{" "}
+                          <span className="font-semibold text-black">
+                            {order.orderStatus}
+                          </span>
+                          .
+                        </p>
+                      )}
+
+                      {cancelError && (
+                        <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                          {cancelError}
+                        </p>
+                      )}
+
+                      {cancelSuccess && (
+                        <p className="mt-2 rounded-md bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
+                          {cancelSuccess}
+                        </p>
+                      )}
+                    </div>
+
                     <div className="rounded-lg border border-black/10 bg-white p-3">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/40">
                         Summary

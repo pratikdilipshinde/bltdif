@@ -2,17 +2,20 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
+type UserRole = "USER" | "ADMIN";
+
 type AuthUser = {
   id: string;
   email: string;
   firstname?: string | null;
   lastname?: string | null;
-  role: "USER" | "ADMIN";
+  role: UserRole;
 } | null;
 
 type AuthContextType = {
   user: AuthUser;
   loading: boolean;
+  isAdmin: boolean;
   refresh: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -30,27 +33,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         cache: "no-store",
       });
 
+      if (!res.ok) {
+        setUser(null);
+        return;
+      }
+
       const data = await res.json().catch(() => null);
+
       setUser(data?.user ?? null);
-    } catch {
+    } catch (error) {
+      console.error("Auth refresh failed:", error);
       setUser(null);
     }
   };
 
   const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+    } finally {
+      setUser(null);
+    }
   };
 
   useEffect(() => {
-    (async () => {
+    let mounted = true;
+
+    async function loadUser() {
+      setLoading(true);
       await refresh();
-      setLoading(false);
-    })();
+
+      if (mounted) {
+        setLoading(false);
+      }
+    }
+
+    loadUser();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
+  const isAdmin = user?.role === "ADMIN";
+
   return (
-    <AuthContext.Provider value={{ user, loading, refresh, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, refresh, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -58,6 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+
+  if (!ctx) {
+    throw new Error("useAuth must be used inside AuthProvider");
+  }
+
   return ctx;
 }
