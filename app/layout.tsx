@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import MetaPixel from "./components/MetaPixel";
 import { Manrope } from "next/font/google";
 import { AuthProvider } from "./providers/AuthProvider";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast";
-import { Analytics } from '@vercel/analytics/next';
+import { Analytics } from "@vercel/analytics/next";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -31,17 +32,26 @@ export default function RootLayout({
         <link rel="preconnect" href="https://checkout.razorpay.com" />
         <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
       </head>
+
       <body className="min-h-screen bg-black text-neutral-100">
+        <MetaPixel />
+
         <AuthProvider>
           <CartProvider>
             <div className="flex min-h-screen flex-col">
               <Navbar />
-              <main className="flex-1">{children} <Analytics /></main>
+
+              <main className="flex-1">
+                {children}
+              </main>
+
               <Toaster position="top-center" />
               <Footer />
             </div>
           </CartProvider>
         </AuthProvider>
+
+        <Analytics />
       </body>
     </html>
   );

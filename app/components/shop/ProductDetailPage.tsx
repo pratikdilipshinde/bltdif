@@ -12,6 +12,7 @@ import type { CatalogProduct } from "@/app/lib/shop-v2/catalog-types";
 import { createCartItem } from "@/app/lib/shop-v2/createCartItem";
 import { formatPrice } from "@/app/lib/shop-v2/formatPrice";
 import ProductCard from "./ProductCard";
+import { metaPixelEvent } from "@/app/lib/metaPixel";
 
 type Props = {
   product: CatalogProduct;
@@ -92,6 +93,14 @@ export default function ProductDetailPage({
     if (isOut) return;
 
     addToCart(createCartItem(product, selectedVariant, qty));
+
+    metaPixelEvent("AddToCart", {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: "product",
+      value: Number(selectedVariant?.price),
+      currency: "INR",
+    });
 
     toast.success("Added to cart 🛒", {
       style: {

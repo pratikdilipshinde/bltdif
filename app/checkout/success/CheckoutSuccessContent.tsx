@@ -2,15 +2,24 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import PageHero from "@/app/components/marketing/PageHero";
+import PurchasePixel from "@/app/components/PurchasePixel";
 
 export default function CheckoutSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const order = searchParams.get("order");
+  const amount = Number(searchParams.get("amount") || 0);
 
   return (
     <main className="bg-white">
+      {order && (
+        <PurchasePixel
+          orderId={order}
+          totalAmount={amount}
+        />
+      )}
+
       <PageHero
         kicker="BLTDIF · CHECKOUT"
         title="ORDER PLACED"

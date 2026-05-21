@@ -5,10 +5,21 @@ import Link from "next/link";
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../lib/shop-v2/formatPrice";
+import { metaPixelEvent } from "../lib/metaPixel";
 
 export default function CartPage() {
   const { cartItems, removeFromCart, increaseQty, decreaseQty, cartTotal } =
     useCart();
+
+  const handleInitiateCheckout = () => {
+    metaPixelEvent("InitiateCheckout", {
+      value: Number(cartTotal),
+      currency: "INR",
+      num_items: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+      content_ids: cartItems.map((item) => String(item.id)),
+      content_type: "product",
+    });
+  };
 
   return (
     <main className="bg-[#f7f5f1] text-black">
@@ -187,6 +198,7 @@ export default function CartPage() {
 
               <Link
                 href="/checkout"
+                onClick={handleInitiateCheckout}
                 className="mt-6 flex w-full items-center justify-center gap-2 rounded-xs bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#CE0028]"
               >
                 Proceed to Checkout
