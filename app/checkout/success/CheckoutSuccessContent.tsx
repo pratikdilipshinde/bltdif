@@ -21,6 +21,7 @@ export default function CheckoutSuccessContent() {
         />
       )}
 
+
       <PageHero
         kicker="BLTDIF · CHECKOUT"
         title="ORDER PLACED"

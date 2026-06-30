@@ -15,6 +15,7 @@ export default function PurchasePixel({
   currency = "INR",
 }: PurchasePixelProps) {
   const firedRef = useRef(false);
+  
 
   useEffect(() => {
     if (firedRef.current) return;
