@@ -5,25 +5,25 @@ import { metaPixelEvent } from "@/app/lib/metaPixel";
 
 type PurchasePixelProps = {
   orderId: string;
-  totalAmount: number;
+  totalAmount?: number;
   currency?: string;
 };
 
 export default function PurchasePixel({
   orderId,
-  totalAmount,
+  totalAmount = 0,
   currency = "INR",
 }: PurchasePixelProps) {
   const firedRef = useRef(false);
 
   useEffect(() => {
     if (firedRef.current) return;
-    if (!orderId || !totalAmount) return;
+    if (!orderId) return;
 
     firedRef.current = true;
 
     metaPixelEvent("Purchase", {
-      value: Number(totalAmount),
+      value: Number(totalAmount || 0),
       currency,
       order_id: orderId,
       content_type: "product",
