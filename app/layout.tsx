@@ -7,7 +7,16 @@ import { Manrope } from "next/font/google";
 import { AuthProvider } from "./providers/AuthProvider";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast";
+import JsonLd from "./components/JsonLd";
+import { createOrganizationSchema, createWebsiteSchema } from "./lib/schema";
 import { Analytics } from "@vercel/analytics/next";
+import {
+  SITE_URL,
+  SITE_NAME,
+  DEFAULT_TITLE,
+  DEFAULT_DESCRIPTION,
+  DEFAULT_OG_IMAGE,
+} from "./lib/seo";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -15,10 +24,81 @@ const manrope = Manrope({
   variable: "--font-manrope",
 });
 
+// export const metadata: Metadata = {
+//   title: "BLTDIF | Built Different",
+//   description:
+//     "Modern streetwear and performance apparel by Build Different (BLTDIF).",
+// };
+
 export const metadata: Metadata = {
-  title: "BLTDIF | Built Different",
-  description:
-    "Modern streetwear and performance apparel by Build Different (BLTDIF).",
+  metadataBase: new URL(SITE_URL),
+
+  title: {
+    default: DEFAULT_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+
+  description: DEFAULT_DESCRIPTION,
+
+  keywords: [
+    "BLTDIF",
+    "Built Different",
+    "Built Different streetwear",
+    "BLTDIF streetwear",
+    "premium streetwear",
+    "streetwear brand",
+    "caps",
+    "streetwear caps",
+    "t-shirts",
+    "oversized t-shirts",
+    "performance apparel",
+    "urban fashion",
+    "Indian streetwear brand",
+  ],
+
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+
+  alternates: {
+    canonical: SITE_URL,
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "BLTDIF Built Different Streetwear",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE],
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -34,6 +114,9 @@ export default function RootLayout({
       </head>
 
       <body className="min-h-screen bg-black text-neutral-100">
+        <JsonLd data={createOrganizationSchema()} />
+        <JsonLd data={createWebsiteSchema()} />
+        
         <MetaPixel />
 
         <AuthProvider>
