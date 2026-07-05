@@ -68,16 +68,24 @@ export function createProductSchema({
       "@type": "Brand",
       name: SITE_NAME,
     },
+    manufacturer: {
+      "@type": "Organization",
+      name: SITE_NAME,
+    },
     sku: sku || name,
     offers: {
       "@type": "Offer",
       url: `${SITE_URL}${productUrl}`,
       priceCurrency: currency,
-      price: Number(price || 0),
+      price: Number(price || 0).toFixed(2),
       availability: inStock
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
+      seller: {
+        "@type": "Organization",
+        name: SITE_NAME,
+      },
     },
   };
 }
