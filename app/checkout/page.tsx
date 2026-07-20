@@ -64,6 +64,10 @@ export default function CheckoutPage() {
     [cartItems]
   );
 
+  const gstRate = 0.05;
+  const gstAmount = cartTotal * gstRate;
+  const finalTotal = cartTotal + gstAmount;
+
   useEffect(() => {
     if (user) {
       setForm((prev) => ({
@@ -483,18 +487,41 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              <div className="mt-5 flex items-center justify-between">
-                <span className="text-sm text-black/65">Items</span>
-                <span className="text-sm font-medium text-black">
-                  {totalItems}
-                </span>
-              </div>
+              <div className="mt-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-black/65">Items</span>
+                  <span className="text-sm font-medium text-black">
+                    {totalItems}
+                  </span>
+                </div>
 
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-sm text-black/65">Total</span>
-                <span className="text-xl font-semibold text-black">
-                  ₹{cartTotal.toFixed(2)}
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-black/65">Subtotal</span>
+                  <span className="text-sm font-medium text-black">
+                    ₹{cartTotal.toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-black/65">GST (5%)</span>
+                  <span className="text-sm font-medium text-black">
+                    ₹{gstAmount.toFixed(2)}
+                  </span>
+                </div>
+
+                
+
+                <div className="border-t border-black/10 pt-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-semibold text-black">
+                      Total
+                    </span>
+
+                    <span className="text-xl font-semibold text-black">
+                      ₹{finalTotal.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </aside>
           </div>

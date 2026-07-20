@@ -19,10 +19,19 @@ type Customer = {
   country: string;
 };
 
+const GST_RATE = 0.05;
+
 function generateOrderNumber() {
   const date = new Date();
-  const yyyymmdd = date.toISOString().slice(0, 10).replaceAll("-", "");
-  const random = Math.floor(100000 + Math.random() * 900000);
+  const yyyymmdd = date
+    .toISOString()
+    .slice(0, 10)
+    .replaceAll("-", "");
+
+  const random = Math.floor(
+    100000 + Math.random() * 900000
+  );
+
   return `BLTDIF-${yyyymmdd}-${random}`;
 }
 
@@ -34,7 +43,14 @@ export async function POST(req: Request) {
     const customer: Customer = body.customer;
 
     if (!items.length) {
-      return NextResponse.json({ error: "Cart is empty." }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Cart is empty.",
+        },
+        {
+          status: 400,
+        }
+      );
     }
 
     if (
@@ -48,220 +64,343 @@ export async function POST(req: Request) {
       !customer?.country
     ) {
       return NextResponse.json(
-        { error: "Missing customer details." },
-        { status: 400 }
+        {
+          error: "Missing customer details.",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    const result = await prisma.$transaction(async (tx) => {
-      const variantIds = items.map((item) => BigInt(item.variantId));
+    const result = await prisma.$transaction(
+      async (tx) => {
+        const variantIds = items.map((item) =>
+          BigInt(item.variantId)
+        );
 
-      const variants = await tx.catalogProductVariant.findMany({
-        where: {
-          id: { in: variantIds },
-          isActive: true,
-        },
-        include: {
-          product: {
+        const variants =
+          await tx.catalogProductVariant.findMany({
+            where: {
+              id: {
+                in: variantIds,
+              },
+              isActive: true,
+            },
             include: {
-              category: true,
+              product: {
+                include: {
+                  category: true,
+                  images: {
+                    orderBy: [
+                      {
+                        isPrimary: "desc",
+                      },
+                      {
+                        sortOrder: "asc",
+                      },
+                    ],
+                    take: 1,
+                  },
+                },
+              },
+              size: true,
               images: {
-                orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
+                orderBy: [
+                  {
+                    isPrimary: "desc",
+                  },
+                  {
+                    sortOrder: "asc",
+                  },
+                ],
                 take: 1,
               },
             },
-          },
-          size: true,
-          images: {
-            orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
-            take: 1,
-          },
-        },
-      });
+          });
 
-      if (variants.length !== items.length) {
-        throw new Error("Some cart items are no longer available.");
-      }
-
-      let subtotal = 0;
-
-      const preparedItems = items.map((cartItem) => {
-        const variant = variants.find(
-          (v) => v.id === BigInt(cartItem.variantId)
-        );
-
-        if (!variant) {
-          throw new Error("Invalid product variant.");
-        }
-
-        const availableStock =
-          variant.stockQuantity - variant.reservedQuantity;
-
-        if (cartItem.quantity <= 0) {
-          throw new Error("Invalid item quantity.");
-        }
-
-        if (cartItem.quantity > availableStock) {
+        if (variants.length !== items.length) {
           throw new Error(
-            `${variant.product.name} has only ${availableStock} item(s) available.`
+            "Some cart items are no longer available."
           );
         }
 
-        const unitPrice = Number(variant.price ?? variant.product.basePrice);
-        const totalPrice = unitPrice * cartItem.quantity;
+        let subtotal = 0;
 
-        subtotal += totalPrice;
+        const preparedItems = items.map(
+          (cartItem) => {
+            const variant = variants.find(
+              (v) =>
+                v.id ===
+                BigInt(cartItem.variantId)
+            );
+
+            if (!variant) {
+              throw new Error(
+                "Invalid product variant."
+              );
+            }
+
+            const availableStock =
+              variant.stockQuantity -
+              variant.reservedQuantity;
+
+            if (cartItem.quantity <= 0) {
+              throw new Error(
+                "Invalid item quantity."
+              );
+            }
+
+            if (
+              cartItem.quantity >
+              availableStock
+            ) {
+              throw new Error(
+                `${variant.product.name} has only ${availableStock} item(s) available.`
+              );
+            }
+
+            const unitPrice = Number(
+              variant.price ??
+                variant.product.basePrice
+            );
+
+            const totalPrice =
+              unitPrice * cartItem.quantity;
+
+            subtotal += totalPrice;
+
+            return {
+              variant,
+              quantity: cartItem.quantity,
+              unitPrice,
+              totalPrice,
+              imageUrl:
+                variant.images?.[0]
+                  ?.imageUrl ||
+                variant.product.images?.[0]
+                  ?.imageUrl ||
+                null,
+            };
+          }
+        );
+
+        /*
+         * Round monetary values to two decimal places.
+         */
+        subtotal = Number(
+          subtotal.toFixed(2)
+        );
+
+        const shippingAmount = 0;
+        const discountAmount = 0;
+
+        /*
+         * GST is calculated on the product subtotal.
+         */
+        const taxAmount = Number(
+          (subtotal * GST_RATE).toFixed(2)
+        );
+
+        const totalAmount = Number(
+          (
+            subtotal +
+            shippingAmount +
+            taxAmount -
+            discountAmount
+          ).toFixed(2)
+        );
+
+        const profile =
+          await tx.profile.findUnique({
+            where: {
+              email: customer.email,
+            },
+          });
+
+        const internalOrder =
+          await tx.shopOrder.create({
+            data: {
+              orderNumber:
+                generateOrderNumber(),
+
+              userId: profile?.id ?? null,
+
+              customerName:
+                customer.fullName,
+              customerEmail: customer.email,
+              customerPhone: customer.phone,
+
+              shippingName:
+                customer.fullName,
+              shippingPhone:
+                customer.phone,
+
+              addressLine1:
+                customer.addressLine1,
+              addressLine2:
+                customer.addressLine2 ||
+                null,
+              city: customer.city,
+              state: customer.state,
+              zipCode: customer.postalCode,
+              country: customer.country,
+
+              subtotalAmount: subtotal,
+              shippingAmount,
+              discountAmount,
+              taxAmount,
+              totalAmount,
+
+              currencyCode: "INR",
+
+              orderStatus: "PENDING",
+              paymentStatus: "PENDING",
+
+              paymentProvider: "RAZORPAY",
+
+              items: {
+                create: preparedItems.map(
+                  (item) => ({
+                    productId:
+                      item.variant.productId,
+                    variantId:
+                      item.variant.id,
+
+                    productCode:
+                      item.variant.product
+                        .productCode,
+                    sku: item.variant.sku,
+                    productName:
+                      item.variant.product.name,
+                    categoryCode:
+                      item.variant.product
+                        .category?.code ?? null,
+
+                    sizeCode:
+                      item.variant.size?.code ??
+                      null,
+                    sizeLabel:
+                      item.variant.size?.label ??
+                      null,
+                    color:
+                      item.variant.color ?? null,
+                    imageUrl: item.imageUrl,
+
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    totalPrice:
+                      item.totalPrice,
+                  })
+                ),
+              },
+            },
+            include: {
+              items: true,
+            },
+          });
+
+        for (const item of preparedItems) {
+          await tx.catalogProductVariant.update({
+            where: {
+              id: item.variant.id,
+            },
+            data: {
+              reservedQuantity: {
+                increment: item.quantity,
+              },
+            },
+          });
+
+          await tx.stockMovement.create({
+            data: {
+              productId:
+                item.variant.productId,
+              variantId: item.variant.id,
+              orderId: internalOrder.id,
+              movementType: "RESERVED",
+              quantity: item.quantity,
+              previousStock:
+                item.variant.stockQuantity,
+              newStock:
+                item.variant.stockQuantity,
+              reason: "ORDER_CREATED",
+              note: `Reserved for order ${internalOrder.orderNumber}`,
+            },
+          });
+        }
 
         return {
-          variant,
-          quantity: cartItem.quantity,
-          unitPrice,
-          totalPrice,
-          imageUrl:
-            variant.images?.[0]?.imageUrl ||
-            variant.product.images?.[0]?.imageUrl ||
-            null,
-        };
-      });
+          internalOrder,
 
-      const shippingAmount = 0;
-      const discountAmount = 0;
-      const taxAmount = 0;
-      const totalAmount =
-        subtotal + shippingAmount + taxAmount - discountAmount;
-
-
-      const profile = await tx.profile.findUnique({
-        where: {
-          email: customer.email,
-        },
-      });
-
-      const internalOrder = await tx.shopOrder.create({
-        data: {
-          orderNumber: generateOrderNumber(),
-
-          userId: profile?.id ?? null,
-
-          customerName: customer.fullName,
-          customerEmail: customer.email,
-          customerPhone: customer.phone,
-
-          shippingName: customer.fullName,
-          shippingPhone: customer.phone,
-
-          addressLine1: customer.addressLine1,
-          addressLine2: customer.addressLine2 || null,
-          city: customer.city,
-          state: customer.state,
-          zipCode: customer.postalCode,
-          country: customer.country,
-
-          subtotalAmount: subtotal,
+          subtotal,
+          taxAmount,
           shippingAmount,
           discountAmount,
-          taxAmount,
           totalAmount,
 
-          currencyCode: "INR",
-
-          orderStatus: "PENDING",
-          paymentStatus: "PENDING",
-
-          paymentProvider: "RAZORPAY",
-
-          items: {
-            create: preparedItems.map((item) => ({
-              productId: item.variant.productId,
-              variantId: item.variant.id,
-
-              productCode: item.variant.product.productCode,
-              sku: item.variant.sku,
-              productName: item.variant.product.name,
-              categoryCode: item.variant.product.category?.code ?? null,
-
-              sizeCode: item.variant.size?.code ?? null,
-              sizeLabel: item.variant.size?.label ?? null,
-              color: item.variant.color ?? null,
-              imageUrl: item.imageUrl,
-
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              totalPrice: item.totalPrice,
-            })),
-          },
-        },
-        include: {
-          items: true,
-        },
-      });
-
-      for (const item of preparedItems) {
-        await tx.catalogProductVariant.update({
-          where: { id: item.variant.id },
-          data: {
-            reservedQuantity: {
-              increment: item.quantity,
-            },
-          },
-        });
-
-        await tx.stockMovement.create({
-          data: {
-            productId: item.variant.productId,
-            variantId: item.variant.id,
-            orderId: internalOrder.id,
-            movementType: "RESERVED",
-            quantity: item.quantity,
-            previousStock: item.variant.stockQuantity,
-            newStock: item.variant.stockQuantity,
-            reason: "ORDER_CREATED",
-            note: `Reserved for order ${internalOrder.orderNumber}`,
-          },
-        });
+          amountInPaise: Math.round(
+            totalAmount * 100
+          ),
+        };
       }
-
-      return {
-        internalOrder,
-        amountInPaise: Math.round(totalAmount * 100),
-      };
-    });
+    );
 
     const auth = Buffer.from(
       `${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`
     ).toString("base64");
 
-    const razorpayRes = await fetch("https://api.razorpay.com/v1/orders", {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${auth}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        amount: result.amountInPaise,
-        currency: "INR",
-        receipt: result.internalOrder.id,
-        notes: {
-          internal_order_id: result.internalOrder.id,
-          order_number: result.internalOrder.orderNumber,
-          customer_name: customer.fullName,
-          customer_email: customer.email,
-          customer_phone: customer.phone,
+    const razorpayRes = await fetch(
+      "https://api.razorpay.com/v1/orders",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${auth}`,
+          "Content-Type": "application/json",
         },
-      }),
-      cache: "no-store",
-    });
+        body: JSON.stringify({
+          amount: result.amountInPaise,
+          currency: "INR",
+          receipt: result.internalOrder.id,
 
-    const razorpayData = await razorpayRes.json();
+          notes: {
+            internal_order_id:
+              result.internalOrder.id,
+            order_number:
+              result.internalOrder.orderNumber,
+            customer_name:
+              customer.fullName,
+            customer_email:
+              customer.email,
+            customer_phone:
+              customer.phone,
+
+            subtotal: result.subtotal.toFixed(2),
+            gst_rate: "5%",
+            gst_amount:
+              result.taxAmount.toFixed(2),
+            total_amount:
+              result.totalAmount.toFixed(2),
+          },
+        }),
+        cache: "no-store",
+      }
+    );
+
+    const razorpayData =
+      await razorpayRes.json();
 
     if (!razorpayRes.ok) {
       throw new Error(
-        razorpayData?.error?.description || "Unable to create Razorpay order."
+        razorpayData?.error?.description ||
+          "Unable to create Razorpay order."
       );
     }
 
     await prisma.shopOrder.update({
-      where: { id: result.internalOrder.id },
+      where: {
+        id: result.internalOrder.id,
+      },
       data: {
         paymentOrderId: razorpayData.id,
       },
@@ -269,15 +408,36 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+
+      keyId:
+        process.env
+          .NEXT_PUBLIC_RAZORPAY_KEY_ID,
+
       razorpayOrderId: razorpayData.id,
-      internalOrderId: result.internalOrder.id,
-      orderNumber: result.internalOrder.orderNumber,
+
+      internalOrderId:
+        result.internalOrder.id,
+
+      orderNumber:
+        result.internalOrder.orderNumber,
+
+      subtotal: result.subtotal,
+      gstRate: 5,
+      gstAmount: result.taxAmount,
+      shippingAmount:
+        result.shippingAmount,
+      discountAmount:
+        result.discountAmount,
+      totalAmount: result.totalAmount,
+
       amount: result.amountInPaise,
       currency: "INR",
     });
   } catch (error) {
-    console.error("CREATE_CHECKOUT_ORDER_ERROR", error);
+    console.error(
+      "CREATE_CHECKOUT_ORDER_ERROR",
+      error
+    );
 
     return NextResponse.json(
       {
@@ -287,7 +447,9 @@ export async function POST(req: Request) {
             ? error.message
             : "Server error while creating order.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
