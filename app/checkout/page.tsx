@@ -7,6 +7,11 @@ import { useAuth } from "@/app/providers/AuthProvider";
 import Image from "next/image";
 import { loadRazorpayWithRetry } from "@/app/lib/loadRazorpay";
 import { FaCircleInfo } from "react-icons/fa6";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 declare global {
   interface Window {
@@ -507,23 +512,32 @@ export default function CheckoutPage() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm text-black/65">GST (5%)</span>
+                    <span className="text-sm text-black/65">
+                      GST (5%)
+                    </span>
 
-                    <div className="group relative flex items-center">
-                      <button
-                        type="button"
-                        aria-label="GST Information"
-                        className="text-black/45 transition hover:text-black"
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="View GST information"
+                          className="inline-flex cursor-pointer size-5 items-center justify-center rounded-full text-black/45 transition-colors hover:bg-black/5 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+                        >
+                          <FaCircleInfo aria-hidden="true" />
+                        </button>
+                      </PopoverTrigger>
+
+                      <PopoverContent
+                        side="top"
+                        align="center"
+                        sideOffset={8}
+                        className="w-auto rounded-md px-3 py-2"
                       >
-                        <FaCircleInfo size={16} strokeWidth={2} />
-                      </button>
-
-                      <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-max -translate-x-1/2 rounded-xs bg-black px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
-                        GSTIN: 27JXDPS0552J1Z2
-
-                        <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-black" />
-                      </div>
-                    </div>
+                        <p className="text-xs font-medium">
+                          GSTIN: 27JXDPS0552J1Z2
+                        </p>
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   <span className="text-sm font-medium text-black">
