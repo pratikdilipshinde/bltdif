@@ -6,6 +6,7 @@ import { useCart } from "@/app/context/CartContext";
 import { useAuth } from "@/app/providers/AuthProvider";
 import Image from "next/image";
 import { loadRazorpayWithRetry } from "@/app/lib/loadRazorpay";
+import { FaCircleInfo } from "react-icons/fa6";
 
 declare global {
   interface Window {
@@ -457,7 +458,9 @@ export default function CheckoutPage() {
                 disabled={loading}
                 className="mt-6 w-full rounded-xs bg-black px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Preparing secure payment..." : "Pay with Razorpay"}
+                {loading
+                  ? "Preparing secure payment..."
+                  : `Pay ₹${finalTotal.toFixed(2)} with Razorpay`}
               </button>
             </form>
 
@@ -503,7 +506,26 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-black/65">GST (5%)</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm text-black/65">GST (5%)</span>
+
+                    <div className="group relative flex items-center">
+                      <button
+                        type="button"
+                        aria-label="GST Information"
+                        className="text-black/45 transition hover:text-black"
+                      >
+                        <FaCircleInfo size={16} strokeWidth={2} />
+                      </button>
+
+                      <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-max -translate-x-1/2 rounded-xs bg-black px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
+                        GSTIN: 27JXDPS0552J1Z2
+
+                        <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-black" />
+                      </div>
+                    </div>
+                  </div>
+
                   <span className="text-sm font-medium text-black">
                     ₹{gstAmount.toFixed(2)}
                   </span>
