@@ -3,6 +3,7 @@ import CapsSection from "./components/CapsSection";
 import CategoriesSection from "./components/CategoriesSection";
 import CategoryMarquee from "./components/CategoryMarquee";
 import ComingSoonSection from "./components/ComingSoonSection";
+import CustomerReviews from "./components/CustomerReviews";
 import FullWidthImageSection from "./components/FullWidthImageSection";
 import Hero from "./components/Hero";
 import HeroSection from "./components/HeroSection";
@@ -30,6 +31,7 @@ export default function HomePage() {
       {/* <TwoCardSection /> */}
       {/* <PhotosSection /> */}
       {/* <ProductsSection /> */}
+      <CustomerReviews />
       <InfoStrip />
       {/* later: product grid, etc. */}
     </>

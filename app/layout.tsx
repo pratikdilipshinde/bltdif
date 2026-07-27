@@ -79,7 +79,7 @@ export const metadata: Metadata = {
         url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "BLTDIF Built Different Streetwear",
+        alt: "BLTDIF | Built Different Heavyweight Oversized Tshirts, Caps and Streetwear",
       },
     ],
   },
