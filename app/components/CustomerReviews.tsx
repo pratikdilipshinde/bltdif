@@ -724,11 +724,11 @@ export default function CustomerReviews() {
       <div
         className="
           relative
-          mt-[-10%]
+          mt-3
           h-[435px]
           w-full
           touch-pan-y
-          sm:mt-1
+          sm:mt-5
           sm:h-[410px]
           md:h-[380px]
           lg:mt-1
