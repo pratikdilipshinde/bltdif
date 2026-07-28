@@ -41,7 +41,7 @@ const reviews: CustomerReview[] = [
     id: 1,
     name: "Vaishnavi Mishra",
     initials: "VM",
-    image: "/images/reviews/post1.svg",
+    image: "/images/reviews/post1.jpg",
     alt: "Vaishnavi Mishra wearing a BLTDIF T-shirt and cap",
     rating: 5,
   },
@@ -49,7 +49,7 @@ const reviews: CustomerReview[] = [
     id: 2,
     name: "Aarav Mehta",
     initials: "AM",
-    image: "/images/reviews/post2.svg",
+    image: "/images/reviews/post2.jpg",
     alt: "Aarav Mehta reviewing BLTDIF caps",
     rating: 5,
   },
@@ -57,7 +57,7 @@ const reviews: CustomerReview[] = [
     id: 3,
     name: "Janaki Deo",
     initials: "JD",
-    image: "/images/reviews/post3.svg",
+    image: "/images/reviews/post3.jpg",
     alt: "Janaki Deo wearing a BLTDIF T-shirt",
     rating: 5,
   },
@@ -65,7 +65,7 @@ const reviews: CustomerReview[] = [
     id: 4,
     name: "Priya Desai",
     initials: "PD",
-    image: "/images/reviews/post4.svg",
+    image: "/images/reviews/post4.jpg",
     alt: "Priya Desai reviewing BLTDIF premium packaging",
     rating: 5,
   },
@@ -73,7 +73,7 @@ const reviews: CustomerReview[] = [
     id: 5,
     name: "Atharva Gokhale",
     initials: "AG",
-    image: "/images/reviews/post5.svg",
+    image: "/images/reviews/post5.jpg",
     alt: "Atharva Gokhale reviewing BLTDIF products",
     rating: 5,
   },
@@ -81,7 +81,7 @@ const reviews: CustomerReview[] = [
     id: 6,
     name: "Dev Shah",
     initials: "DS",
-    image: "/images/reviews/post6.svg",
+    image: "/images/reviews/post6.jpg",
     alt: "Dev Shah reviewing a BLTDIF oversized T-shirt and cap",
     rating: 5,
   },
@@ -89,7 +89,7 @@ const reviews: CustomerReview[] = [
     id: 7,
     name: "Parthesh Pendharkar",
     initials: "PP",
-    image: "/images/reviews/post7.svg",
+    image: "/images/reviews/post7.jpg",
     alt: "Parthesh Pendharkar wearing a BLTDIF T-shirt",
     rating: 5,
   },
@@ -97,7 +97,7 @@ const reviews: CustomerReview[] = [
     id: 8,
     name: "Rithy Riju",
     initials: "RR",
-    image: "/images/reviews/post8.svg",
+    image: "/images/reviews/post8.jpg",
     alt: "Rithy Riju wearing an oversized BLTDIF T-shirt",
     rating: 5,
   },
@@ -105,7 +105,7 @@ const reviews: CustomerReview[] = [
     id: 9,
     name: "Sanika Pawar",
     initials: "SP",
-    image: "/images/reviews/post9.svg",
+    image: "/images/reviews/post9.jpg",
     alt: "Sanika Pawar reviewing a BLTDIF cap and premium packaging",
     rating: 5,
   },
@@ -113,7 +113,7 @@ const reviews: CustomerReview[] = [
     id: 10,
     name: "Sonal S",
     initials: "SS",
-    image: "/images/reviews/post10.svg",
+    image: "/images/reviews/post10.jpg",
     alt: "Sonal reviewing BLTDIF apparel and caps",
     rating: 5,
   },
@@ -121,7 +121,7 @@ const reviews: CustomerReview[] = [
     id: 11,
     name: "Sayali Gite",
     initials: "SG",
-    image: "/images/reviews/post11.svg",
+    image: "/images/reviews/post11.jpg",
     alt: "Sayali Gite wearing a BLTDIF T-shirt",
     rating: 5,
   },
@@ -129,7 +129,7 @@ const reviews: CustomerReview[] = [
     id: 12,
     name: "Shital E",
     initials: "SE",
-    image: "/images/reviews/post12.svg",
+    image: "/images/reviews/post12.jpg",
     alt: "Shital reviewing a BLTDIF cap",
     rating: 5,
   },
@@ -137,7 +137,7 @@ const reviews: CustomerReview[] = [
     id: 13,
     name: "Kavya Nair",
     initials: "KN",
-    image: "/images/reviews/post13.svg",
+    image: "/images/reviews/post13.jpg",
     alt: "Kavya Nair reviewing an embroidered BLTDIF cap",
     rating: 5,
   },
@@ -145,7 +145,7 @@ const reviews: CustomerReview[] = [
     id: 14,
     name: "Aniket S",
     initials: "AS",
-    image: "/images/reviews/post14.svg",
+    image: "/images/reviews/post14.jpg",
     alt: "Aniket reviewing BLTDIF caps",
     rating: 5,
   },
@@ -153,7 +153,7 @@ const reviews: CustomerReview[] = [
     id: 15,
     name: "Amruta Kulkarni",
     initials: "AK",
-    image: "/images/reviews/post15.svg",
+    image: "/images/reviews/post15.jpg",
     alt: "Amruta Kulkarni wearing BLTDIF apparel",
     rating: 5,
   },
@@ -161,7 +161,7 @@ const reviews: CustomerReview[] = [
     id: 16,
     name: "Atul Mankar",
     initials: "AM",
-    image: "/images/reviews/post16.svg",
+    image: "/images/reviews/post16.jpg",
     alt: "Atul Mankar wearing a BLTDIF T-shirt",
     rating: 5,
   },
@@ -676,13 +676,13 @@ export default function CustomerReviews() {
               </span>
             </h2>
 
-            <p className="mt-2 max-w-3xl text-base leading-7 text-black/50 sm:text-lg">
+            {/* <p className="mt-2 max-w-3xl text-base leading-7 text-black/50 sm:text-lg">
               Real fits, real stories and honest experiences
               from customers who wear BLTDIF.
-            </p>
+            </p> */}
           </div>
 
-          <div className="flex w-full items-center gap-4 lg:w-auto lg:justify-end">
+        {/* <div className="flex w-full items-center gap-4 lg:w-auto lg:justify-end">
             <div className="flex -space-x-3">
               {reviews
                 .slice(0, 4)
@@ -717,21 +717,21 @@ export default function CustomerReviews() {
                 Verified customer reviews
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
       <div
         className="
           relative
-          mt-3
+          mt-[-10%]
           h-[435px]
           w-full
           touch-pan-y
-          sm:mt-4
+          sm:mt-1
           sm:h-[410px]
           md:h-[380px]
-          lg:mt-5
+          lg:mt-1
           lg:h-[450px]
           xl:h-[480px]
           2xl:h-[550px]
@@ -878,7 +878,7 @@ export default function CustomerReviews() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-1 sm:items-end">
+        {/* <div className="flex flex-col items-center gap-1 sm:items-end">
           <p className="flex items-center gap-2 text-center text-sm text-black/45 sm:text-right">
             <BadgeCheck
               aria-hidden="true"
@@ -899,7 +899,7 @@ export default function CustomerReviews() {
               small
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );
