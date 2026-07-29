@@ -723,20 +723,21 @@ export default function CustomerReviews() {
 
       <div
         className="
-          relative
-          mt-3
-          h-[435px]
-          w-full
-          touch-pan-y
-          sm:mt-5
-          sm:h-[410px]
-          md:h-[380px]
-          lg:mt-1
-          lg:h-[450px]
-          xl:h-[480px]
-          2xl:h-[550px]
-          3xl:h-[620]
-        "
+            relative
+            mt-5
+            w-full
+            touch-pan-y
+            h-[470px]
+            min-[375px]:h-[500px]
+            min-[430px]:h-[540px]
+            sm:h-[560px]
+            md:h-[590px]
+            lg:mt-2
+            lg:h-[470px]
+            xl:h-[520px]
+            2xl:h-[590px]
+            3xl:h-[660px]
+          "
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onFocusCapture={() => setIsPaused(true)}
