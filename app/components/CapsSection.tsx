@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -21,11 +22,7 @@ export default function CapsSection() {
       try {
         setIsLoading(true);
 
-        // Start both tasks at the same time
-        const [data] = await Promise.all([
-          getCatalogProductsByCategory("caps"), // Use "caps" in CapsSection
-          new Promise((resolve) => setTimeout(resolve, 2000)),
-        ]);
+        const data = await getCatalogProductsByCategory("caps");
 
         const sortedProducts = [...data].sort(
           (a, b) =>
@@ -37,7 +34,7 @@ export default function CapsSection() {
           setProducts(sortedProducts.slice(0, PRODUCT_LIMIT));
         }
       } catch (error) {
-        console.error("Failed to fetch products:", error);
+        console.error("Failed to fetch cap products:", error);
 
         if (isMounted) {
           setProducts([]);
@@ -59,49 +56,82 @@ export default function CapsSection() {
   return (
     <section
       aria-busy={isLoading}
-      className="bg-white px-4 pb-8 md:px-8 lg:px-10 xl:px-14 2xl:px-20"
+      className="w-full overflow-hidden bg-[#f0eded] py-8"
     >
       <div className="mx-auto max-w-[1800px]">
-        <p className="mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-black">
+        {/* Section heading */}
+        <p
+          className="
+            mb-5 px-4
+            text-xs font-semibold uppercase
+            tracking-[0.18em] text-black
+            md:px-8 lg:px-10 xl:px-14 2xl:px-20
+          "
+        >
           Featured Caps
         </p>
 
-        <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8 xl:gap-9 2xl:gap-10">
+        {/* Mobile horizontal scroll / desktop grid */}
+        <div
+          className="
+            flex items-stretch gap-4
+            overflow-x-auto overflow-y-hidden
+            overscroll-x-contain
+            ml-4 md:ml-0 pr-4 pb-3
+            snap-x snap-mandatory
+            [scrollbar-width:none]
+            [&::-webkit-scrollbar]:hidden
+
+            sm:gap-5 sm:ml-0 sm:px-8
+
+            md:grid md:grid-cols-2 md:gap-7
+            md:overflow-visible md:snap-none
+
+            lg:grid-cols-3 lg:gap-8 lg:px-10
+            xl:gap-9 xl:px-14
+            2xl:gap-10 2xl:px-20
+          "
+        >
           {isLoading
             ? Array.from({ length: PRODUCT_LIMIT }).map((_, index) => (
-                <ProductCardWrapper key={`cap-skeleton-${index}`}>
+                <div
+                  key={`cap-skeleton-${index}`}
+                  className="
+                    w-[78%] min-w-[78%]
+                    shrink-0 snap-start
+
+                    sm:w-[46%] sm:min-w-[46%]
+
+                    md:w-auto md:min-w-0 md:shrink
+                  "
+                >
                   <ProductCardSkeleton />
-                </ProductCardWrapper>
+                </div>
               ))
             : products.map((product) => (
-                <ProductCardWrapper key={product.id}>
+                <div
+                  key={product.id}
+                  className="
+                    w-[78%] min-w-[78%]
+                    shrink-0 snap-start
+
+                    sm:w-[46%] sm:min-w-[46%]
+
+                    md:w-auto md:min-w-0 md:shrink
+                    md:min-h-[440px]
+
+                    lg:min-h-[500px]
+                    xl:min-h-[500px]
+                    2xl:min-h-[660px]
+                    min-[2560px]:min-h-[760px]
+                    min-[3840px]:min-h-[900px]
+                  "
+                >
                   <ProductCard product={product} />
-                </ProductCardWrapper>
+                </div>
               ))}
         </div>
       </div>
     </section>
-  );
-}
-
-function ProductCardWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="
-        w-full
-        sm:min-h-[440px]
-        lg:min-h-[500px]
-        xl:min-h-[500px]
-        2xl:min-h-[660px]
-        min-[2560px]:min-h-[760px]
-        min-[3840px]:min-h-[900px]
-      "
-    >
-      {children}
-    </div>
   );
 }

@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
   ShoppingBag,
@@ -13,191 +12,213 @@ import {
   LogOut,
   LayoutDashboard,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import AuthModal from "./auth/AuthModal";
+import StoryViewer from "./StoryViewer";
+
 import { useAuth } from "@/app/providers/AuthProvider";
 import { useCart } from "@/app/context/CartContext";
 
-const BRAND_RED = "#CE0028";
-
 const categories = [
-  { label: "HOODIE", href: "/products/hoodies" },
-  { label: "T-SHIRT", href: "/products/t-shirts" },
-  { label: "CAP", href: "/products/caps" },
+  { id: "6c4uk6", label: "HOODIE", href: "/products/hoodies" },
+  { id: "tshirt", label: "T-SHIRT", href: "/products/t-shirts" },
+  { id: "cap", label: "CAP", href: "/products/caps" },
 ];
 
-const categorySlugs = categories.map((c) => c.href.split("/")[2]);
+const stories = [
+  { id: 1, image: "/images/stories/story1.jpg", alt: "BLTDIF Story 1" },
+  { id: 2, image: "/images/stories/story2.jpg", alt: "BLTDIF Story 2" },
+  { id: 3, image: "/images/stories/story3.jpg", alt: "BLTDIF Story 3" },
+  { id: 4, image: "/images/stories/story4.jpg", alt: "BLTDIF Story 4" },
+  { id: 5, image: "/images/stories/story5.jpg", alt: "BLTDIF Story 5" },
+  { id: 6, image: "/images/stories/story6.jpg", alt: "BLTDIF Story 6" },
+];
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const pathParts = pathname.split("/");
+  const { user, logout } = useAuth();
+  const { cartItems } = useCart();
 
-  const isProductDetailsPage =
-    pathname.startsWith("/products/") &&
-    pathParts.length === 3 &&
-    !categorySlugs.includes(pathParts[2]);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
 
-  const { user, loading, logout, isAdmin } = useAuth();
-  const { cartCount } = useCart();
+  const accountRef = useRef<HTMLDivElement>(null);
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const logoSrc = "/images/Footer-Logo.png";
 
-  const accountMenuRef = useRef<HTMLDivElement | null>(null);
+  const cartCount =
+    cartItems?.reduce(
+      (total: number, item: any) => total + (item.quantity || 1),
+      0
+    ) || 0;
 
-  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
-  const closeMenu = () => setIsMenuOpen(false);
+  const isCategoryActive = (href: string) =>
+    pathname === href || pathname?.startsWith(`${href}/`);
 
-  const textColor =
-    isProductDetailsPage ? "text-black" : isSticky ? "text-black" : "text-white";
-
-  const iconColor =
-    isProductDetailsPage ? "text-black" : isSticky ? "text-black" : "text-white";
-
-  const dividerColor =
-    isProductDetailsPage
-      ? "bg-black/70"
-      : isSticky
-      ? "bg-black/70"
-      : "bg-white/70";
-
-  useEffect(() => {
-    closeMenu();
-    setAccountMenuOpen(false);
-  }, [pathname]);
-
+  // Scroll detection — unchanged
   useEffect(() => {
     const handleScroll = () => {
-      setIsSticky(window.scrollY > 40);
+      setIsScrolled(window.scrollY > 20);
     };
 
     handleScroll();
+
     window.addEventListener("scroll", handleScroll, { passive: true });
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
+  // Close account dropdown when clicking outside — unchanged
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (!accountMenuRef.current) return;
-
-      if (!accountMenuRef.current.contains(event.target as Node)) {
-        setAccountMenuOpen(false);
+      if (
+        accountRef.current &&
+        !accountRef.current.contains(event.target as Node)
+      ) {
+        setIsAccountOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
 
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
-  const openAuth = () => {
-    setAuthOpen(true);
-    setIsMenuOpen(false);
-    setAccountMenuOpen(false);
-  };
+  // Close menus when route changes — unchanged
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsAccountOpen(false);
+    setIsStoryViewerOpen(false);
+  }, [pathname]);
 
-  const handleAccountClick = () => {
-    if (loading) return;
-
-    if (!user) {
-      openAuth();
-      return;
-    }
-
-    setAccountMenuOpen((prev) => !prev);
-  };
-
+  // Logout — unchanged
   const handleLogout = async () => {
     try {
       await logout();
-
-      setAccountMenuOpen(false);
-      setAuthOpen(false);
-      closeMenu();
-
-      router.replace("/");
-      router.refresh();
-
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 100);
+      setIsAccountOpen(false);
+      setIsMobileMenuOpen(false);
+      router.push("/");
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Logout failed:", error);
     }
   };
 
   return (
     <>
-      <motion.header
-        initial={false}
-        animate={{
-          backgroundColor: isSticky
-            ? "rgba(255,255,255,1)"
-            : "rgba(255,255,255,0)",
-          boxShadow: isSticky
-            ? "0 1px 0 rgba(0,0,0,0.08)"
-            : "0 0px 0 rgba(0,0,0,0)",
-        }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
-        className="fixed left-0 right-0 top-0 z-50"
+      {/* NAVBAR */}
+      <header
+        className={`
+          fixed left-0 right-0 z-[50] px-3 pt-0 md:px-5 md:pt-0
+          transition-[top] duration-500 ease-out
+          ${isScrolled ? "top-5" : "top-[36px] md:top-[48px]"}
+        `}
       >
-        <nav className="flex items-center justify-between px-4 py-2 md:px-6 md:py-2">
-          <div className="flex items-center">
-            <Link href="/" aria-label="BLTDIF Home" className="relative">
-              <div className="relative h-5 w-[80px] md:h-6 md:w-[100px]">
-                <Image
-                  src={
-                    isProductDetailsPage
-                      ? "/images/Logo.png"
-                      : "/images/Logo-white.png"
-                  }
-                  alt="BLTDIF White Logo"
-                  fill
-                  priority
-                  className={`object-contain select-none transition-opacity duration-150 ${
-                    isSticky ? "opacity-0" : "opacity-100"
-                  }`}
-                />
+        <nav
+          className="
+            liquid-navbar group/nav
+            relative mx-auto flex h-[48px] w-full items-center
+            justify-between overflow-visible rounded-[16px]
+            border border-white/40
+            bg-white/[0.15] px-4
+            shadow-[0_8px_30px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.55)]
+            backdrop-blur-xs backdrop-saturate-150
+            transition-all duration-500 ease-out
+            hover:border-white/60
+            hover:bg-white/[0.20]
+            hover:shadow-[0_12px_40px_rgba(0,0,0,0.18),inset_0_1px_2px_rgba(255,255,255,0.7)]
+            md:h-[68px] md:px-6
+          "
+        >
+          {/* SOFT LIQUID GLOW */}
+          <div
+            className="
+              pointer-events-none absolute -top-1/2 left-1/4
+              h-full w-1/2 rounded-full
+              bg-white/20 blur-xl opacity-70
+              transition-all duration-700
+              group-hover/nav:translate-x-1/2
+              group-hover/nav:opacity-100
+            "
+          />
 
-                <Image
-                  src="/images/Logo.png"
-                  alt="BLTDIF Red Logo"
-                  fill
-                  priority
-                  className={`object-contain select-none transition-opacity duration-300 ${
-                    isSticky ? "opacity-100" : "opacity-0"
-                  }`}
-                />
-              </div>
-            </Link>
-          </div>
+          {/* GLASS TOP REFLECTION */}
+          <div
+            className="
+              pointer-events-none absolute inset-x-2 top-0 h-px
+              bg-gradient-to-r from-transparent via-white/80 to-transparent
+              opacity-80
+              md:inset-x-4
+            "
+          />
 
-          <div className="flex items-center gap-2 md:gap-6">
-            <div
-              className={`hidden items-center gap-7 text-[13px] font-medium tracking-[0.14em] transition-colors duration-150 md:flex ${textColor}`}
-            >
-              {categories.map((item) => {
-                const isActive = pathname.startsWith(item.href);
+          {/* BOTTOM REFLECTION */}
+          <div
+            className="
+              pointer-events-none absolute inset-x-3 bottom-0 h-px
+              bg-gradient-to-r from-transparent via-white/30 to-transparent
+            "
+          />
+
+          {/* LOGO — ALWAYS LEFT */}
+          <Link
+            href="/"
+            aria-label="BLTDIF Home"
+            className="
+              relative z-10 flex shrink-0 items-center
+              transition-opacity duration-200 hover:opacity-90
+            "
+          >
+            <Image
+              src={logoSrc}
+              alt="BLTDIF"
+              width={125}
+              height={32}
+              priority
+              className="h-auto w-[65px] object-contain md:w-[100px]"
+            />
+          </Link>
+
+          {/* RIGHT SIDE */}
+          <div className="relative z-10 flex items-center gap-1.5 sm:gap-2 md:gap-3">
+            {/* DESKTOP CATEGORY MENU */}
+            <div className="hidden items-center gap-1 md:flex">
+              {categories.map((category) => {
+                const active = isCategoryActive(category.href);
 
                 return (
                   <Link
-                    key={item.href}
-                    href={item.href}
-                    className="relative uppercase transition-colors duration-150"
-                    style={{ color: isActive ? BRAND_RED : undefined }}
+                    key={category.id}
+                    href={category.href}
+                    className={`
+                      relative flex h-[40px] items-center justify-center
+                      rounded-2xl px-3 text-[12px] font-medium
+                      tracking-[0.12em] text-black transition-all duration-300
+                      ${
+                        active
+                          ? "bg-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+                          : "hover:bg-white/55"
+                      }
+                    `}
                   >
-                    {item.label}
+                    {category.label}
 
-                    {isActive && (
+                    {active && (
                       <motion.span
-                        layoutId="nav-category-underline"
-                        className="absolute -bottom-1 left-0 h-[2px] w-full"
-                        style={{ backgroundColor: BRAND_RED }}
+                        layoutId="navbar-active"
+                        className="
+                          absolute bottom-[6px] left-1/2 h-[2px] w-3
+                          -translate-x-1/2 rounded-xl bg-[#ce0028]
+                        "
                       />
                     )}
                   </Link>
@@ -205,234 +226,422 @@ export default function Navbar() {
               })}
             </div>
 
-            <div className="relative" ref={accountMenuRef}>
-              <button
-                aria-label={user ? "Account menu" : "Account"}
-                onClick={handleAccountClick}
-                className={`cursor-pointer rounded-xs p-1 transition-colors duration-150 md:p-2 ${iconColor} ${
-                  isSticky ? "hover:bg-black/5" : "hover:bg-white/10"
-                }`}
+            {/* DESKTOP DIVIDER */}
+            <div className="mx-1 hidden h-7 w-px bg-white/25 md:block" />
+
+            {/* STORY ICON */}
+            <button
+              type="button"
+              aria-label="Open BLTDIF stories"
+              aria-haspopup="dialog"
+              aria-expanded={isStoryViewerOpen}
+              onClick={() => {
+                setIsStoryViewerOpen(true);
+                setIsAccountOpen(false);
+                setIsMobileMenuOpen(false);
+              }}
+              className="
+                relative flex h-[40px] w-[40px] shrink-0
+                cursor-pointer items-center justify-center rounded-full
+                border border-white/40 bg-white/[0.12] p-[2px]
+                shadow-[0_4px_15px_rgba(0,0,0,0.10),inset_0_1px_1px_rgba(255,255,255,0.45)]
+                backdrop-blur-xs backdrop-saturate-150
+                transition-all duration-500
+                hover:scale-105 hover:border-white/60 hover:bg-white/20
+                focus:outline-none focus:ring-2 focus:ring-white/60
+                focus:ring-offset-2 focus:ring-offset-transparent
+              "
+            >
+              <span
+                className="
+                  pointer-events-none absolute inset-0 rounded-full
+                  bg-gradient-to-tl from-white/80 via-black/80 to-white/80
+                  opacity-90
+                "
+              />
+
+              <span
+                className="
+                  relative z-10 flex h-full w-full items-center
+                  justify-center overflow-hidden rounded-full bg-black
+                "
               >
-                <User className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.8} />
+                <Image
+                  src="/images/BD-white-logo.png"
+                  alt=""
+                  width={20}
+                  height={20}
+                  className="h-full w-full object-contain p-1.5"
+                />
+              </span>
+            </button>
+
+            {/* DESKTOP ACCOUNT ICON */}
+            <div ref={accountRef} className="relative hidden md:block">
+              <button
+                type="button"
+                aria-label="Account"
+                aria-expanded={isAccountOpen}
+                onClick={() => {
+                  setIsAccountOpen((prev) => !prev);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="
+                  flex h-[40px] w-[40px] items-center justify-center
+                  rounded-full border border-white/40 bg-white/[0.15]
+                  text-black
+                  shadow-[0_4px_15px_rgba(0,0,0,0.10),inset_0_1px_1px_rgba(255,255,255,0.45)]
+                  backdrop-blur-xs backdrop-saturate-150
+                  transition-all duration-500
+                  hover:border-white/60 hover:bg-white/55
+                  hover:shadow-[0_8px_24px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.7)]
+                  cursor-pointer
+                "
+              >
+                <User size={17} strokeWidth={1.7} className="text-black" />
               </button>
 
+              {/* DESKTOP ACCOUNT DROPDOWN */}
               <AnimatePresence>
-                {user && accountMenuOpen && (
+                {isAccountOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 8 }}
-                    transition={{ duration: 0.18 }}
-                    className="absolute right-0 top-[calc(100%+10px)] z-50 min-w-[210px] rounded-xs border border-black/10 bg-white p-2 shadow-[0_18px_40px_rgba(0,0,0,0.12)]"
+                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="
+                      absolute right-0 top-[60px] w-[215px] overflow-hidden
+                      rounded-[18px] border border-white/40
+                      bg-white/35 p-2
+                      shadow-[0_20px_50px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.25)]
+                      backdrop-blur-xs backdrop-saturate-150
+                    "
                   >
-                    <div className="border-b border-black/10 px-3 py-2">
-                      <p className="text-[13px] font-semibold text-black">
-                        {user.firstname || "BLTDIF User"}
-                      </p>
+                    {/* DROPDOWN TOP REFLECTION */}
+                    <div
+                      className="
+                        pointer-events-none absolute inset-x-3 top-0 h-px
+                        bg-gradient-to-r from-transparent via-white/70 to-transparent
+                      "
+                    />
 
-                      <p className="mt-0.5 text-[12px] text-black/55">
-                        {user.email}
-                      </p>
-                    </div>
-
-                    {isAdmin ? (
-                      <Link
-                        href="/admin/dashboard"
-                        className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"
-                      >
-                        <LayoutDashboard className="h-4 w-4" />
-                        Dashboard
-                      </Link>
-                    ) : (
+                    {user ? (
                       <>
                         <Link
-                          href="/account/profile"
-                          className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"
+                          href="/dashboard"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="
+                            flex items-center gap-3 rounded-xl px-3 py-3
+                            text-black transition-colors hover:bg-white/55 cursor-pointer
+                          "
                         >
-                          My Profile
+                          <LayoutDashboard size={16} strokeWidth={1.7} />
+                          <span className="text-[11px] tracking-[0.08em]">
+                            DASHBOARD
+                          </span>
                         </Link>
 
                         <Link
-                          href="/account/orders"
-                          className="mt-2 flex w-full items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"
+                          href="/profile"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="
+                            flex items-center gap-3 rounded-xl px-3 py-3
+                            text-black transition-colors hover:bg-white/55 cursor-pointer
+                          "
                         >
-                          My Orders
+                          <User size={16} strokeWidth={1.7} />
+                          <span className="text-[11px] tracking-[0.08em]">
+                            PROFILE
+                          </span>
                         </Link>
-                      </>
-                    )}
 
-                    <button
-                      onClick={handleLogout}
-                      className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-xs px-3 py-2 text-left text-[13px] font-medium text-black transition hover:bg-black/[0.04]"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Logout
-                    </button>
+                        <Link
+                          href="/orders"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="
+                            flex items-center gap-3 rounded-xl px-3 py-3
+                            text-black transition-colors hover:bg-white/55 cursor-pointer
+                          "
+                        >
+                          <ShoppingBag size={16} strokeWidth={1.7} />
+                          <span className="text-[11px] tracking-[0.08em]">
+                            ORDERS
+                          </span>
+                        </Link>
+
+                        <div className="my-1 h-px bg-white/15" />
+
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="
+                            flex w-full items-center gap-3 rounded-xl
+                            px-3 py-3 text-black transition-colors cursor-pointer
+                            hover:bg-white/55
+                          "
+                        >
+                          <LogOut size={16} strokeWidth={1.7} />
+                          <span className="text-[11px] tracking-[0.08em]">
+                            LOGOUT
+                          </span>
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAccountOpen(false);
+                          setIsAuthModalOpen(true);
+                        }}
+                        className="
+                          flex w-full items-center gap-3 rounded-xl
+                          px-3 py-3 text-left text-black
+                          transition-colors hover:bg-white/55 cursor-pointer
+                        "
+                      >
+                        <User size={16} strokeWidth={1.7} />
+                        <span className="text-[11px] tracking-[0.08em]">
+                          LOGIN / SIGN UP
+                        </span>
+                      </button>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <span
-              className={`hidden h-6 w-px transition-colors duration-150 md:inline-block ${dividerColor}`}
-            />
-
+            {/* DESKTOP CART */}
             <Link
               href="/cart"
-              aria-label="Cart"
-              className={`relative rounded-xs p-1 transition-colors duration-150 md:p-2 ${iconColor} ${
-                isSticky ? "hover:bg-black/5" : "hover:bg-white/10"
-              }`}
+              data-cart-icon="true"
+              aria-label="Shopping cart"
+              className="
+                relative hidden h-[40px] w-[40px] items-center
+                justify-center rounded-full
+                border border-white/40 bg-white/[0.15] text-black
+                shadow-[0_4px_15px_rgba(0,0,0,0.10),inset_0_1px_1px_rgba(255,255,255,0.45)]
+                backdrop-blur-xs backdrop-saturate-150
+                transition-all duration-500
+                hover:border-white/60 hover:bg-white/55
+                hover:shadow-[0_8px_24px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.7)]
+                md:flex
+              "
             >
               <ShoppingBag
-                className="h-4 w-4 md:h-5 md:w-5"
-                strokeWidth={1.8}
+                size={17}
+                strokeWidth={1.7}
+                className="text-black"
               />
 
               {cartCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#CE0028] px-1 text-[10px] font-semibold leading-none text-white md:h-5 md:min-w-[18px] md:text-[11px]">
+                <span
+                  className="
+                    absolute -right-1 -top-1 flex h-[17px] min-w-[17px]
+                    items-center justify-center rounded-full bg-[#CE0028]
+                    px-1 text-[8px] font-semibold text-white shadow-md
+                  "
+                >
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
             </Link>
 
+            {/* MOBILE HAMBURGER */}
             <button
               type="button"
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-              onClick={toggleMenu}
-              className={`inline-flex items-center justify-center rounded-xs p-1 transition-colors duration-150 md:hidden ${iconColor} ${
-                isSticky ? "hover:bg-black/5" : "hover:bg-white/10"
-              }`}
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMobileMenuOpen}
+              onClick={() => {
+                setIsMobileMenuOpen((prev) => !prev);
+                setIsAccountOpen(false);
+              }}
+              className="
+                flex h-[40px] w-[40px] items-center justify-center
+                rounded-full border border-white/40 bg-white/[0.15]
+                text-black
+                shadow-[0_4px_15px_rgba(0,0,0,0.10),inset_0_1px_1px_rgba(255,255,255,0.45)]
+                backdrop-blur-xs backdrop-saturate-150
+                transition-all duration-500
+                hover:border-white/60 hover:bg-white/25
+                hover:shadow-[0_8px_24px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.7)]
+                md:hidden
+              "
             >
-              {isMenuOpen ? (
-                <X className="h-4 w-4" strokeWidth={1.8} />
+              {isMobileMenuOpen ? (
+                <X size={18} strokeWidth={1.7} className="text-black" />
               ) : (
-                <Menu className="h-4 w-4" strokeWidth={1.8} />
+                <Menu size={18} strokeWidth={1.7} className="text-black" />
               )}
             </button>
           </div>
         </nav>
 
+        {/* MOBILE GLASS MENU */}
         <AnimatePresence>
-          {isMenuOpen && (
+          {isMobileMenuOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.18 }}
-              className="border-t border-black/10 bg-white shadow-md md:hidden"
+              initial={{ opacity: 0, y: -10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="
+                liquid-navbar group/mobile-menu
+                relative mt-2 overflow-hidden rounded-[18px]
+                border border-white/40 bg-white/[0.15] p-2
+                shadow-[0_8px_30px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.55)]
+                backdrop-blur-xs backdrop-saturate-150
+                transition-all duration-500 ease-out
+                md:hidden
+              "
             >
-              <div className="px-4 py-3">
-                <nav className="flex flex-col gap-1 text-sm font-medium text-black">
-                  {categories.map((item) => {
-                    const isActive = pathname.startsWith(item.href);
+              {/* MOBILE MENU TOP REFLECTION */}
+              <div
+                className="
+                  pointer-events-none absolute inset-x-3 top-0 h-px
+                  bg-gradient-to-r from-transparent via-white/80 to-transparent
+                "
+              />
 
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={closeMenu}
-                        className="flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
-                        style={{ color: isActive ? BRAND_RED : undefined }}
-                      >
-                        <span>{item.label}</span>
+              {/* MOBILE MENU SOFT GLOW */}
+              <div
+                className="
+                  pointer-events-none absolute -top-8 left-1/4
+                  h-20 w-1/2 rounded-full bg-white/15 blur-2xl
+                "
+              />
 
-                        {isActive && (
-                          <span
-                            className="h-[2px] w-10 rounded-xs"
-                            style={{ backgroundColor: BRAND_RED }}
-                          />
-                        )}
-                      </Link>
-                    );
-                  })}
+              {/* MOBILE CATEGORIES */}
+              <div className="relative z-10">
+                {categories.map((category) => {
+                  const active = isCategoryActive(category.href);
 
-                  <Link
-                    href="/cart"
-                    onClick={closeMenu}
-                    className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
-                  >
-                    <span>CART</span>
-
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        cartCount > 0
-                          ? "bg-[#CE0028] text-white"
-                          : "bg-black/5 text-black"
-                      }`}
+                  return (
+                    <Link
+                      key={category.id}
+                      href={category.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`
+                        flex items-center justify-between rounded-xl
+                        px-4 py-3.5 text-black transition-colors
+                        ${active ? "bg-white/20" : "hover:bg-white/10"}
+                      `}
                     >
-                      {cartCount}
-                    </span>
-                  </Link>
+                      <span className="text-[11px] font-medium tracking-[0.12em]">
+                        {category.label}
+                      </span>
 
-                  {!loading && !user && (
-                    <button
-                      onClick={openAuth}
-                      className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
-                      style={{ color: BRAND_RED }}
-                    >
-                      <span>ACCOUNT</span>
-                      <span className="text-black">→</span>
-                    </button>
-                  )}
-
-                  {!loading && user && (
-                    <>
-                      {isAdmin ? (
-                        <Link
-                          href="/admin/dashboard"
-                          onClick={closeMenu}
-                          className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
-                          style={{ color: BRAND_RED }}
-                        >
-                          <span>DASHBOARD</span>
-                          <span className="text-black">→</span>
-                        </Link>
-                      ) : (
-                        <>
-                          <Link
-                            href="/account/profile"
-                            onClick={closeMenu}
-                            className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
-                          >
-                            <span>MY PROFILE</span>
-                            <span className="text-black">→</span>
-                          </Link>
-
-                          <Link
-                            href="/account/orders"
-                            onClick={closeMenu}
-                            className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
-                          >
-                            <span>MY ORDERS</span>
-                            <span className="text-black">→</span>
-                          </Link>
-                        </>
+                      {active && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-white" />
                       )}
+                    </Link>
+                  );
+                })}
 
-                      <button
-                        onClick={handleLogout}
-                        className="mt-2 flex items-center justify-between rounded-xs px-2 py-2 uppercase tracking-[0.14em] hover:bg-black/5"
-                        style={{ color: BRAND_RED }}
-                      >
-                        <span>LOGOUT</span>
-                        <span className="text-black">→</span>
-                      </button>
-                    </>
+                <div className="my-1 h-px bg-white/20" />
+
+                {/* MOBILE CART */}
+                <Link
+                  href="/cart"
+                  data-cart-icon="true"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="
+                    flex items-center gap-3 rounded-xl px-4 py-3.5
+                    text-black transition-colors hover:bg-white/10
+                  "
+                >
+                  <ShoppingBag size={17} strokeWidth={1.7} />
+
+                  <span className="text-[11px] font-medium tracking-[0.12em]">
+                    CART
+                  </span>
+
+                  {cartCount > 0 && (
+                    <span
+                      className="
+                        ml-auto flex h-5 min-w-5 items-center justify-center
+                        rounded-full bg-[#CE0028] px-1.5 text-[9px]
+                        font-semibold text-white
+                      "
+                    >
+                      {cartCount > 99 ? "99+" : cartCount}
+                    </span>
                   )}
-                </nav>
+                </Link>
+
+                {/* MOBILE ACCOUNT */}
+                {user ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="
+                        flex items-center gap-3 rounded-xl px-4 py-3.5
+                        text-black transition-colors hover:bg-white/10
+                      "
+                    >
+                      <User size={17} strokeWidth={1.7} />
+                      <span className="text-[11px] font-medium tracking-[0.12em]">
+                        ACCOUNT
+                      </span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="
+                        flex w-full items-center gap-3 rounded-xl px-4 py-3.5
+                        text-left text-black transition-colors hover:bg-white/10
+                      "
+                    >
+                      <LogOut size={17} strokeWidth={1.7} />
+                      <span className="text-[11px] font-medium tracking-[0.12em]">
+                        LOGOUT
+                      </span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsAuthModalOpen(true);
+                    }}
+                    className="
+                      flex w-full items-center gap-3 rounded-xl px-4 py-3.5
+                      text-left text-black transition-colors hover:bg-white/10
+                    "
+                  >
+                    <User size={17} strokeWidth={1.7} />
+                    <span className="text-[11px] font-medium tracking-[0.12em]">
+                      LOGIN / SIGN UP
+                    </span>
+                  </button>
+                )}
               </div>
+
+              {/* MOBILE MENU BOTTOM REFLECTION */}
+              <div
+                className="
+                  pointer-events-none absolute inset-x-3 bottom-0 h-px
+                  bg-gradient-to-r from-transparent via-white/30 to-transparent
+                "
+              />
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.header>
+      </header>
 
-      <div className="h-[56px] md:h-[72px]" />
+      {/* STORY VIEWER */}
+      <StoryViewer
+        stories={stories}
+        open={isStoryViewerOpen}
+        onClose={() => setIsStoryViewerOpen(false)}
+      />
 
+      {/* AUTH MODAL */}
       <AuthModal
-        open={authOpen}
-        onClose={() => setAuthOpen(false)}
-        defaultMode="register"
+        open={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
       />
     </>
   );

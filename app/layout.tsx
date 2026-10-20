@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "./components/Navbar";
+import { GlassNav } from "./components/glass-navbar";
 import Footer from "./components/Footer";
 import MetaPixel from "./components/MetaPixel";
 import { Manrope, Geist } from "next/font/google";
@@ -126,6 +127,7 @@ export default function RootLayout({
           <CartProvider>
             <div className="flex min-h-screen flex-col">
               <Navbar />
+              
 
               <main className="flex-1">
                 {children}

@@ -1,174 +1,251 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
-import { AnimatePresence, motion, PanInfo } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
-const SLIDE_INTERVAL = 4500;
-const SWIPE_THRESHOLD = 50;
+// =====================================================
+// HERO VIDEO SOURCES
+// =====================================================
 
-const slides = [
-  {
-    desktopImage: "/images/home-hero-desktop-v2.jpg",
-    mobileImage: "/images/home-hero-mobile-v2.jpg",
-    subtitle: "",
-    href: "/products/t-shirts",
-  },
-  {
-    desktopImage: "/images/home-hero-desktop-caps-v2.jpg",
-    mobileImage: "/images/home-hero-mobile-caps-v2.jpg",
-    subtitle: "",
-    href: "/products/caps",
-  },
-];
+const DESKTOP_VIDEO = "/images/video.mp4";
+const MOBILE_VIDEO = "/images/video-mobile.mp4";
 
 export default function HeroSection() {
-  const [index, setIndex] = useState(0);
-  const [direction, setDirection] = useState(1);
+  const [isHeroVisible, setIsHeroVisible] = useState(false);
+  const [isAudioBlocked, setIsAudioBlocked] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
 
-  const goToNext = () => {
-    setDirection(1);
-    setIndex((prev) => (prev + 1) % slides.length);
-  };
+  const desktopVideoRef = useRef<HTMLVideoElement | null>(null);
+  const mobileVideoRef = useRef<HTMLVideoElement | null>(null);
+  const heroRef = useRef<HTMLElement | null>(null);
 
-  const goToPrev = () => {
-    setDirection(-1);
-    setIndex((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-
-  const goToSlide = (slideIndex: number) => {
-    if (slideIndex === index) return;
-
-    setDirection(slideIndex > index ? 1 : -1);
-    setIndex(slideIndex);
-  };
-
-  const handleDragEnd = (
-    _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
-  ) => {
-    if (info.offset.x < -SWIPE_THRESHOLD) {
-      goToNext();
-    }
-
-    if (info.offset.x > SWIPE_THRESHOLD) {
-      goToPrev();
-    }
-  };
+  // =====================================================
+  // DETECT WHEN THE HERO IS VISIBLE
+  // =====================================================
 
   useEffect(() => {
-    if (slides.length <= 1) return;
+    const hero = heroRef.current;
+    if (!hero) return;
 
-    const timer = window.setInterval(() => {
-      goToNext();
-    }, SLIDE_INTERVAL);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsHeroVisible(
+          entry.isIntersecting && entry.intersectionRatio >= 0.1
+        );
+      },
+      { threshold: [0, 0.1, 0.25] }
+    );
 
-    return () => window.clearInterval(timer);
+    observer.observe(hero);
+
+    return () => observer.disconnect();
   }, []);
 
-  const slide = slides[index];
+  // =====================================================
+  // PLAY ONLY THE VIDEO FOR THE CURRENT SCREEN SIZE
+  // =====================================================
+
+  useEffect(() => {
+    const desktopVideo = desktopVideoRef.current;
+    const mobileVideo = mobileVideoRef.current;
+
+    if (!desktopVideo || !mobileVideo) return;
+
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const activeVideo = isMobile ? mobileVideo : desktopVideo;
+    const inactiveVideo = isMobile ? desktopVideo : mobileVideo;
+
+    inactiveVideo.pause();
+
+    if (!isHeroVisible) {
+      activeVideo.pause();
+      return;
+    }
+
+    let cancelled = false;
+
+    const tryPlayback = async () => {
+      if (cancelled || !activeVideo.isConnected) return;
+
+      try {
+        activeVideo.muted = false;
+        activeVideo.volume = 1;
+
+        await activeVideo.play();
+
+        if (!cancelled) {
+          setIsAudioBlocked(false);
+        }
+      } catch {
+        if (cancelled) return;
+
+        setIsAudioBlocked(true);
+
+        try {
+          activeVideo.muted = true;
+          await activeVideo.play();
+        } catch (error) {
+          console.warn("Hero video autoplay was blocked:", error);
+        }
+      }
+    };
+
+    const handleCanPlay = () => {
+      if (cancelled) return;
+
+      setIsVideoReady(true);
+      void tryPlayback();
+    };
+
+    const handleError = () => {
+      console.error(
+        `Hero video failed to load: ${
+          activeVideo.currentSrc || activeVideo.src
+        }`
+      );
+    };
+
+    activeVideo.addEventListener("canplay", handleCanPlay);
+    activeVideo.addEventListener("error", handleError);
+
+    if (activeVideo.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      setIsVideoReady(true);
+      void tryPlayback();
+    }
+
+    return () => {
+      cancelled = true;
+      activeVideo.removeEventListener("canplay", handleCanPlay);
+      activeVideo.removeEventListener("error", handleError);
+      activeVideo.pause();
+    };
+  }, [isHeroVisible]);
+
+  // =====================================================
+  // ENABLE VIDEO SOUND AFTER USER INTERACTION
+  // =====================================================
+
+  const enableSound = async () => {
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+
+    const video = isMobile
+      ? mobileVideoRef.current
+      : desktopVideoRef.current;
+
+    if (!video) return;
+
+    try {
+      video.muted = false;
+      video.volume = 1;
+
+      await video.play();
+      setIsAudioBlocked(false);
+    } catch (error) {
+      console.error("Could not enable hero video sound:", error);
+      setIsAudioBlocked(true);
+    }
+  };
+
+  // =====================================================
+  // CLEANUP
+  // =====================================================
+
+  useEffect(() => {
+    return () => {
+      desktopVideoRef.current?.pause();
+      mobileVideoRef.current?.pause();
+    };
+  }, []);
 
   return (
     <section
+      ref={heroRef}
       className="
-        relative w-full overflow-hidden bg-white
-        -mt-[56px] md:-mt-[72px]
-        h-[400px]
-        sm:h-[450px]
-        md:h-[320px]
-        lg:h-[480px]
-        xl:h-[550px]
-        2xl:h-[760px]
-        min-[2560px]:h-[150dvh]
-        min-[3840px]:h-[180dvh]
+        relative w-full overflow-hidden bg-black
+
+        h-[80dvh]
+        min-h-[500px]
+        max-h-[900px]
+
+        md:h-dvh
+        md:min-h-0
+        md:max-h-none
       "
     >
-      {/* IMAGE SLIDER */}
-      <AnimatePresence initial={false} custom={direction} mode="popLayout">
-        <motion.div
-          key={index}
-          custom={direction}
-          initial={{ x: direction > 0 ? "100%" : "-100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: direction > 0 ? "-100%" : "100%" }}
-          transition={{
-            x: { type: "spring", stiffness: 420, damping: 38 },
-          }}
-          drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.12}
-          onDragEnd={handleDragEnd}
-          className="absolute inset-0 cursor-grab active:cursor-grabbing"
+      {/* DESKTOP VIDEO — FULL VIEWPORT HEIGHT */}
+
+      <video
+        ref={desktopVideoRef}
+        src={DESKTOP_VIDEO}
+        autoPlay
+        playsInline
+        loop
+        preload="auto"
+        muted
+        controls={false}
+        disablePictureInPicture
+        aria-label="BLTDIF desktop hero video"
+        className="
+          absolute inset-0 hidden h-full w-full
+          select-none object-cover object-center
+          pointer-events-none md:block
+        "
+      />
+
+      {/* MOBILE VIDEO — 80% VIEWPORT HEIGHT */}
+
+      <video
+        ref={mobileVideoRef}
+        src={MOBILE_VIDEO}
+        autoPlay
+        playsInline
+        loop
+        preload="auto"
+        muted
+        controls={false}
+        disablePictureInPicture
+        aria-label="BLTDIF mobile hero video"
+        className="
+          absolute inset-0 block h-full w-full
+          select-none object-cover object-center
+          pointer-events-none md:hidden
+        "
+      />
+
+      {/* LOADING BACKGROUND */}
+
+      {!isVideoReady && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-black"
+        />
+      )}
+
+      {/* ENABLE SOUND */}
+
+      {isAudioBlocked && isHeroVisible && (
+        <button
+          type="button"
+          onClick={enableSound}
+          className="
+            absolute bottom-5 right-4 z-40
+            rounded-full border border-white/30
+            bg-black/60 px-4 py-2
+            text-xs font-medium text-white
+            shadow-lg backdrop-blur-xl
+            transition hover:bg-black/80
+            sm:bottom-6 sm:right-6
+          "
         >
-          <Image
-            src={slide.desktopImage}
-            alt="BLTDIF Hero Desktop"
-            fill
-            priority
-            sizes="100vw"
-            className="hidden object-cover object-center md:block"
-          />
-
-          <Image
-            src={slide.mobileImage}
-            alt="BLTDIF Hero Mobile"
-            fill
-            priority
-            sizes="100vw"
-            className="block object-cover object-center md:hidden"
-          />
-        </motion.div>
-      </AnimatePresence>
-
-      {/* LEFT / RIGHT ARROWS */}
-      {slides.length > 1 && (
-        <>
-          <button
-            type="button"
-            onClick={goToPrev}
-            aria-label="Previous slide"
-            className="
-              absolute left-4 top-1/2 z-30 hidden h-10 w-10 -translate-y-1/2
-              items-center justify-center rounded-full border border-white/25
-              bg-black/25 text-white backdrop-blur-md transition
-              hover:bg-black/45 md:flex
-            "
-          >
-            ‹
-          </button>
-
-          <button
-            type="button"
-            onClick={goToNext}
-            aria-label="Next slide"
-            className="
-              absolute right-4 top-1/2 z-30 hidden h-10 w-10 -translate-y-1/2
-              items-center justify-center rounded-full border border-white/25
-              bg-black/25 text-white backdrop-blur-md transition
-              hover:bg-black/45 md:flex
-            "
-          >
-            ›
-          </button>
-        </>
+          Enable video sound
+        </button>
       )}
 
-      {/* DOTS */}
-      {slides.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2 sm:bottom-5 md:bottom-6">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => goToSlide(i)}
-              className={`h-2.5 rounded-full transition-all duration-300 ${
-                i === index ? "w-8 bg-white" : "w-2.5 bg-white/40"
-              }`}
-              aria-label={`Slide ${i + 1}`}
-            />
-          ))}
-        </div>
-      )}
+      {/* IMAGE CAROUSEL — RESERVED FOR FUTURE USE */}
+
+      {/*
+        Keep your previous carousel implementation here
+        if you want to restore it in the future.
+      */}
     </section>
   );
 }

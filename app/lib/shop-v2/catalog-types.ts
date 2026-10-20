@@ -55,6 +55,9 @@ export type CatalogProduct = {
   is_featured: boolean;
   is_new_arrival: boolean;
 
+  // New database-driven badge setting
+  is_limited_edition: boolean;
+
   seo_title: string | null;
   seo_description: string | null;
 

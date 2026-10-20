@@ -158,6 +158,7 @@ export function mapCatalogDbToProduct(row: DbCatalogProductRow): CatalogProduct 
 
     is_featured: row.is_featured ?? false,
     is_new_arrival: row.is_new_arrival ?? false,
+    is_limited_edition: row.is_limited_edition ?? false,
 
     seo_title: row.seo_title,
     seo_description: row.seo_description,

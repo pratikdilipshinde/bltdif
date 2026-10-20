@@ -1,25 +1,26 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "./lib/seo";
 
+const BASE_URL = SITE_URL.replace(/\/+$/, "");
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        allow: ["/", "/_next/static/", "/_next/image/"],
         disallow: [
-          "/admin",
-          "/account",
-          "/checkout",
-          "/checkout/success",
-          "/api",
+          "/admin/",
+          "/account/",
+          "/checkout/",
+          "/api/",
           "/forgot-password",
           "/reset-password",
           "/update-password",
         ],
       },
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
-    host: SITE_URL,
+    sitemap: `${BASE_URL}/sitemap.xml`,
+    host: BASE_URL,
   };
 }

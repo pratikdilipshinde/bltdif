@@ -64,6 +64,7 @@ export type DbCatalogProductRow = {
 
   is_featured: boolean;
   is_new_arrival: boolean;
+  is_limited_edition: boolean;
 
   seo_title: string | null;
   seo_description: string | null;

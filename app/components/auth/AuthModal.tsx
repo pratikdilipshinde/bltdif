@@ -56,7 +56,10 @@ function getErrorMessage(payload: any, isRegister: boolean) {
     return "Please verify your email before logging in.";
   }
 
-  if (msg.includes("user already registered") || msg.includes("already exists")) {
+  if (
+    msg.includes("user already registered") ||
+    msg.includes("already exists")
+  ) {
     return "An account with this email already exists. Please login instead.";
   }
 
@@ -294,7 +297,9 @@ export default function AuthModal({
       router.refresh();
     } catch (error) {
       console.error("Auth submit error:", error);
-      setFormError("Network error. Please check your connection and try again.");
+      setFormError(
+        "Network error. Please check your connection and try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -306,7 +311,7 @@ export default function AuthModal({
         <>
           <motion.button
             aria-label="Close modal overlay"
-            className="fixed inset-0 z-[90] cursor-default bg-black/45"
+            className="fixed inset-0 z-[90] cursor-default bg-black/50 backdrop-blur-[6px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -327,19 +332,24 @@ export default function AuthModal({
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="
                 relative w-full max-w-5xl
-                rounded-xs bg-white
-                border border-black/10
-                shadow-[0_30px_90px_rgba(0,0,0,0.20)]
                 overflow-hidden
+                rounded-[24px]
+                border border-white/70
+                bg-white/[0.62]
+                shadow-[0_30px_100px_rgba(0,0,0,0.24),inset_0_1px_1px_rgba(255,255,255,0.95)]
+                backdrop-blur-3xl backdrop-saturate-150
                 h-[min(78vh,600px)] md:h-[min(90vh,600px)]
               "
             >
+              {/* Subtle glass reflections */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+
               <button
                 aria-label="Close"
                 onClick={onClose}
-                className="absolute right-3 top-3 z-20 rounded-xs p-2 transition hover:bg-black/5"
+                className="absolute right-3 cursor-pointer top-3 z-20 rounded-full border border-white/70 bg-white/45 p-2 shadow-sm backdrop-blur-xl transition-all duration-300 hover:bg-white/80"
               >
-                <X className="h-5 w-5 text-black/45" />
+                <X className="h-5 w-5 text-black/55" />
               </button>
 
               <div className="grid h-full grid-cols-1 md:grid-cols-2">
@@ -348,23 +358,34 @@ export default function AuthModal({
                     ${isRegister ? "md:order-2" : "md:order-1"}
                     h-full px-5 py-5 md:px-8 md:py-6
                     flex flex-col overflow-y-auto
+                    bg-white/[0.36]
+                    backdrop-blur-2xl
                   `}
                 >
                   <div className="mx-auto flex items-center gap-3">
                     <span
                       className="inline-flex h-2 w-2 rounded-full"
-                      style={{ backgroundColor: BRAND_RED }}
+                      style={{
+                        backgroundColor: BRAND_RED,
+                        boxShadow: "0 0 12px rgba(206,0,40,0.25)",
+                      }}
                     />
                     <p className="text-[11px] font-semibold tracking-[0.26em] text-black/60">
                       BLTDIF · ACCOUNT
                     </p>
                   </div>
 
-                  <div className="mt-3 grid grid-cols-2 rounded-xs border border-black/10 bg-black/[0.03] p-1">
-                    <Tab active={!isRegister} onClick={() => switchMode("login")}>
+                  <div className="mt-3 grid grid-cols-2 rounded-[14px] border border-white/80 bg-white/[0.36] p-1 shadow-[inset_0_1px_2px_rgba(255,255,255,0.9)] backdrop-blur-xl">
+                    <Tab
+                      active={!isRegister}
+                      onClick={() => switchMode("login")}
+                    >
                       Login
                     </Tab>
-                    <Tab active={isRegister} onClick={() => switchMode("register")}>
+                    <Tab
+                      active={isRegister}
+                      onClick={() => switchMode("register")}
+                    >
                       Register
                     </Tab>
                   </div>
@@ -378,11 +399,16 @@ export default function AuthModal({
                         initial="enter"
                         animate="center"
                         exit="exit"
-                        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{
+                          duration: 0.22,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
                         className="mt-3"
                       >
-                        <h2 className="leading-tight text-[20px] font-semibold text-black md:text-[28px]">
-                          {isRegister ? "Create your account" : "Welcome back"}
+                        <h2 className="text-[20px] font-semibold leading-tight text-black md:text-[28px]">
+                          {isRegister
+                            ? "Create your account"
+                            : "Welcome back"}
                         </h2>
 
                         <p className="mt-1.5 text-[13px] leading-relaxed text-black/60">
@@ -393,13 +419,13 @@ export default function AuthModal({
 
                         <form className="mt-4 space-y-2.5" onSubmit={onSubmit}>
                           {formError ? (
-                            <div className="rounded-xs border border-red-500/25 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+                            <div className="rounded-[12px] border border-red-400/30 bg-red-50/65 px-3 py-2 text-[13px] text-red-700 backdrop-blur-xl">
                               {formError}
                             </div>
                           ) : null}
 
                           {successMessage ? (
-                            <div className="rounded-xs border border-green-500/25 bg-green-50 px-3 py-2 text-[13px] text-green-700">
+                            <div className="rounded-[12px] border border-green-400/30 bg-green-50/65 px-3 py-2 text-[13px] text-green-700 backdrop-blur-xl">
                               {successMessage}
                             </div>
                           ) : null}
@@ -427,7 +453,11 @@ export default function AuthModal({
                             type="email"
                             value={email}
                             onChange={clearErrorOnChange(setEmail)}
-                            error={emailInvalid ? "Please enter a valid email" : undefined}
+                            error={
+                              emailInvalid
+                                ? "Please enter a valid email"
+                                : undefined
+                            }
                           />
 
                           {!isRegister ? (
@@ -441,8 +471,10 @@ export default function AuthModal({
                                 <button
                                   type="button"
                                   onClick={() => setShowPwd(!showPwd)}
-                                  className="rounded-xs p-2 text-black/60 transition hover:bg-black/5 hover:text-black"
-                                  aria-label={showPwd ? "Hide password" : "Show password"}
+                                  className="rounded-lg p-2 text-black/60 transition hover:bg-white/70 hover:text-black"
+                                  aria-label={
+                                    showPwd ? "Hide password" : "Show password"
+                                  }
                                 >
                                   {showPwd ? (
                                     <EyeOff className="h-4 w-4" />
@@ -469,8 +501,12 @@ export default function AuthModal({
                                   <button
                                     type="button"
                                     onClick={() => setShowPwd(!showPwd)}
-                                    className="rounded-xs p-2 text-black/60 transition hover:bg-black/5 hover:text-black"
-                                    aria-label={showPwd ? "Hide password" : "Show password"}
+                                    className="rounded-lg p-2 text-black/60 transition hover:bg-white/70 hover:text-black"
+                                    aria-label={
+                                      showPwd
+                                        ? "Hide password"
+                                        : "Show password"
+                                    }
                                   >
                                     {showPwd ? (
                                       <EyeOff className="h-4 w-4" />
@@ -488,15 +524,21 @@ export default function AuthModal({
                                 value={confirmPassword}
                                 onChange={clearErrorOnChange(setConfirmPassword)}
                                 error={
-                                  passwordMismatch ? "Passwords do not match" : undefined
+                                  passwordMismatch
+                                    ? "Passwords do not match"
+                                    : undefined
                                 }
                                 right={
                                   <button
                                     type="button"
-                                    onClick={() => setShowCnfmPwd(!showCnfmPwd)}
-                                    className="rounded-xs p-2 text-black/60 transition hover:bg-black/5 hover:text-black"
+                                    onClick={() =>
+                                      setShowCnfmPwd(!showCnfmPwd)
+                                    }
+                                    className="rounded-lg p-2 text-black/60 transition hover:bg-white/70 hover:text-black"
                                     aria-label={
-                                      showCnfmPwd ? "Hide password" : "Show password"
+                                      showCnfmPwd
+                                        ? "Hide password"
+                                        : "Show password"
                                     }
                                   >
                                     {showCnfmPwd ? (
@@ -522,7 +564,7 @@ export default function AuthModal({
 
                               <button
                                 type="button"
-                                className="text-[13px] cursor-pointer text-black/60 transition hover:text-black"
+                                className="cursor-pointer text-[13px] text-black/60 transition hover:text-black"
                                 onClick={() => {
                                   resetFields();
                                   onClose();
@@ -571,11 +613,17 @@ export default function AuthModal({
                           {/* <SecondaryButton label="Continue with Google" /> */}
 
                           <p className="pt-0.5 text-center text-[13px] text-black/60">
-                            {isRegister ? "Already have an account?" : "New here?"}{" "}
+                            {isRegister
+                              ? "Already have an account?"
+                              : "New here?"}{" "}
                             <button
                               type="button"
-                              onClick={() => switchMode(isRegister ? "login" : "register")}
-                              className="font-semibold underline underline-offset-4"
+                              onClick={() =>
+                                switchMode(
+                                  isRegister ? "login" : "register"
+                                )
+                              }
+                              className="font-semibold cursor-pointer underline underline-offset-4"
                               style={{ color: BRAND_RED }}
                               disabled={loading}
                             >
@@ -602,7 +650,10 @@ export default function AuthModal({
                       initial="enter"
                       animate="center"
                       exit="exit"
-                      transition={{ duration: 0.15, ease: [0.15, 1, 0.25, 1] }}
+                      transition={{
+                        duration: 0.15,
+                        ease: [0.15, 1, 0.25, 1],
+                      }}
                       className="absolute inset-0"
                     >
                       <Image
@@ -620,6 +671,10 @@ export default function AuthModal({
                             "linear-gradient(135deg, rgba(0,0,0,0.08), rgba(206,0,40,0.08))",
                         }}
                       />
+
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-black/10" />
+
+                      <div className="pointer-events-none absolute inset-0 border-l border-white/20" />
                     </motion.div>
                   </AnimatePresence>
                 </div>
@@ -643,18 +698,28 @@ function Tab({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="relative cursor-pointer rounded-xs py-2 text-[13px] font-semibold"
+      className="relative cursor-pointer rounded-[10px] py-2 text-[13px] font-semibold transition-colors duration-300"
     >
       {active && (
         <motion.div
           layoutId="authTabRect"
-          className="absolute inset-0 rounded-xs"
-          style={{ background: "black" }}
+          className="absolute inset-0 rounded-[10px]"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(20,20,20,0.96), rgba(0,0,0,0.84))",
+            boxShadow:
+              "inset 0 1px 1px rgba(255,255,255,0.18), 0 4px 12px rgba(0,0,0,0.12)",
+          }}
           transition={{ type: "spring", stiffness: 260, damping: 24 }}
         />
       )}
-      <span className={`relative z-10 ${active ? "text-white" : "text-black/70"}`}>
+      <span
+        className={`relative z-10 ${
+          active ? "text-white" : "text-black/70"
+        }`}
+      >
         {children}
       </span>
     </button>
@@ -691,23 +756,36 @@ function Field({
           onChange={onChange}
           placeholder={placeholder}
           className={`
-            w-full rounded-xs border bg-black/[0.03]
-            px-4 py-2.5 pr-12 text-[13px] text-black placeholder:text-black/35
-            outline-none transition
+            w-full rounded-[12px]
+            border
+            bg-white/[0.42]
+            px-4 py-2.5 pr-12
+            text-[13px] text-black
+            placeholder:text-black/35
+            shadow-[inset_0_1px_2px_rgba(255,255,255,0.9),0_3px_10px_rgba(0,0,0,0.025)]
+            backdrop-blur-xl
+            outline-none
+            transition-all duration-300
+            hover:bg-white/[0.58]
+            focus:bg-white/[0.72]
+            focus:shadow-[0_0_0_3px_rgba(206,0,40,0.07)]
             ${
               error
                 ? "border-red-500/60 focus:border-red-500/70"
-                : "border-black/10 focus:border-[#CE0028]/40"
+                : "border-white/80 focus:border-[#CE0028]/45"
             }
-            focus:bg-black/[0.045]
           `}
         />
         {right ? (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2">{right}</div>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            {right}
+          </div>
         ) : null}
       </div>
 
-      {error ? <p className="mt-1 text-[12px] text-red-600">{error}</p> : null}
+      {error ? (
+        <p className="mt-1 text-[12px] text-red-600">{error}</p>
+      ) : null}
     </div>
   );
 }
@@ -726,11 +804,21 @@ function PrimaryButton({
       type="submit"
       disabled={disabled}
       className={`
-        w-full rounded-xs py-2.5 text-[13px] font-semibold text-white
-        drop-shadow-md
-        ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}
+        w-full rounded-[12px] py-2.5
+        text-[13px] font-semibold text-white
+        transition-all duration-300
+        ${
+          disabled
+            ? "cursor-not-allowed opacity-60"
+            : "cursor-pointer hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
+        }
       `}
-      style={{ background: "black" }}
+      style={{
+        background:
+          "linear-gradient(135deg, #171717 0%, #000000 65%, #242424 100%)",
+        boxShadow:
+          "inset 0 1px 1px rgba(255,255,255,0.2), 0 6px 18px rgba(0,0,0,0.16)",
+      }}
     >
       {label}
     </motion.button>
@@ -743,7 +831,7 @@ function SecondaryButton({ label }: { label: string }) {
       whileTap={{ scale: 0.98 }}
       whileHover={{ y: -1 }}
       type="button"
-      className="w-full rounded-xs border border-black/10 bg-white py-2.5 text-[13px] font-semibold text-black transition hover:bg-black/[0.02]"
+      className="w-full rounded-[12px] border border-white/80 bg-white/45 py-2.5 text-[13px] font-semibold text-black shadow-sm backdrop-blur-xl transition hover:bg-white/70"
       onClick={() => alert("Google auth not wired yet.")}
     >
       {label}
@@ -755,7 +843,7 @@ function Divider() {
   return (
     <div className="relative py-1.5">
       <div className="h-px w-full bg-black/10" />
-      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] tracking-[0.24em] text-black/55">
+      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/80 bg-white/65 px-3 py-1 text-[10px] tracking-[0.24em] text-black/55 shadow-sm backdrop-blur-xl">
         OR
       </span>
     </div>

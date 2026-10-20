@@ -23,6 +23,7 @@ const CATALOG_PRODUCT_SELECT = `
   currency_code,
   is_featured,
   is_new_arrival,
+  is_limited_edition,
   seo_title,
   seo_description,
   created_at,

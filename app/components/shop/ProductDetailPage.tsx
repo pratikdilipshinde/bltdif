@@ -1,25 +1,36 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import type { TouchEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Minus, Plus, Truck, RotateCcw, ShieldCheck, ChevronDown  } from "lucide-react";
+import { Truck, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { useCart } from "@/app/context/CartContext";
 import type { CatalogProduct } from "@/app/lib/shop-v2/catalog-types";
 import { createCartItem } from "@/app/lib/shop-v2/createCartItem";
 import { formatPrice } from "@/app/lib/shop-v2/formatPrice";
-import ProductCard from "./ProductCard";
 import { metaPixelEvent } from "@/app/lib/metaPixel";
+import ProductCard from "./ProductCard";
+import AnnouncementBar from "../AnnouncementBar";
 
 type Props = {
   product: CatalogProduct;
   similarProducts: CatalogProduct[];
 };
 
-function toBullets(value: string | null | undefined) {
+type FlyingItem = {
+  id: number;
+  image: string;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+};
+
+function toBullets(value: string | null | undefined): string[] {
   if (!value) return [];
 
   return value
@@ -34,25 +45,71 @@ export default function ProductDetailPage({
 }: Props) {
   const { addToCart } = useCart();
 
-  const images = useMemo(() => {
-    if (product.images?.length) {
-      return product.images.map((img) => img.image_url);
-    }
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const addToCartButtonRef = useRef<HTMLButtonElement>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const flightIdRef = useRef(0);
 
-    return [product.image].filter(Boolean);
+  const [flyingItem, setFlyingItem] = useState<FlyingItem | null>(null);
+
+  const images = useMemo(() => {
+    const productImages = product.images?.length
+      ? product.images.map((img) => img.image_url)
+      : [product.image];
+
+    return productImages.filter(Boolean);
   }, [product]);
 
   const [activeIdx, setActiveIdx] = useState(0);
-  const [direction, setDirection] = useState(1);
   const [qty, setQty] = useState(1);
   const [showSizeChart, setShowSizeChart] = useState(false);
-  const [openInfo, setOpenInfo] = useState<string | null>("material");
+  const [openInfo, setOpenInfo] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState(
     product.default_variant
   );
 
-  const isFirstImage = activeIdx === 0;
-  const isLastImage = activeIdx === images.length - 1;
+  // MOBILE PHOTO SWIPE
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+
+    if (!touch) return;
+
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    if (touchStartX.current === null || touchStartY.current === null) {
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+
+    if (!touch) return;
+
+    const deltaX = touch.clientX - touchStartX.current;
+    const deltaY = touch.clientY - touchStartY.current;
+
+    // Only handle deliberate horizontal gestures.
+    // Vertical swipes continue to scroll the page normally.
+    if (
+      Math.abs(deltaX) >= 45 &&
+      Math.abs(deltaX) > Math.abs(deltaY) * 1.2 &&
+      images.length > 1
+    ) {
+      if (deltaX < 0) {
+        setActiveIdx((current) =>
+          Math.min(current + 1, images.length - 1)
+        );
+      } else {
+        setActiveIdx((current) => Math.max(current - 1, 0));
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
 
   const showSizeGuide =
     product.category_code === "tshirts" ||
@@ -60,24 +117,15 @@ export default function ProductDetailPage({
     product.category_name?.toLowerCase().includes("t-shirt") ||
     product.product_type?.toLowerCase().includes("t-shirt");
 
-  const goToImage = (nextIdx: number) => {
-    if (nextIdx < 0 || nextIdx >= images.length || nextIdx === activeIdx) {
-      return;
-    }
-
-    setDirection(nextIdx > activeIdx ? 1 : -1);
-    setActiveIdx(nextIdx);
-  };
-
-  const goNext = () => goToImage(activeIdx + 1);
-  const goPrev = () => goToImage(activeIdx - 1);
-
   const price = selectedVariant?.price ?? product.base_price;
 
   const compareAtPrice =
     selectedVariant?.compare_at_price ?? product.compare_at_price;
 
-  const maxQty = selectedVariant?.available_quantity ?? 99;
+  const maxQty = Math.max(
+    0,
+    selectedVariant?.available_quantity ?? 99
+  );
 
   const isOut =
     product.variants.length > 0
@@ -87,10 +135,34 @@ export default function ProductDetailPage({
   const featureList = toBullets(product.features);
   const materialList = toBullets(product.material);
   const careList = toBullets(product.care_guide);
-  const deliveryList = toBullets(product.delivery_info);
 
+  const variants = [...product.variants].sort(
+    (a, b) => (a.size_id ?? 999) - (b.size_id ?? 999)
+  );
+
+  // ADD TO CART + FLYING PRODUCT ANIMATION
   const handleAddToCart = () => {
     if (isOut) return;
+
+    const button = addToCartButtonRef.current;
+    const cartIcon = document.querySelector<HTMLElement>(
+      '[data-cart-icon="true"]'
+    );
+
+    // Capture the positions before updating the cart.
+    if (button && cartIcon) {
+      const buttonRect = button.getBoundingClientRect();
+      const cartRect = cartIcon.getBoundingClientRect();
+
+      setFlyingItem({
+        id: ++flightIdRef.current,
+        image: images[activeIdx] ?? product.image,
+        startX: buttonRect.left + buttonRect.width / 2,
+        startY: buttonRect.top + buttonRect.height / 2,
+        endX: cartRect.left + cartRect.width / 2,
+        endY: cartRect.top + cartRect.height / 2,
+      });
+    }
 
     addToCart(createCartItem(product, selectedVariant, qty));
 
@@ -98,298 +170,298 @@ export default function ProductDetailPage({
       content_name: product.name,
       content_ids: [product.id],
       content_type: "product",
-      value: Number(selectedVariant?.price),
+      value: Number(price),
       currency: "INR",
     });
 
     toast.success("Added to cart 🛒", {
       style: {
-        border: "1px solid #000",
-        padding: "12px 16px",
+        background: "rgba(255, 255, 255, 0.18)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        border: "1px solid rgba(255, 255, 255, 0.55)",
+        borderRadius: "16px",
+        color: "#111",
+        padding: "12px 18px",
         fontSize: "13px",
+        fontWeight: "500",
+        boxShadow:
+          "inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 8px 32px rgba(0, 0, 0, 0.12)",
       },
+      duration: 2500,
     });
   };
 
+  const handleBuyNow = () => {
+    if (isOut) return;
+
+    addToCart(createCartItem(product, selectedVariant, qty));
+    window.location.href = "/checkout";
+  };
+
+  const infoSections = [
+    {
+      key: "features",
+      title: "Product details",
+      items: featureList,
+      empty: "No additional product details available.",
+    },
+    {
+      key: "material",
+      title: "Material",
+      items: materialList,
+      empty: "No material information available.",
+    },
+    {
+      key: "care",
+      title: "Care instructions",
+      items: careList,
+      empty: "No care information available.",
+    },
+  ];
+
   return (
-    <section className="w-full overflow-x-hidden bg-white">
-      {/* HERO SECTION */}
-      {/* <div className="relative -mt-[56px] h-[260px] w-full overflow-hidden md:-mt-[72px] md:h-[380px]">
-        <Image
-          src="/images/supportive-bg.jpg"
-          alt={product.name}
-          fill
-          priority
-          className="object-cover"
-        />
+    <>
+      <AnnouncementBar />
 
-        <div className="absolute inset-0 flex min-w-0 flex-col items-center justify-center px-4 pt-[56px] text-center text-white md:pt-[72px]">
-          <p className="max-w-full text-[10px] uppercase tracking-[0.22em] text-white/70 sm:text-xs md:tracking-[0.28em]">
-            BLTDIF <span className="font-bold text-[#CE0028]">·</span>{" "}
-            {product.category_name}
-          </p>
-
-          <h1 className="mt-3 max-w-full break-words px-2 text-2xl font-semibold leading-tight sm:text-3xl md:max-w-4xl md:text-5xl">
-            {product.name}
-          </h1>
-
-          <p className="mt-3 text-sm text-white/75">
-            {product.product_type ?? product.category_name}
-          </p>
-
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-            <p className="text-xl font-semibold text-white md:text-2xl">
-              {formatPrice(price, product.currency_code)}
-            </p>
-
-            {compareAtPrice && compareAtPrice > price && (
-              <p className="text-sm text-white/50 line-through md:text-base">
-                {formatPrice(compareAtPrice, product.currency_code)}
-              </p>
-            )}
-          </div>
-        </div>
-      </div> */}
-
-      {/* MAIN CONTENT */}
-      <div className="mx-auto w-full max-w-[1800px] overflow-x-hidden px-4 py-6 sm:px-5 md:px-8 lg:px-10 xl:px-14 2xl:px-20">
-        {/* Breadcrumb */}
-        <div className="min-w-0 break-words text-[10px] uppercase tracking-[0.18em] text-black/50 sm:text-xs sm:tracking-[0.22em]">
-          <Link href="/" className="transition hover:text-black">
-            Home
-          </Link>
-
-          <span className="mx-2">›</span>
-
-          <Link
-            href="/products/t-shirts"
-            className="transition hover:text-black"
+      {/* FLYING PRODUCT IMAGE */}
+      <AnimatePresence>
+        {flyingItem && (
+          <motion.div
+            key={flyingItem.id}
+            initial={{
+              x: 0,
+              y: 0,
+              scale: 1,
+              opacity: 1,
+              rotate: 0,
+            }}
+            animate={{
+              x: flyingItem.endX - flyingItem.startX,
+              y: flyingItem.endY - flyingItem.startY,
+              scale: 0.18,
+              opacity: 0.2,
+              rotate: 12,
+            }}
+            transition={{
+              duration: 0.75,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            onAnimationComplete={() => {
+              setFlyingItem((current) =>
+                current?.id === flyingItem.id ? null : current
+              );
+            }}
+            style={{
+              position: "fixed",
+              left: flyingItem.startX - 25,
+              top: flyingItem.startY - 32,
+              width: 50,
+              height: 64,
+              zIndex: 99999,
+              pointerEvents: "none",
+              transformOrigin: "center center",
+              willChange: "transform, opacity",
+            }}
+            className="overflow-hidden rounded-md border border-white/80 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
           >
-            {product.category_name}
-          </Link>
-        </div>
+            <Image
+              src={flyingItem.image}
+              alt=""
+              fill
+              sizes="50px"
+              className="object-cover"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        <div className="mt-6 grid w-full min-w-0 grid-cols-1 gap-6 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,0.75fr)] lg:gap-8 xl:gap-10">
-          {/* IMAGE GALLERY */}
-          <div className="w-full min-w-0 overflow-hidden">
-            <div className="relative w-full min-w-0 overflow-hidden rounded-xs border border-black/10 bg-[#f1f1f3]">
+      <section className="min-h-screen w-full overflow-x-clip bg-[#eeeeee] text-black pt-15 md:pt-22">
+        <div className="mx-auto max-w-[1800px] px-3 py-4 sm:px-5 md:px-8 lg:px-10 xl:px-14">
+          {/* BREADCRUMB */}
+          <nav
+            aria-label="Breadcrumb"
+            className="mb-4 flex items-center gap-2 overflow-hidden text-[10px] uppercase tracking-[0.12em] text-black/45 sm:text-xs"
+          >
+            <Link href="/" className="shrink-0 hover:text-black">
+              Home
+            </Link>
+
+            <span>/</span>
+
+            <Link
+              href="/products/t-shirts"
+              className="truncate hover:text-black"
+            >
+              {product.category_name}
+            </Link>
+
+            <span>/</span>
+
+            <span className="truncate text-black/70">
+              {product.name}
+            </span>
+          </nav>
+
+          {/* PRODUCT LAYOUT */}
+          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(280px,0.95fr)] lg:items-stretch lg:gap-3 xl:gap-4">
+            {/* LEFT COLUMN: MAIN IMAGE + MOBILE THUMBNAILS */}
+            <div className="min-w-0">
               <div
-                className="
-                  relative aspect-square w-full min-w-0 overflow-hidden
-                  max-h-[520px]
-                  sm:max-h-[620px]
-                  md:max-h-[720px]
-                  lg:max-h-[760px]
-                  xl:max-h-[820px]
-                  2xl:max-h-[900px]
-                "
+                className="relative aspect-[4/5] overflow-hidden rounded-md bg-[#e8e3df] touch-pan-y select-none"
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
               >
-                <AnimatePresence
-                  initial={false}
-                  custom={direction}
-                  mode="popLayout"
-                >
+                <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={activeIdx}
-                    custom={direction}
-                    initial={{ x: direction > 0 ? "100%" : "-100%" }}
-                    animate={{ x: 0 }}
-                    exit={{ x: direction > 0 ? "-100%" : "100%" }}
-                    transition={{
-                      x: { type: "spring", stiffness: 420, damping: 38 },
-                    }}
-                    drag="x"
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.12}
-                    onDragEnd={(_, info) => {
-                      const swipeDistance = 60;
-
-                      if (info.offset.x < -swipeDistance && !isLastImage) {
-                        goNext();
-                      }
-
-                      if (info.offset.x > swipeDistance && !isFirstImage) {
-                        goPrev();
-                      }
-                    }}
-                    className="absolute inset-0 cursor-grab active:cursor-grabbing"
+                    initial={{ opacity: 0.6 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0.6 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute inset-0"
                   >
                     <Image
                       src={images[activeIdx] ?? product.image}
                       alt={product.name}
                       fill
                       priority
-                      sizes="(min-width: 1536px) 45vw, (min-width: 1024px) 50vw, 100vw"
+                      sizes="(min-width: 1024px) 32vw, 100vw"
                       className="object-cover"
+                      draggable={false}
                     />
                   </motion.div>
                 </AnimatePresence>
-              </div>
 
-              {images.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    disabled={isFirstImage}
-                    onClick={goPrev}
-                    className={`
-                      absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2
-                      items-center justify-center rounded-full
-                      text-xl leading-none text-white backdrop-blur-md transition
-                      sm:left-4 sm:h-11 sm:w-11 sm:text-2xl
-                      ${
-                        isFirstImage
-                          ? "cursor-not-allowed bg-black/20 opacity-35"
-                          : "bg-black/65 hover:bg-black"
-                      }
-                    `}
-                    aria-label="Previous image"
-                  >
-                    ‹
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={isLastImage}
-                    onClick={goNext}
-                    className={`
-                      absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2
-                      items-center justify-center rounded-full
-                      text-xl leading-none text-white backdrop-blur-md transition
-                      sm:right-4 sm:h-11 sm:w-11 sm:text-2xl
-                      ${
-                        isLastImage
-                          ? "cursor-not-allowed bg-black/20 opacity-35"
-                          : "bg-black/65 hover:bg-black"
-                      }
-                    `}
-                    aria-label="Next image"
-                  >
-                    ›
-                  </button>
-                </>
-              )}
-            </div>
-
-            {images.length > 1 && (
-              <div className="mt-3 flex w-full max-w-full gap-3 overflow-x-auto overflow-y-hidden pb-2">
-                {images.map((src, i) => {
-                  const active = i === activeIdx;
-
-                  return (
-                    <button
-                      key={`${src}-${i}`}
-                      type="button"
-                      onClick={() => goToImage(i)}
-                      className="flex flex-none flex-col items-center"
-                      aria-label={`View image ${i + 1}`}
-                    >
-                      <div
-                        className={`
-                          relative h-16 w-16 overflow-hidden rounded-xs border bg-[#f1f1f3]
-                          sm:h-20 sm:w-20 md:h-24 md:w-24
-                          ${
-                            active
-                              ? "border-black"
-                              : "border-black/10 hover:border-black/30"
-                          }
-                        `}
-                      >
-                        <Image
-                          src={src}
-                          alt={`${product.name} ${i + 1}`}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-
-                      <span
-                        className={`
-                          mt-1 h-[2px] bg-[#CE0028] transition-all duration-300
-                          ${active ? "w-full opacity-100" : "w-0 opacity-0"}
-                        `}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* PRODUCT INFO */}
-          <div className="w-full min-w-0 overflow-hidden">
-            <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-black/50 sm:text-xs md:tracking-[0.28em]">
-                  BLTDIF <span className="font-bold text-[#CE0028]">·</span>{" "}
-                  {/* {product.category_name} */}
-                </p>
-
-                <h1 className="mt-2 max-w-full break-words text-2xl font-semibold leading-tight text-black sm:text-3xl md:text-4xl">
-                  {product.name}
-                </h1>
-
-                <p className="mt-2 text-sm text-black/50">
-                  {product.product_type ?? product.category_name}
-                </p>
-              </div>
-
-              <div className="min-w-0 shrink-0 text-left md:text-right">
-                <p className="text-xs text-black/55">
-                  {isOut ? "Out of Stock" : "In Stock"}
-                </p>
-
-                <p className="mt-1 whitespace-nowrap text-2xl font-semibold text-black md:text-3xl">
-                  {formatPrice(price, product.currency_code)}
-                </p>
-
-                {compareAtPrice && compareAtPrice > price && (
-                  <p className="mt-1 text-sm text-black/35 line-through">
-                    {formatPrice(compareAtPrice, product.currency_code)}
-                  </p>
+                {/* MOBILE PHOTO COUNTER */}
+                {images.length > 1 && (
+                  <div className="absolute bottom-3 right-3 z-10 rounded-full bg-black/55 px-3 py-1 text-[10px] text-white backdrop-blur-sm lg:hidden">
+                    {activeIdx + 1} / {images.length}
+                  </div>
                 )}
               </div>
+
+              {/* MOBILE / TABLET THUMBNAILS */}
+              <div className="mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:hidden">
+                {images.map((src, i) => (
+                  <button
+                    key={`${src}-mobile-${i}`}
+                    type="button"
+                    onClick={() => setActiveIdx(i)}
+                    aria-label={`View product photo ${i + 1}`}
+                    aria-pressed={activeIdx === i}
+                    className={`relative h-[76px] w-[64px] shrink-0 overflow-hidden rounded-sm border bg-white transition sm:h-[88px] sm:w-[74px] ${
+                      activeIdx === i
+                        ? "border-black"
+                        : "border-black/10 opacity-75"
+                    }`}
+                  >
+                    <Image
+                      src={src}
+                      alt={`${product.name} photo ${i + 1}`}
+                      fill
+                      sizes="88px"
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-black/65">
-              {product.description ||
-                "Premium build and elevated everyday wear."}
-            </p>
+            {/* MIDDLE COLUMN: DESKTOP IMAGE SCROLL CONTAINER */}
+            <div
+              ref={galleryRef}
+              id="product-image-gallery"
+              className="hidden min-w-0 flex-col gap-4 lg:flex lg:h-[calc(100vh-140px)] lg:max-h-[850px] lg:min-h-[550px] lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain lg:pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {[...images.slice(1), images[0]].filter(Boolean).map((src, i) => (
+                <button
+                  key={`${src}-desktop-${i}`}
+                  type="button"
+                  onClick={() => setActiveIdx(i)}
+                  aria-label={`View product photo ${i + 1}`}
+                  aria-pressed={activeIdx === i}
+                  // className={`relative block aspect-[4/5] w-full shrink-0 overflow-hidden rounded-md bg-[#e8e3df] transition ${
+                  //   activeIdx === i
+                  //     ? "ring-1 ring-black/40"
+                  //     : "hover:opacity-90"
+                  // }`}
+                  className="relative block aspect-[4/5] w-full shrink-0 overflow-hidden rounded-md bg-[#e8e3df] transition hover:opacity-90"
+                >
+                  <Image
+                    src={src}
+                    alt={`${product.name} photo ${i + 1}`}
+                    fill
+                    sizes="(min-width: 1024px) 32vw, 100vw"
+                    className="object-cover"
+                  />
+                </button>
+              ))}
+            </div>
 
-            {/* Variants */}
-            {product.variants.length > 0 && (
-              <div className="mt-5">
-                <div className="flex min-w-0 items-center justify-between gap-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-black/50">
-                    Select Size
-                  </p>
+            {/* RIGHT COLUMN: PRODUCT DETAILS */}
+            <div className="min-w-0 lg:sticky lg:top-6">
+              {/* PRODUCT NAME + PRICE — LIQUID GLASS */}
+              <div className="group/info relative isolate overflow-hidden rounded-[15px] border border-white/60 bg-white/[0.38] px-[13px] py-[12px] backdrop-blur-xl backdrop-saturate-150 shadow-[0_4px_16px_rgba(30,50,65,0.06),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(255,255,255,0.25)] transition-all duration-300 ease-out hover:bg-white/[0.46]">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] bg-gradient-to-br from-white/65 via-white/10 to-sky-100/20"
+                />
 
-                  {showSizeGuide && (
-                    <button
-                      type="button"
-                      onClick={() => setShowSizeChart(true)}
-                      className="
-                        relative cursor-pointer shrink-0 text-xs font-semibold uppercase tracking-[0.16em]
-                        text-[#CE0028]
-                        after:absolute after:left-0 after:-bottom-[2px]
-                        after:h-[1px] after:w-0 after:bg-[#CE0028]
-                        after:transition-all after:duration-300
-                        hover:after:w-full
-                      "
-                    >
-                      Size Chart
-                    </button>
-                  )}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-[8%] top-0 h-px rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-90"
+                />
+
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/20"
+                />
+
+                <div className="relative flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h1 className="truncate text-[18px] font-semibold leading-[1.15] tracking-[-0.02em] text-black">
+                      {product.name}
+                    </h1>
+
+                    <p className="relative mt-[6px] truncate text-[10px] font-normal leading-none tracking-[0.01em] text-black/60">
+                      {product.product_type ?? product.category_name}
+                    </p>
+                  </div>
+
+                  <div className="shrink-0 text-right">
+                    <p className="text-[17px] font-semibold leading-none tracking-[-0.02em] text-black">
+                      {formatPrice(price, product.currency_code)}
+                    </p>
+
+                    {compareAtPrice != null && compareAtPrice > price && (
+                      <p className="mt-1 text-[10px] leading-none text-black/40 line-through">
+                        {formatPrice(compareAtPrice, product.currency_code)}
+                      </p>
+                    )}
+                  </div>
                 </div>
+              </div>
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {[...product.variants]
-                    .sort((a, b) => {
-                      const aOrder = a.size_id ?? 999;
-                      const bOrder = b.size_id ?? 999;
-                      return aOrder - bOrder;
-                    })
-                    .map((variant) => {
+              {/* SIZE SELECTOR — LIQUID GLASS */}
+              {variants.length > 0 && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[13px] font-medium">Size</p>
+
+                    {showSizeGuide && (
+                      <button
+                        type="button"
+                        onClick={() => setShowSizeChart(true)}
+                        className="cursor-pointer text-[10px] text-black/55 underline underline-offset-4"
+                      >
+                        Size guide
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {variants.map((variant) => {
                       const active = selectedVariant?.id === variant.id;
 
                       return (
@@ -401,276 +473,377 @@ export default function ProductDetailPage({
                             setSelectedVariant(variant);
                             setQty(1);
                           }}
-                          className={`rounded-xs border px-4 py-2 text-sm font-semibold transition ${
+                          className={`group/size relative isolate flex h-10 min-w-[56px] items-center justify-center overflow-hidden rounded-full border px-4 text-[11px] font-medium backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 ease-out ${
                             active
-                              ? "border-black bg-black text-white"
-                              : "border-black/10 bg-white text-black hover:border-black/30"
+                              ? "border-black bg-black text-white shadow-[0_4px_14px_rgba(0,0,0,0.12)]"
+                              : "border-white/60 bg-white/[0.30] text-black shadow-[0_3px_12px_rgba(30,50,65,0.04),inset_0_1px_1px_rgba(255,255,255,0.9)] hover:border-black hover:bg-black hover:text-white"
                           } ${
                             !variant.in_stock
-                              ? "cursor-not-allowed opacity-35"
+                              ? "cursor-not-allowed opacity-30"
                               : "cursor-pointer"
                           }`}
                         >
-                          {variant.size_label ?? "One Size"}
+                          <span
+                            aria-hidden="true"
+                            className={`pointer-events-none absolute inset-0 -z-10 rounded-[inherit] transition-opacity duration-300 ${
+                              active
+                                ? "opacity-0"
+                                : "bg-gradient-to-br from-white/70 via-white/10 to-sky-100/20 opacity-100 group-hover/size:opacity-0"
+                            }`}
+                          />
+
+                          <span className="relative block h-[1.2em] overflow-hidden">
+                            <AnimatePresence mode="popLayout" initial={false}>
+                              <motion.span
+                                key={variant.size_label ?? "One Size"}
+                                initial={{ y: "-110%" }}
+                                animate={{ y: "0%" }}
+                                exit={{ y: "110%" }}
+                                transition={{
+                                  duration: 0.22,
+                                  ease: [0.22, 1, 0.36, 1],
+                                }}
+                                className="block whitespace-nowrap"
+                              >
+                                {variant.size_label ?? "One Size"}
+                              </motion.span>
+                            </AnimatePresence>
+
+                            <motion.span
+                              aria-hidden="true"
+                              initial={false}
+                              animate={{ y: "110%" }}
+                              whileHover={{ y: "0%" }}
+                              className="pointer-events-none absolute inset-0 block whitespace-nowrap"
+                            >
+                              {variant.size_label ?? "One Size"}
+                            </motion.span>
+                          </span>
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+              )}
+
+              {/* QUANTITY + PURCHASE BUTTONS */}
+              <div className="mt-4 grid grid-cols-[110px_minmax(0,1fr)_98px] items-center gap-2">
+                {/* QUANTITY CONTROL */}
+                <div className="relative isolate flex h-11 items-center justify-between overflow-hidden rounded-full border border-white/70 bg-white/[0.38] px-2 backdrop-blur-xl backdrop-saturate-150 shadow-[0_4px_16px_rgba(30,50,65,0.05),inset_0_1px_1px_rgba(255,255,255,0.95),inset_0_-1px_1px_rgba(255,255,255,0.2)]">
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] bg-gradient-to-br from-white/65 via-white/10 to-sky-100/20"
+                  />
+
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-[12%] top-0 h-px rounded-full bg-gradient-to-r from-transparent via-white to-transparent"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    disabled={qty <= 1}
+                    aria-label="Decrease quantity"
+                    className="relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[14px] transition-colors hover:bg-white/60 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    −
+                  </button>
+
+                  <span className="relative min-w-3 text-center text-[11px] font-medium">
+                    {qty}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
+                    disabled={qty >= maxQty}
+                    aria-label="Increase quantity"
+                    className="relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[14px] transition-colors hover:bg-white/60 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* ADD TO CART — LIQUID GLASS + FLY ANIMATION */}
+                <motion.button
+                  ref={addToCartButtonRef}
+                  type="button"
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleAddToCart}
+                  disabled={isOut}
+                  className="relative isolate flex h-11 min-w-0 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-white/[0.42] px-2 text-[11px] font-medium text-black backdrop-blur-xl backdrop-saturate-150 shadow-[0_4px_16px_rgba(30,50,65,0.06),inset_0_1px_1px_rgba(255,255,255,0.95),inset_0_-1px_1px_rgba(255,255,255,0.2)] transition-all duration-300 ease-out hover:border-white/90 hover:bg-white/[0.68] hover:shadow-[0_6px_20px_rgba(30,50,65,0.08),inset_0_1px_1px_rgba(255,255,255,1)] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] bg-gradient-to-br from-white/70 via-white/10 to-sky-100/20"
+                  />
+
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-[12%] top-0 h-px rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-90"
+                  />
+
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] ring-1 ring-inset ring-white/20"
+                  />
+
+                  <span className="relative whitespace-nowrap">
+                    Add to cart
+                  </span>
+                </motion.button>
+
+                {/* BUY NOW */}
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleBuyNow}
+                  disabled={isOut}
+                  className="flex h-11 items-center justify-center rounded-full bg-black px-2 text-[11px] font-medium text-white transition-colors duration-200 hover:bg-[#CE0028] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                >
+                  Buy Now
+                </motion.button>
+              </div>
+
+              {/* DELIVERY BENEFITS */}
+              <div className="mt-5 space-y-4 px-0.5">
+                <div className="flex items-center gap-3 text-[#555]">
+                  <Truck size={19} strokeWidth={1.8} className="shrink-0" />
+                  <span className="text-[12px]">Fast Shipping</span>
+                </div>
+
+                <div className="flex items-center gap-3 text-[#555]">
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="shrink-0"
+                    aria-hidden="true"
+                  >
+                    <rect x="3" y="5" width="18" height="14" rx="1.5" />
+                    <path d="m3.5 7 8.5 6 8.5-6" />
+                  </svg>
+
+                  <span className="text-[12px]">
+                    Easy Returns within 7 day
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3 text-[#555]">
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="shrink-0"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 4h16v12H4z" />
+                    <path d="M4 8h16" />
+                    <path d="m8 17 2.5 2.5L16 14" />
+                  </svg>
+
+                  <span className="text-[12px]">
+                    Quality checked before dispatched
+                  </span>
                 </div>
               </div>
-            )}
 
-            {/* Quantity + Add to Cart */}
-            <div className="mt-3 flex w-full flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="flex w-full items-center justify-between rounded-xs border border-black/10 bg-white px-3 py-2 sm:w-[180px]">
-                <button
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="rounded-xs p-2 transition hover:bg-black/5"
-                  aria-label="Decrease quantity"
-                >
-                  <Minus className="h-4 w-4 cursor-pointer text-black" />
-                </button>
+              {/* PRODUCT DETAILS ACCORDION — LIQUID GLASS */}
+              <div className="group/accordion relative isolate mt-3 overflow-hidden rounded-[15px] border border-white/60 bg-white/[0.38] shadow-[0_4px_16px_rgba(30,50,65,0.06),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(255,255,255,0.25)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 hover:bg-white/[0.46]">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] bg-gradient-to-br from-white/65 via-white/10 to-sky-100/20"
+                />
 
-                <span className="text-sm font-semibold text-black">{qty}</span>
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-[8%] top-0 h-px rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-90"
+                />
 
-                <button
-                  onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
-                  className="rounded-xs p-2 transition hover:bg-black/5"
-                  aria-label="Increase quantity"
-                >
-                  <Plus className="h-4 w-4 cursor-pointer text-black" />
-                </button>
-              </div>
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/20"
+                />
 
-              <motion.button
-                whileTap={{ scale: 0.98 }}
-                whileHover={{ y: isOut ? 0 : -1 }}
-                className={`w-full rounded-xs px-6 py-3 text-sm font-semibold transition sm:flex-1 ${
-                  isOut
-                    ? "cursor-not-allowed bg-black/15 text-black/35"
-                    : "cursor-pointer bg-black text-white drop-shadow-md hover:bg-[#CE0028]"
-                }`}
-                onClick={handleAddToCart}
-                disabled={isOut}
-              >
-                {isOut ? "Out of Stock" : "Add to cart"}
-              </motion.button>
-            </div>
+                {infoSections.map((item, i) => {
+                  const isOpen = openInfo === item.key;
 
-            {/* Service Info */}
-            <div className="mt-5 grid gap-3 rounded-xs border border-black/10 bg-white p-5">
-              <div className="flex min-w-0 items-center gap-3 text-sm text-black/70">
-                <Truck className="h-4 w-4 shrink-0" />
-                <span className="min-w-0 break-words">
-                  Fast shipping + premium packaging
-                </span>
-              </div>
-
-              {/* <div className="flex min-w-0 items-center gap-3 text-sm text-black/70">
-                <RotateCcw className="h-4 w-4 shrink-0" />
-                <span className="min-w-0 break-words">
-                  Easy returns within 7 days
-                </span>
-              </div> */}
-
-              <div className="flex min-w-0 items-center gap-3 text-sm text-black/70">
-                <ShieldCheck className="h-4 w-4 shrink-0" />
-                <span className="min-w-0 break-words">
-                  Quality checked before dispatch
-                </span>
-              </div>
-            </div>
-
-            {/* Product Info Accordion */}
-            <div className="mt-1 overflow-hidden rounded-xs border border-black/10 bg-white">
-              {[
-                {
-                  key: "material",
-                  title: "Material",
-                  items: materialList,
-                  empty: "No material information available",
-                },
-                {
-                  key: "care",
-                  title: "Care",
-                  items: careList,
-                  empty: "No care information available",
-                },
-                {
-                  key: "delivery",
-                  title: "Delivery",
-                  items: deliveryList,
-                  empty: "No delivery information available",
-                },
-              ].map((section, index) => {
-                const isOpen = openInfo === section.key;
-
-                return (
-                  <div
-                    key={section.key}
-                    className={index !== 0 ? "border-t border-black/10" : ""}
-                  >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setOpenInfo(isOpen ? null : section.key)
-                      }
-                      className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                  return (
+                    <div
+                      key={item.key}
+                      className={`relative ${i ? "border-t border-white/50" : ""}`}
                     >
-                      <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#CE0028]">
-                        {section.title}
-                      </span>
-
-                      <ChevronDown
-                        className={`h-4 w-4 shrink-0 text-black transition-transform duration-300 ${
-                          isOpen ? "rotate-180" : ""
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenInfo(isOpen ? null : item.key)
+                        }
+                        aria-expanded={isOpen}
+                        className={`flex w-full items-center justify-between gap-3 px-3.5 py-3.5 text-left transition-colors duration-300 ${
+                          isOpen ? "bg-white/[0.18]" : "hover:bg-white/[0.25]"
                         }`}
-                      />
-                    </button>
+                      >
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-black">
+                          {item.title}
+                        </span>
 
-                    <AnimatePresence initial={false}>
-                      {isOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.25, ease: "easeOut" }}
-                          className="overflow-hidden"
+                        <motion.span
+                          animate={{ rotate: isOpen ? 180 : 0 }}
+                          transition={{ duration: 0.25, ease: "easeInOut" }}
+                          className="flex shrink-0 items-center justify-center text-black/65"
                         >
-                          <div className="mx-5 mb-5 max-h-[150px] overflow-y-auto pr-2 text-sm leading-relaxed text-black/65">
-                            <ul className="space-y-2">
-                              {section.items.length ? (
-                                section.items.map((item) => (
-                                  <li key={`${section.key}-${item}`} className="break-words">
-                                    • {item}
-                                  </li>
-                                ))
+                          <ChevronDown size={15} strokeWidth={1.7} />
+                        </motion.span>
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.div
+                            key="content"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{
+                              height: {
+                                duration: 0.3,
+                                ease: [0.22, 1, 0.36, 1],
+                              },
+                              opacity: { duration: 0.2 },
+                            }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-3.5 pb-4 pt-1 text-[11px] leading-relaxed text-black/65">
+                              {item.items.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {item.items.map((text, j) => (
+                                    <li
+                                      key={`${item.key}-${j}`}
+                                      className="flex items-start gap-2"
+                                    >
+                                      <span className="mt-[2px] text-black/40">
+                                        •
+                                      </span>
+                                      <span>{text}</span>
+                                    </li>
+                                  ))}
+                                </ul>
                               ) : (
-                                <li>• {section.empty}</li>
+                                <p>{item.empty}</p>
                               )}
-                            </ul>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
+
+          {/* SIMILAR PRODUCTS */}
+          {similarProducts.length > 0 && (
+            <section className="mt-8 border-t border-black/[0.06] pt-5 sm:mt-10">
+              <div className="mb-4 flex items-end justify-between gap-3">
+                <h2 className="text-sm font-semibold sm:text-base">
+                  Similar Products
+                </h2>
+
+                <Link
+                  href="/products/t-shirts"
+                  className="text-[10px] text-black/55 underline underline-offset-4 hover:text-black sm:text-xs"
+                >
+                  View all
+                </Link>
+              </div>
+
+              <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-4 lg:grid lg:grid-cols-3 lg:gap-5 lg:overflow-visible lg:snap-none">
+                {similarProducts.map((item) => (
+                  <div
+                    key={item.id}
+                    className="w-[68%] min-w-[68%] shrink-0 snap-start sm:w-[42%] sm:min-w-[42%] lg:w-auto lg:min-w-0"
+                  >
+                    <ProductCard product={item} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
-        
-
-        {/* SIMILAR PRODUCTS */}
-        {similarProducts.length > 0 && (
-          <div className="mt-14 w-full min-w-0 overflow-hidden">
-            <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
-              <div className="min-w-0">
-                <p className="text-xs uppercase tracking-[0.28em] text-black/50">
-                  More like this
-                </p>
-
-                <h2 className="mt-2 break-words text-2xl font-semibold text-black md:text-3xl">
-                  Similar products
-                </h2>
-              </div>
-
-              {/* <Link
-                href={`/products/${product.category_code}`}
-                className="w-full rounded-xs border border-black/10 px-5 py-2 text-center text-sm font-semibold text-black transition hover:bg-black/[0.03] sm:w-auto"
-              >
-                View category
-              </Link> */}
-            </div>
-
-            <div className="mt-6 grid min-w-0 grid-cols-1 gap-7 overflow-hidden sm:grid-cols-2 lg:grid-cols-3 lg:gap-8 xl:gap-9 2xl:gap-10">
-              {similarProducts.map((product) => (
-                <div key={product.id} className="w-full min-w-0">
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* SIZE CHART MODAL */}
-      <AnimatePresence>
-        {showSizeChart && (
-          <motion.div
-            className="fixed inset-0 z-[9999] flex w-full items-center justify-center overflow-hidden bg-black/80 px-3 py-4 backdrop-blur-md sm:px-5"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowSizeChart(false)}
-          >
+        {/* SIZE CHART MODAL */}
+        <AnimatePresence>
+          {showSizeChart && (
             <motion.div
-              initial={{ opacity: 0, y: 24, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 24, scale: 0.96 }}
-              transition={{ duration: 0.24, ease: [0.25, 1, 0.5, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              className="
-                relative w-full overflow-hidden bg-white shadow-2xl
-                rounded-2xl
-                max-w-[96vw]
-                md:max-w-5xl
-                xl:max-w-6xl
-              "
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 px-3 py-4 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSizeChart(false)}
             >
-              {/* HEADER */}
-              <div className="flex items-center justify-between gap-4 border-b border-black/10 px-4 py-4 md:px-7">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#CE0028]">
-                    BLTDIF
-                  </p>
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.98 }}
+                onClick={(event) => event.stopPropagation()}
+                className="relative max-h-[90dvh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white p-3 shadow-2xl sm:p-5"
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#CE0028]">
+                      BLTDIF
+                    </p>
 
-                  <h3 className="mt-1 text-lg font-semibold text-black md:text-2xl">
-                    T-Shirt Size Guide
-                  </h3>
+                    <h3 className="mt-1 text-lg font-semibold">
+                      T-Shirt Size Guide
+                    </h3>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowSizeChart(false)}
+                    aria-label="Close size guide"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-xl text-white hover:bg-[#CE0028]"
+                  >
+                    ×
+                  </button>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowSizeChart(false)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black text-xl leading-none text-white transition hover:bg-[#CE0028] md:h-10 md:w-10"
-                  aria-label="Close size chart"
-                >
-                  ×
-                </button>
-              </div>
-
-              {/* BODY */}
-              <div className="max-h-[78vh] overflow-y-auto bg-white p-3 sm:p-4 md:p-5">
-                {/* Desktop / Tablet Size Guide */}
                 <Image
                   src="/images/TEE-SIZE-GUIDE.png"
-                  alt="BLTDIF T-Shirt Size Guide Desktop"
+                  alt="BLTDIF T-shirt size guide"
                   width={2048}
                   height={577}
-                  className="hidden h-auto w-full rounded-xl object-contain md:block"
-                  priority
+                  className="hidden h-auto w-full object-contain md:block"
                 />
 
-                {/* Mobile Size Guide */}
                 <Image
                   src="/images/TEE-SIZE-GUIDE-mobile.png"
-                  alt="BLTDIF T-Shirt Size Guide Mobile"
+                  alt="BLTDIF mobile T-shirt size guide"
                   width={1120}
                   height={1372}
-                  className="block h-auto w-full rounded-xl object-contain md:hidden"
-                  priority
+                  className="block h-auto w-full object-contain md:hidden"
                 />
 
-                <p className="mt-3 px-2 text-center text-[11px] leading-relaxed text-black/50 sm:text-xs">
-                  Measurements are approximate and may vary slightly due to garment
-                  construction and fabric behavior.
+                <p className="mt-3 text-center text-[10px] leading-relaxed text-black/45">
+                  Measurements are approximate and may vary slightly.
                 </p>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
+          )}
+        </AnimatePresence>
+      </section>
+    </>
   );
 }

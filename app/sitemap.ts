@@ -2,91 +2,102 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "./lib/seo";
 import { prisma } from "./lib/prisma";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
+const BASE_URL = SITE_URL.replace(/\/+$/, "");
 
+/*
+ * Update these dates only when the page receives a meaningful content,
+ * structured-data, or internal-linking change.
+ */
+const PAGE_LAST_UPDATED = {
+  home: new Date("2026-07-30"),
+  products: new Date("2026-07-30"),
+  caps: new Date("2026-07-30"),
+  tshirts: new Date("2026-07-30"),
+  about: new Date("2026-07-30"),
+  contact: new Date("2026-07-30"),
+  faq: new Date("2026-07-30"),
+  sizeGuide: new Date("2026-07-30"),
+  shipping: new Date("2026-07-30"),
+  returns: new Date("2026-07-30"),
+  privacy: new Date("2026-07-30"),
+  terms: new Date("2026-07-30"),
+};
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: SITE_URL,
-      lastModified: now,
-      changeFrequency: "daily",
+      url: BASE_URL,
+      lastModified: PAGE_LAST_UPDATED.home,
+      changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: `${SITE_URL}/products`,
-      lastModified: now,
+      url: `${BASE_URL}/products`,
+      lastModified: PAGE_LAST_UPDATED.products,
       changeFrequency: "daily",
       priority: 0.95,
     },
     {
-      url: `${SITE_URL}/products/caps`,
-      lastModified: now,
+      url: `${BASE_URL}/products/caps`,
+      lastModified: PAGE_LAST_UPDATED.caps,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/products/t-shirts`,
-      lastModified: now,
+      url: `${BASE_URL}/products/t-shirts`,
+      lastModified: PAGE_LAST_UPDATED.tshirts,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/products/hoodies`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.75,
-    },
-    {
-      url: `${SITE_URL}/about`,
-      lastModified: now,
+      url: `${BASE_URL}/about`,
+      lastModified: PAGE_LAST_UPDATED.about,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
-      url: `${SITE_URL}/contact`,
-      lastModified: now,
+      url: `${BASE_URL}/contact`,
+      lastModified: PAGE_LAST_UPDATED.contact,
       changeFrequency: "monthly",
       priority: 0.6,
     },
     {
-      url: `${SITE_URL}/faq`,
-      lastModified: now,
+      url: `${BASE_URL}/faq`,
+      lastModified: PAGE_LAST_UPDATED.faq,
       changeFrequency: "monthly",
       priority: 0.65,
     },
     {
-      url: `${SITE_URL}/size-guide`,
-      lastModified: now,
+      url: `${BASE_URL}/size-guide`,
+      lastModified: PAGE_LAST_UPDATED.sizeGuide,
       changeFrequency: "monthly",
       priority: 0.65,
     },
     {
-      url: `${SITE_URL}/shipping`,
-      lastModified: now,
+      url: `${BASE_URL}/shipping`,
+      lastModified: PAGE_LAST_UPDATED.shipping,
       changeFrequency: "monthly",
       priority: 0.55,
     },
     {
-      url: `${SITE_URL}/returns`,
-      lastModified: now,
+      url: `${BASE_URL}/returns`,
+      lastModified: PAGE_LAST_UPDATED.returns,
       changeFrequency: "monthly",
       priority: 0.55,
     },
     {
-      url: `${SITE_URL}/privacy`,
-      lastModified: now,
+      url: `${BASE_URL}/privacy`,
+      lastModified: PAGE_LAST_UPDATED.privacy,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
-      url: `${SITE_URL}/terms`,
-      lastModified: now,
+      url: `${BASE_URL}/terms`,
+      lastModified: PAGE_LAST_UPDATED.terms,
       changeFrequency: "yearly",
       priority: 0.3,
     },
   ];
-
-  let productRoutes: MetadataRoute.Sitemap = [];
 
   try {
     const products = await prisma.catalogProduct.findMany({
@@ -105,15 +116,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     });
 
-    productRoutes = products.map((product) => ({
-      url: `${SITE_URL}/products/${product.slug}`,
-      lastModified: product.updatedAt || now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    }));
+    const productRoutes: MetadataRoute.Sitemap = products
+      .filter((product) => Boolean(product.slug))
+      .map((product) => ({
+        url: `${BASE_URL}/products/${encodeURIComponent(product.slug)}`,
+        lastModified: product.updatedAt,
+        changeFrequency: "weekly",
+        priority: 0.9,
+      }));
+
+    return [...staticRoutes, ...productRoutes];
   } catch (error) {
     console.error("Failed to generate product sitemap:", error);
-  }
 
-  return [...staticRoutes, ...productRoutes];
+    // Keep the sitemap available even if the database is temporarily down.
+    return staticRoutes;
+  }
 }

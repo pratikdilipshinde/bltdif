@@ -5,6 +5,15 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import PageHero from "../components/marketing/PageHero";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Password Reset | BLTDIF",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 const BRAND_RED = "#CE0028";
 

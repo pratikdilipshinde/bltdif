@@ -1,6 +1,16 @@
 import ProfileForm from "@/app/components/account/ProfileForm";
 import PageHero from "@/app/components/marketing/PageHero";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Account | BLTDIF",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default function ProfilePage() {
   return (
     <main className="bg-white">

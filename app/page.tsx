@@ -12,26 +12,33 @@ import NewsletterSection from "./components/NewsletterSection";
 import PhotosSection from "./components/PhotosSection";
 import ProductsSection from "./components/ProductsSection";
 import PromotionPhoto from "./components/PromotionPhoto";
+import TshirtPromotion from "./components/TshirtPromotion";
+import CapPromotion from "./components/CapPromotion";
 import TShirtsSection from "./components/TShirtsSection";
 import TwoCardSection from "./components/TwoCardSection";
+import HoodiesSection from "./components/HoodiesSection";
 
 
 export default function HomePage() {
   return (
     <>
       {/* <Hero /> */}
+      <AnnouncementBar />
       <HeroSection />
       {/* <CategoryMarquee /> */}
-      <AnnouncementBar />
+      
+      <HoodiesSection />
+      <TshirtPromotion />
       <TShirtsSection />
+      <CapPromotion />
       <CapsSection />
-      <PromotionPhoto />
+      {/* <PromotionPhoto /> */}
       {/* <CategoriesSection /> */}
       {/* <NewsletterSection /> */}
       {/* <TwoCardSection /> */}
       {/* <PhotosSection /> */}
       {/* <ProductsSection /> */}
-      <CustomerReviews />
+      {/* <CustomerReviews /> */}
       <InfoStrip />
       {/* later: product grid, etc. */}
     </>

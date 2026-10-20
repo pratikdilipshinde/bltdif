@@ -29,7 +29,7 @@ export default function InfoStrip() {
   return (
     <section className="bg-white my-4">
       <div className="mx-auto max-w-full">
-        <div className="grid grid-cols-2 md:grid-cols-4 border border-black/10 bg-black/5">
+        <div className="grid grid-cols-4 md:grid-cols-4  border-r-black/90  bg-white/75">
           {items.map((it, idx) => {
             const Icon = it.icon;
             return (
@@ -37,14 +37,14 @@ export default function InfoStrip() {
                 key={it.title}
                 className={[
                   "flex flex-col items-center justify-center text-center",
-                  "px-6 py-10 md:py-12",
+                  "px-2 py-2 md:py-2",
                   "gap-3",
                   idx !== 0 ? "border-l border-black/10" : "",
-                  "min-h-[140px] md:min-h-[170px]",
+                  "min-h-[40px] md:min-h-[70px]",
                 ].join(" ")}
               >
-                <Icon className="h-8 w-8 text-black/90" strokeWidth={1.6} />
-                <p className="text-[11px] md:text-[12px] font-semibold tracking-[0.26em] text-black/90 uppercase">
+                <Icon className="h-4 w-4 md:h-8 md:w-8 text-black/90" strokeWidth={1.6} />
+                <p className="text-[8px] md:text-[12px] font-semibold tracking-[0.26em] text-black/90 uppercase">
                   {it.title}
                 </p>
                 {/* <p className="max-w-[260px] text-[10px] md:text-[11px] tracking-[0.16em] text-black/55 uppercase leading-relaxed">

@@ -1,5 +1,14 @@
 import { Suspense } from "react";
 import CheckoutSuccessContent from "./CheckoutSuccessContent";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Checkout Success | BLTDIF",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function CheckoutSuccessPage() {
   return (
