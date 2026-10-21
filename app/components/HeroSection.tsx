@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 const DESKTOP_VIDEO = "/images/video.mp4";
 const MOBILE_VIDEO = "/images/video-mobile.mp4";
+const MOBILE_QUERY = "(max-width: 767px)";
 
 export default function HeroSection() {
   const [isHeroVisible, setIsHeroVisible] = useState(false);
@@ -41,7 +42,7 @@ export default function HeroSection() {
   }, []);
 
   // =====================================================
-  // PLAY ONLY THE VIDEO FOR THE CURRENT SCREEN SIZE
+  // LOAD ONLY THE VIDEO FOR THE CURRENT SCREEN SIZE
   // =====================================================
 
   useEffect(() => {
@@ -50,73 +51,105 @@ export default function HeroSection() {
 
     if (!desktopVideo || !mobileVideo) return;
 
-    const isMobile = window.matchMedia("(max-width: 767px)").matches;
-    const activeVideo = isMobile ? mobileVideo : desktopVideo;
-    const inactiveVideo = isMobile ? desktopVideo : mobileVideo;
-
-    inactiveVideo.pause();
-
-    if (!isHeroVisible) {
-      activeVideo.pause();
-      return;
-    }
+    const mediaQuery = window.matchMedia(MOBILE_QUERY);
 
     let cancelled = false;
 
-    const tryPlayback = async () => {
-      if (cancelled || !activeVideo.isConnected) return;
+    const updateVideo = () => {
+      const isMobile = mediaQuery.matches;
 
-      try {
-        activeVideo.muted = false;
-        activeVideo.volume = 1;
+      const activeVideo = isMobile ? mobileVideo : desktopVideo;
+      const inactiveVideo = isMobile ? desktopVideo : mobileVideo;
+      const activeSource = isMobile ? MOBILE_VIDEO : DESKTOP_VIDEO;
 
-        await activeVideo.play();
+      // Stop and unload the video that doesn't match the viewport.
+      inactiveVideo.pause();
+      inactiveVideo.removeAttribute("src");
+      inactiveVideo.load();
 
-        if (!cancelled) {
-          setIsAudioBlocked(false);
-        }
-      } catch {
-        if (cancelled) return;
+      // Load the correct video only when needed.
+      if (activeVideo.getAttribute("src") !== activeSource) {
+        activeVideo.pause();
+        activeVideo.src = activeSource;
+        activeVideo.load();
+        setIsVideoReady(false);
+        setIsAudioBlocked(false);
+      }
 
-        setIsAudioBlocked(true);
+      // Don't play the video while the hero is offscreen.
+      if (!isHeroVisible) {
+        activeVideo.pause();
+        return;
+      }
+
+      const tryPlayback = async () => {
+        if (cancelled || !activeVideo.isConnected) return;
 
         try {
-          activeVideo.muted = true;
+          activeVideo.muted = false;
+          activeVideo.volume = 1;
+
           await activeVideo.play();
-        } catch (error) {
-          console.warn("Hero video autoplay was blocked:", error);
+
+          if (!cancelled) {
+            setIsAudioBlocked(false);
+          }
+        } catch {
+          if (cancelled) return;
+
+          setIsAudioBlocked(true);
+
+          try {
+            activeVideo.muted = true;
+            await activeVideo.play();
+          } catch (error) {
+            console.warn("Hero video autoplay was blocked:", error);
+          }
         }
+      };
+
+      const handleCanPlay = () => {
+        if (cancelled) return;
+
+        setIsVideoReady(true);
+        void tryPlayback();
+      };
+
+      const handleError = () => {
+        if (cancelled) return;
+
+        console.error(
+          `Hero video failed to load: ${
+            activeVideo.currentSrc || activeVideo.src
+          }`
+        );
+      };
+
+      // Avoid attaching duplicate listeners.
+      activeVideo.removeEventListener("canplay", handleCanPlay);
+      activeVideo.removeEventListener("error", handleError);
+
+      activeVideo.addEventListener("canplay", handleCanPlay);
+      activeVideo.addEventListener("error", handleError);
+
+      if (
+        activeVideo.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA
+      ) {
+        handleCanPlay();
       }
     };
 
-    const handleCanPlay = () => {
-      if (cancelled) return;
+    updateVideo();
 
-      setIsVideoReady(true);
-      void tryPlayback();
-    };
-
-    const handleError = () => {
-      console.error(
-        `Hero video failed to load: ${
-          activeVideo.currentSrc || activeVideo.src
-        }`
-      );
-    };
-
-    activeVideo.addEventListener("canplay", handleCanPlay);
-    activeVideo.addEventListener("error", handleError);
-
-    if (activeVideo.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-      setIsVideoReady(true);
-      void tryPlayback();
-    }
+    // Handle resizing or rotating the device.
+    mediaQuery.addEventListener("change", updateVideo);
 
     return () => {
       cancelled = true;
-      activeVideo.removeEventListener("canplay", handleCanPlay);
-      activeVideo.removeEventListener("error", handleError);
-      activeVideo.pause();
+      mediaQuery.removeEventListener("change", updateVideo);
+
+      desktopVideo.pause();
+      mobileVideo.pause();
     };
   }, [isHeroVisible]);
 
@@ -125,7 +158,7 @@ export default function HeroSection() {
   // =====================================================
 
   const enableSound = async () => {
-    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const isMobile = window.matchMedia(MOBILE_QUERY).matches;
 
     const video = isMobile
       ? mobileVideoRef.current
@@ -175,11 +208,10 @@ export default function HeroSection() {
 
       <video
         ref={desktopVideoRef}
-        src={DESKTOP_VIDEO}
         autoPlay
         playsInline
         loop
-        preload="auto"
+        preload="none"
         muted
         controls={false}
         disablePictureInPicture
@@ -195,11 +227,10 @@ export default function HeroSection() {
 
       <video
         ref={mobileVideoRef}
-        src={MOBILE_VIDEO}
         autoPlay
         playsInline
         loop
-        preload="auto"
+        preload="none"
         muted
         controls={false}
         disablePictureInPicture

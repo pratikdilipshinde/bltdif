@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 export type Story = {
@@ -26,98 +25,145 @@ export default function StoryViewer({
   onClose,
   initialIndex = 0,
 }: StoryViewerProps) {
-  const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [progress, setProgress] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(() =>
+    Math.min(Math.max(initialIndex, 0), Math.max(stories.length - 1, 0))
+  );
 
-  const animationFrameRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number | null>(null);
+  const activeProgressRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<Animation | null>(null);
+  const currentIndexRef = useRef(currentIndex);
+  const onCloseRef = useRef(onClose);
 
-  const currentStory = stories[currentIndex];
+  const safeIndex = Math.min(
+    Math.max(currentIndex, 0),
+    Math.max(stories.length - 1, 0)
+  );
 
+  const currentStory = stories[safeIndex];
+
+  // Keep event handlers up to date without restarting the timer unnecessarily.
+  useEffect(() => {
+    currentIndexRef.current = safeIndex;
+  }, [safeIndex]);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  const goToNext = useCallback(() => {
+    const index = currentIndexRef.current;
+
+    if (index >= stories.length - 1) {
+      onCloseRef.current();
+      return;
+    }
+
+    setCurrentIndex(index + 1);
+  }, [stories.length]);
+
+  const goToPrevious = useCallback(() => {
+    const index = currentIndexRef.current;
+
+    if (index <= 0) return;
+
+    setCurrentIndex(index - 1);
+  }, []);
+
+  // Reset the selected story whenever the viewer opens.
   useEffect(() => {
     if (!open || stories.length === 0) return;
 
-    setCurrentIndex(
-      Math.min(Math.max(initialIndex, 0), stories.length - 1)
+    const index = Math.min(
+      Math.max(initialIndex, 0),
+      stories.length - 1
     );
-    setProgress(0);
+
+    currentIndexRef.current = index;
+    setCurrentIndex(index);
   }, [open, initialIndex, stories.length]);
 
-  const goToNext = () => {
-    if (currentIndex >= stories.length - 1) {
-      onClose();
-      return;
-    }
-
-    setCurrentIndex((prev) => prev + 1);
-    setProgress(0);
-  };
-
-  const goToPrevious = () => {
-    if (currentIndex <= 0) {
-      setProgress(0);
-      return;
-    }
-
-    setCurrentIndex((prev) => prev - 1);
-    setProgress(0);
-  };
-
+  // Animate progress directly in the browser.
+  // This avoids React state updates on every animation frame.
   useEffect(() => {
     if (!open || !currentStory) return;
 
-    startTimeRef.current = performance.now();
-    setProgress(0);
+    const progressElement = activeProgressRef.current;
+    if (!progressElement) return;
 
-    const animate = (timestamp: number) => {
-      if (startTimeRef.current === null) {
-        startTimeRef.current = timestamp;
+    let finished = false;
+
+    const animation = progressElement.animate(
+      [
+        { transform: "scaleX(0)" },
+        { transform: "scaleX(1)" },
+      ],
+      {
+        duration: STORY_DURATION,
+        easing: "linear",
+        fill: "forwards",
       }
+    );
 
-      const elapsed = timestamp - startTimeRef.current;
-      const nextProgress = Math.min(elapsed / STORY_DURATION, 1);
+    animationRef.current = animation;
 
-      setProgress(nextProgress);
-
-      if (nextProgress >= 1) {
-        goToNext();
-        return;
-      }
-
-      animationFrameRef.current = requestAnimationFrame(animate);
+    animation.onfinish = () => {
+      if (finished) return;
+      finished = true;
+      goToNext();
     };
-
-    animationFrameRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
+      finished = true;
+      animation.onfinish = null;
+      animation.cancel();
+
+      if (animationRef.current === animation) {
+        animationRef.current = null;
       }
-
-      animationFrameRef.current = null;
-      startTimeRef.current = null;
     };
-  }, [open, currentIndex, currentStory]);
+  }, [open, safeIndex, currentStory?.id, currentStory?.image, goToNext]);
 
+  // Preload only the next story instead of every story image.
+  useEffect(() => {
+    if (!open || !stories.length) return;
+
+    const nextStory = stories[safeIndex + 1];
+    if (!nextStory?.image) return;
+
+    const image = new Image();
+    image.decoding = "async";
+    image.src = nextStory.image;
+
+    return () => {
+      image.onload = null;
+      image.onerror = null;
+    };
+  }, [open, safeIndex, stories]);
+
+  // Keyboard navigation and page scroll lock.
   useEffect(() => {
     if (!open) return;
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-      if (event.key === "ArrowRight") goToNext();
-      if (event.key === "ArrowLeft") goToPrevious();
+      if (event.key === "Escape") {
+        onCloseRef.current();
+      } else if (event.key === "ArrowRight") {
+        goToNext();
+      } else if (event.key === "ArrowLeft") {
+        goToPrevious();
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [open, currentIndex, stories.length]);
+  }, [open, goToNext, goToPrevious]);
 
   if (!open || !currentStory) return null;
 
@@ -141,14 +187,16 @@ export default function StoryViewer({
               className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-white/30"
             >
               <div
-                className="absolute inset-y-0 left-0 rounded-full bg-white"
+                ref={index === safeIndex ? activeProgressRef : undefined}
+                className="absolute inset-0 rounded-full bg-white"
                 style={{
-                  width:
-                    index < currentIndex
-                      ? "100%"
-                      : index === currentIndex
-                      ? `${progress * 100}%`
-                      : "0%",
+                  transformOrigin: "left center",
+                  transform:
+                    index < safeIndex
+                      ? "scaleX(1)"
+                      : index === safeIndex
+                        ? "scaleX(0)"
+                        : "scaleX(0)",
                 }}
               />
             </div>
@@ -160,14 +208,14 @@ export default function StoryViewer({
           type="button"
           onClick={onClose}
           aria-label="Close stories"
-          className="absolute right-3 top-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition hover:bg-white/20 sm:right-5"
+          className="absolute right-3 top-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white transition-colors hover:bg-white/20 sm:right-5"
         >
           <X className="h-5 w-5" strokeWidth={1.8} />
         </button>
       </div>
 
       {/* PREVIOUS BUTTON */}
-      {currentIndex > 0 && (
+      {safeIndex > 0 && (
         <button
           type="button"
           onClick={(event) => {
@@ -175,7 +223,7 @@ export default function StoryViewer({
             goToPrevious();
           }}
           aria-label="Previous story"
-          className="absolute left-3 top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition hover:bg-white/20 sm:left-6 lg:left-10"
+          className="absolute left-3 top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white transition-colors hover:bg-white/20 sm:left-6 lg:left-10"
         >
           <ChevronLeft className="h-6 w-6" strokeWidth={1.8} />
         </button>
@@ -189,7 +237,7 @@ export default function StoryViewer({
           goToNext();
         }}
         aria-label="Next story"
-        className="absolute right-3 top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition hover:bg-white/20 sm:right-6 lg:right-10"
+        className="absolute right-3 top-1/2 z-40 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white transition-colors hover:bg-white/20 sm:right-6 lg:right-10"
       >
         <ChevronRight className="h-6 w-6" strokeWidth={1.8} />
       </button>
@@ -197,33 +245,23 @@ export default function StoryViewer({
       {/* STORY FRAME */}
       <div
         className="
-          relative
-          flex
-          h-[100dvh]
-          w-auto
-          max-h-[100dvh]
-          max-w-[100vw]
-          items-center
-          justify-center
-          overflow-hidden
-          rounded-none
-          sm:h-[min(86dvh,850px)]
-          sm:max-h-[86dvh]
-          sm:max-w-[calc(100vw-160px)]
-          sm:rounded-2xl
+          relative flex h-[100dvh] w-auto max-h-[100dvh] max-w-[100vw]
+          items-center justify-center overflow-hidden rounded-none
+          sm:h-[min(86dvh,850px)] sm:max-h-[86dvh]
+          sm:max-w-[calc(100vw-160px)] sm:rounded-2xl
           lg:rounded-3xl
         "
-        style={{
-          aspectRatio: STORY_ASPECT_RATIO,
-        }}
+        style={{ aspectRatio: STORY_ASPECT_RATIO }}
         onClick={(event) => event.stopPropagation()}
       >
         <img
           key={currentStory.id}
           src={currentStory.image}
           alt={currentStory.alt ?? "BLTDIF story"}
-          className="block h-full w-full select-none object-cover"
+          decoding="async"
+          fetchPriority="high"
           draggable={false}
+          className="block h-full w-full select-none object-cover"
         />
 
         {/* LEFT CLICK AREA */}

@@ -11,6 +11,7 @@ import {
   X,
   LogOut,
   LayoutDashboard,
+  ChevronDown,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -27,12 +28,12 @@ const categories = [
 ];
 
 const stories = [
-  { id: 1, image: "/images/stories/story1.jpg", alt: "BLTDIF Story 1" },
-  { id: 2, image: "/images/stories/story2.jpg", alt: "BLTDIF Story 2" },
-  { id: 3, image: "/images/stories/story3.jpg", alt: "BLTDIF Story 3" },
-  { id: 4, image: "/images/stories/story4.jpg", alt: "BLTDIF Story 4" },
-  { id: 5, image: "/images/stories/story5.jpg", alt: "BLTDIF Story 5" },
-  { id: 6, image: "/images/stories/story6.jpg", alt: "BLTDIF Story 6" },
+  { id: 1, image: "/images/stories/story-1.jpg", alt: "BLTDIF Story 1" },
+  { id: 2, image: "/images/stories/story-2.jpg", alt: "BLTDIF Story 2" },
+  { id: 3, image: "/images/stories/story-3.jpg", alt: "BLTDIF Story 3" },
+  { id: 4, image: "/images/stories/story-4.jpg", alt: "BLTDIF Story 4" },
+  { id: 5, image: "/images/stories/story-5.jpg", alt: "BLTDIF Story 5" },
+  { id: 6, image: "/images/stories/story-6.jpg", alt: "BLTDIF Story 6" },
 ];
 
 export default function Navbar() {
@@ -42,9 +43,16 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { cartItems } = useCart();
 
+  // Role-based navigation using your existing user type.
+  const isAdmin = user?.role === "ADMIN";
+
+  const dashboardHref = isAdmin ? "/admin/dashboard" : "/account";
+  const ordersHref = isAdmin ? "/admin/orders" : "/account/orders";
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isMobileAccountOpen, setIsMobileAccountOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
 
@@ -61,7 +69,7 @@ export default function Navbar() {
   const isCategoryActive = (href: string) =>
     pathname === href || pathname?.startsWith(`${href}/`);
 
-  // Scroll detection — unchanged
+  // Scroll detection
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -76,7 +84,7 @@ export default function Navbar() {
     };
   }, []);
 
-  // Close account dropdown when clicking outside — unchanged
+  // Close desktop account dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -94,19 +102,23 @@ export default function Navbar() {
     };
   }, []);
 
-  // Close menus when route changes — unchanged
+  // Close menus when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsAccountOpen(false);
+    setIsMobileAccountOpen(false);
     setIsStoryViewerOpen(false);
   }, [pathname]);
 
-  // Logout — unchanged
+  // Logout
   const handleLogout = async () => {
     try {
       await logout();
+
       setIsAccountOpen(false);
+      setIsMobileAccountOpen(false);
       setIsMobileMenuOpen(false);
+
       router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -156,8 +168,7 @@ export default function Navbar() {
             className="
               pointer-events-none absolute inset-x-2 top-0 h-px
               bg-gradient-to-r from-transparent via-white/80 to-transparent
-              opacity-80
-              md:inset-x-4
+              opacity-80 md:inset-x-4
             "
           />
 
@@ -169,7 +180,7 @@ export default function Navbar() {
             "
           />
 
-          {/* LOGO — ALWAYS LEFT */}
+          {/* LOGO */}
           <Link
             href="/"
             aria-label="BLTDIF Home"
@@ -239,6 +250,7 @@ export default function Navbar() {
                 setIsStoryViewerOpen(true);
                 setIsAccountOpen(false);
                 setIsMobileMenuOpen(false);
+                setIsMobileAccountOpen(false);
               }}
               className="
                 relative flex h-[40px] w-[40px] shrink-0
@@ -285,6 +297,7 @@ export default function Navbar() {
                 onClick={() => {
                   setIsAccountOpen((prev) => !prev);
                   setIsMobileMenuOpen(false);
+                  setIsMobileAccountOpen(false);
                 }}
                 className="
                   flex h-[40px] w-[40px] items-center justify-center
@@ -310,14 +323,13 @@ export default function Navbar() {
                     exit={{ opacity: 0, y: -8, scale: 0.97 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                     className="
-                      absolute right-0 top-[60px] w-[215px] overflow-hidden
-                      rounded-[18px] border border-white/40
+                      absolute right-0 top-[60px] z-[60] w-[215px]
+                      overflow-hidden rounded-[18px] border border-white/40
                       bg-white/35 p-2
                       shadow-[0_20px_50px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.25)]
                       backdrop-blur-xs backdrop-saturate-150
                     "
                   >
-                    {/* DROPDOWN TOP REFLECTION */}
                     <div
                       className="
                         pointer-events-none absolute inset-x-3 top-0 h-px
@@ -328,7 +340,7 @@ export default function Navbar() {
                     {user ? (
                       <>
                         <Link
-                          href="/dashboard"
+                          href={dashboardHref}
                           onClick={() => setIsAccountOpen(false)}
                           className="
                             flex items-center gap-3 rounded-xl px-3 py-3
@@ -342,7 +354,7 @@ export default function Navbar() {
                         </Link>
 
                         <Link
-                          href="/profile"
+                          href="/account/profile"
                           onClick={() => setIsAccountOpen(false)}
                           className="
                             flex items-center gap-3 rounded-xl px-3 py-3
@@ -356,7 +368,7 @@ export default function Navbar() {
                         </Link>
 
                         <Link
-                          href="/orders"
+                          href={ordersHref}
                           onClick={() => setIsAccountOpen(false)}
                           className="
                             flex items-center gap-3 rounded-xl px-3 py-3
@@ -427,11 +439,7 @@ export default function Navbar() {
                 md:flex
               "
             >
-              <ShoppingBag
-                size={17}
-                strokeWidth={1.7}
-                className="text-black"
-              />
+              <ShoppingBag size={17} strokeWidth={1.7} className="text-black" />
 
               {cartCount > 0 && (
                 <span
@@ -453,6 +461,7 @@ export default function Navbar() {
               aria-expanded={isMobileMenuOpen}
               onClick={() => {
                 setIsMobileMenuOpen((prev) => !prev);
+                setIsMobileAccountOpen(false);
                 setIsAccountOpen(false);
               }}
               className="
@@ -486,15 +495,15 @@ export default function Navbar() {
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="
                 liquid-navbar group/mobile-menu
-                relative mt-2 overflow-hidden rounded-[18px]
-                border border-white/40 bg-white/[0.15] p-2
+                relative mt-2 max-h-[calc(100dvh-100px)] overflow-y-auto
+                rounded-[18px] border border-white/40
+                bg-white/[0.15] p-2
                 shadow-[0_8px_30px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.55)]
                 backdrop-blur-xs backdrop-saturate-150
                 transition-all duration-500 ease-out
                 md:hidden
               "
             >
-              {/* MOBILE MENU TOP REFLECTION */}
               <div
                 className="
                   pointer-events-none absolute inset-x-3 top-0 h-px
@@ -502,7 +511,6 @@ export default function Navbar() {
                 "
               />
 
-              {/* MOBILE MENU SOFT GLOW */}
               <div
                 className="
                   pointer-events-none absolute -top-8 left-1/4
@@ -510,8 +518,8 @@ export default function Navbar() {
                 "
               />
 
-              {/* MOBILE CATEGORIES */}
               <div className="relative z-10">
+                {/* MOBILE CATEGORIES */}
                 {categories.map((category) => {
                   const active = isCategoryActive(category.href);
 
@@ -519,7 +527,10 @@ export default function Navbar() {
                     <Link
                       key={category.id}
                       href={category.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setIsMobileAccountOpen(false);
+                      }}
                       className={`
                         flex items-center justify-between rounded-xl
                         px-4 py-3.5 text-black transition-colors
@@ -543,7 +554,10 @@ export default function Navbar() {
                 <Link
                   href="/cart"
                   data-cart-icon="true"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsMobileAccountOpen(false);
+                  }}
                   className="
                     flex items-center gap-3 rounded-xl px-4 py-3.5
                     text-black transition-colors hover:bg-white/10
@@ -570,45 +584,136 @@ export default function Navbar() {
 
                 {/* MOBILE ACCOUNT */}
                 {user ? (
-                  <>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="
-                        flex items-center gap-3 rounded-xl px-4 py-3.5
-                        text-black transition-colors hover:bg-white/10
-                      "
-                    >
-                      <User size={17} strokeWidth={1.7} />
-                      <span className="text-[11px] font-medium tracking-[0.12em]">
-                        ACCOUNT
-                      </span>
-                    </Link>
-
+                  <div className="mt-1">
                     <button
                       type="button"
-                      onClick={handleLogout}
+                      aria-expanded={isMobileAccountOpen}
+                      aria-controls="mobile-account-submenu"
+                      onClick={() =>
+                        setIsMobileAccountOpen((prev) => !prev)
+                      }
                       className="
-                        flex w-full items-center gap-3 rounded-xl px-4 py-3.5
-                        text-left text-black transition-colors hover:bg-white/10
+                        flex w-full items-center justify-between
+                        rounded-xl px-4 py-3.5 text-black
+                        transition-colors hover:bg-white/10
                       "
                     >
-                      <LogOut size={17} strokeWidth={1.7} />
-                      <span className="text-[11px] font-medium tracking-[0.12em]">
-                        LOGOUT
+                      <span className="flex items-center gap-3">
+                        <User size={17} strokeWidth={1.7} />
+                        <span className="text-[11px] font-medium tracking-[0.12em]">
+                          ACCOUNT
+                        </span>
                       </span>
+
+                      <motion.span
+                        animate={{
+                          rotate: isMobileAccountOpen ? 180 : 0,
+                        }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ChevronDown size={15} strokeWidth={1.7} />
+                      </motion.span>
                     </button>
-                  </>
+
+                    <AnimatePresence initial={false}>
+                      {isMobileAccountOpen && (
+                        <motion.div
+                          id="mobile-account-submenu"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{
+                            duration: 0.22,
+                            ease: "easeInOut",
+                          }}
+                          className="overflow-hidden"
+                        >
+                          <div className="ml-5 border-l border-white/30 py-1 pl-3">
+                            <Link
+                              href={dashboardHref}
+                              onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                setIsMobileAccountOpen(false);
+                              }}
+                              className="
+                                flex items-center gap-3 rounded-xl
+                                px-4 py-3 text-black
+                                transition-colors hover:bg-white/20
+                              "
+                            >
+                              <LayoutDashboard size={15} strokeWidth={1.7} />
+                              <span className="text-[10px] font-medium tracking-[0.12em]">
+                                DASHBOARD
+                              </span>
+                            </Link>
+
+                            <Link
+                              href="/account/profile"
+                              onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                setIsMobileAccountOpen(false);
+                              }}
+                              className="
+                                flex items-center gap-3 rounded-xl
+                                px-4 py-3 text-black
+                                transition-colors hover:bg-white/20
+                              "
+                            >
+                              <User size={15} strokeWidth={1.7} />
+                              <span className="text-[10px] font-medium tracking-[0.12em]">
+                                PROFILE
+                              </span>
+                            </Link>
+
+                            <Link
+                              href={ordersHref}
+                              onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                setIsMobileAccountOpen(false);
+                              }}
+                              className="
+                                flex items-center gap-3 rounded-xl
+                                px-4 py-3 text-black
+                                transition-colors hover:bg-white/20
+                              "
+                            >
+                              <ShoppingBag size={15} strokeWidth={1.7} />
+                              <span className="text-[10px] font-medium tracking-[0.12em]">
+                                ORDERS
+                              </span>
+                            </Link>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleLogout}
+                            className="
+                              flex w-full items-center gap-3 rounded-xl
+                              px-4 py-3.5 text-left text-black
+                              transition-colors hover:bg-white/10
+                            "
+                          >
+                            <LogOut size={17} strokeWidth={1.7} />
+                            <span className="text-[11px] font-medium tracking-[0.12em]">
+                              LOGOUT
+                            </span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 ) : (
                   <button
                     type="button"
                     onClick={() => {
                       setIsMobileMenuOpen(false);
+                      setIsMobileAccountOpen(false);
                       setIsAuthModalOpen(true);
                     }}
                     className="
-                      flex w-full items-center gap-3 rounded-xl px-4 py-3.5
-                      text-left text-black transition-colors hover:bg-white/10
+                      flex w-full items-center gap-3 rounded-xl
+                      px-4 py-3.5 text-left text-black
+                      transition-colors hover:bg-white/10
                     "
                   >
                     <User size={17} strokeWidth={1.7} />

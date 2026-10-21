@@ -1,6 +1,7 @@
+
 "use client";
 
-import Image from "next/image";
+import { useMemo } from "react";
 import Link from "next/link";
 
 import type { CatalogProduct } from "../../lib/shop-v2";
@@ -16,6 +17,16 @@ export default function CollectionPage({
   products: CatalogProduct[];
 }) {
   const config = CATEGORY_CONFIG[categorySlug];
+
+  // Sort by lowest variant price without repeating the work
+  // unless the products array changes.
+  const sortedProducts = useMemo(() => {
+    return [...products].sort(
+      (a, b) =>
+        Number(a.variants?.[0]?.price || 0) -
+        Number(b.variants?.[0]?.price || 0)
+    );
+  }, [products]);
 
   if (!config) {
     return (
@@ -34,18 +45,11 @@ export default function CollectionPage({
     );
   }
 
-  // SORT PRODUCTS BY LOWEST PRICE
-  const sortedProducts = [...products].sort(
-    (a, b) =>
-      Number(a.variants?.[0]?.price || 0) -
-      Number(b.variants?.[0]?.price || 0)
-  );
-
   return (
     <div className="bg-white">
-      {/* HERO */}
-      {/* <section className="relative -mt-[56px] h-[50vh] min-h-[380px] w-full overflow-hidden md:-mt-[72px] md:h-[55vh] lg:h-[60vh] lg:min-h-[480px]">
-        
+      {/* HERO SECTION — kept commented for future use */}
+      {/*
+      <section className="relative -mt-[56px] h-[50vh] min-h-[380px] w-full overflow-hidden md:-mt-[72px] md:h-[55vh] lg:h-[60vh] lg:min-h-[480px]">
         <Image
           src={config.heroImageDesktop}
           alt={`${config.label} desktop hero`}
@@ -55,7 +59,6 @@ export default function CollectionPage({
           className="hidden object-cover object-center md:block"
         />
 
-        
         <Image
           src={config.heroImageMobile}
           alt={`${config.label} mobile hero`}
@@ -65,10 +68,8 @@ export default function CollectionPage({
           className="block object-cover object-center md:hidden"
         />
 
-        
         <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
 
-        
         <div className="absolute bottom-6 left-4 z-10 md:left-8">
           <div className="inline-flex items-center gap-2 rounded-sm border border-white/15 bg-black/20 px-4 py-2 text-xs text-white/90 backdrop-blur-md">
             <Link href="/" className="transition hover:text-white">
@@ -80,11 +81,13 @@ export default function CollectionPage({
             <span className="text-white/80">{config.label}</span>
           </div>
         </div>
-      </section> */}
+      </section>
+      */}
 
-      {/* PRODUCT COLLECTION — ALL CATEGORIES */}
+      {/* PRODUCT COLLECTION */}
       <AnnouncementBar />
-      <section className="bg-white pt-22 md:pt-25 px-4 py-5 md:px-5 lg:px-8 xl:px-10 2xl:px-14">
+
+      <section className="bg-white px-4 py-5 pt-22 md:px-5 md:pt-25 lg:px-8 xl:px-10 2xl:px-14">
         <div className="mx-auto max-w-[1800px]">
           {/* HEADER */}
           <div className="mb-5 flex flex-col gap-2 border-b border-black/10 pb-2 md:flex-row md:items-end md:justify-between">

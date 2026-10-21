@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { TouchEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -35,7 +36,7 @@ function toBullets(value: string | null | undefined): string[] {
 
   return value
     .split("\n")
-    .map((item) => item.replace(/^\*\s?/, "").trim())
+    .map((item) => item.replace(/^\s*(?:[-*•]+|\d+[.)])\s*/, "").trim())
     .filter(Boolean);
 }
 
@@ -52,15 +53,6 @@ export default function ProductDetailPage({
   const flightIdRef = useRef(0);
 
   const [flyingItem, setFlyingItem] = useState<FlyingItem | null>(null);
-
-  const images = useMemo(() => {
-    const productImages = product.images?.length
-      ? product.images.map((img) => img.image_url)
-      : [product.image];
-
-    return productImages.filter(Boolean);
-  }, [product]);
-
   const [activeIdx, setActiveIdx] = useState(0);
   const [qty, setQty] = useState(1);
   const [showSizeChart, setShowSizeChart] = useState(false);
@@ -69,47 +61,73 @@ export default function ProductDetailPage({
     product.default_variant
   );
 
+  // Derive the gallery from the current product.
+  const images = useMemo(() => {
+    const productImages = product.images?.length
+      ? product.images.map((img) => img.image_url)
+      : [product.image];
+
+    return productImages.filter(
+      (src): src is string => typeof src === "string" && src.length > 0
+    );
+  }, [product.images, product.image]);
+
+  const safeActiveIdx = Math.min(
+    Math.max(activeIdx, 0),
+    Math.max(images.length - 1, 0)
+  );
+
+  const activeImage = images[safeActiveIdx] ?? product.image;
+
   // MOBILE PHOTO SWIPE
-  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-    const touch = event.touches[0];
+  const handleTouchStart = useCallback(
+    (event: TouchEvent<HTMLDivElement>) => {
+      const touch = event.touches[0];
+      if (!touch) return;
 
-    if (!touch) return;
+      touchStartX.current = touch.clientX;
+      touchStartY.current = touch.clientY;
+    },
+    []
+  );
 
-    touchStartX.current = touch.clientX;
-    touchStartY.current = touch.clientY;
-  };
-
-  const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
-    if (touchStartX.current === null || touchStartY.current === null) {
-      return;
-    }
-
-    const touch = event.changedTouches[0];
-
-    if (!touch) return;
-
-    const deltaX = touch.clientX - touchStartX.current;
-    const deltaY = touch.clientY - touchStartY.current;
-
-    // Only handle deliberate horizontal gestures.
-    // Vertical swipes continue to scroll the page normally.
-    if (
-      Math.abs(deltaX) >= 45 &&
-      Math.abs(deltaX) > Math.abs(deltaY) * 1.2 &&
-      images.length > 1
-    ) {
-      if (deltaX < 0) {
-        setActiveIdx((current) =>
-          Math.min(current + 1, images.length - 1)
-        );
-      } else {
-        setActiveIdx((current) => Math.max(current - 1, 0));
+  const handleTouchEnd = useCallback(
+    (event: TouchEvent<HTMLDivElement>) => {
+      if (touchStartX.current === null || touchStartY.current === null) {
+        return;
       }
-    }
 
-    touchStartX.current = null;
-    touchStartY.current = null;
-  };
+      const touch = event.changedTouches[0];
+
+      if (!touch) {
+        touchStartX.current = null;
+        touchStartY.current = null;
+        return;
+      }
+
+      const deltaX = touch.clientX - touchStartX.current;
+      const deltaY = touch.clientY - touchStartY.current;
+
+      // Handle deliberate horizontal gestures without blocking vertical scroll.
+      if (
+        Math.abs(deltaX) >= 45 &&
+        Math.abs(deltaX) > Math.abs(deltaY) * 1.2 &&
+        images.length > 1
+      ) {
+        if (deltaX < 0) {
+          setActiveIdx((current) =>
+            Math.min(current + 1, images.length - 1)
+          );
+        } else {
+          setActiveIdx((current) => Math.max(current - 1, 0));
+        }
+      }
+
+      touchStartX.current = null;
+      touchStartY.current = null;
+    },
+    [images.length]
+  );
 
   const showSizeGuide =
     product.category_code === "tshirts" ||
@@ -132,31 +150,70 @@ export default function ProductDetailPage({
       ? !selectedVariant?.in_stock
       : !product.availability;
 
-  const featureList = toBullets(product.features);
-  const materialList = toBullets(product.material);
-  const careList = toBullets(product.care_guide);
+  const featureList = useMemo(
+    () => toBullets(product.features),
+    [product.features]
+  );
 
-  const variants = [...product.variants].sort(
-    (a, b) => (a.size_id ?? 999) - (b.size_id ?? 999)
+  const materialList = useMemo(
+    () => toBullets(product.material),
+    [product.material]
+  );
+
+  const careList = useMemo(
+    () => toBullets(product.care_guide),
+    [product.care_guide]
+  );
+
+  const variants = useMemo(
+    () =>
+      [...product.variants].sort(
+        (a, b) => (a.size_id ?? 999) - (b.size_id ?? 999)
+      ),
+    [product.variants]
+  );
+
+  const infoSections = useMemo(
+    () => [
+      {
+        key: "features",
+        title: "Product details",
+        items: featureList,
+        empty: "No additional product details available.",
+      },
+      {
+        key: "material",
+        title: "Material",
+        items: materialList,
+        empty: "No material information available.",
+      },
+      {
+        key: "care",
+        title: "Care instructions",
+        items: careList,
+        empty: "No care information available.",
+      },
+    ],
+    [featureList, materialList, careList]
   );
 
   // ADD TO CART + FLYING PRODUCT ANIMATION
-  const handleAddToCart = () => {
-    if (isOut) return;
+  const handleAddToCart = useCallback(() => {
+    if (isOut || qty < 1 || qty > maxQty) return;
 
     const button = addToCartButtonRef.current;
     const cartIcon = document.querySelector<HTMLElement>(
       '[data-cart-icon="true"]'
     );
 
-    // Capture the positions before updating the cart.
+    // Capture positions before updating the cart.
     if (button && cartIcon) {
       const buttonRect = button.getBoundingClientRect();
       const cartRect = cartIcon.getBoundingClientRect();
 
       setFlyingItem({
         id: ++flightIdRef.current,
-        image: images[activeIdx] ?? product.image,
+        image: activeImage,
         startX: buttonRect.left + buttonRect.width / 2,
         startY: buttonRect.top + buttonRect.height / 2,
         endX: cartRect.left + cartRect.width / 2,
@@ -170,7 +227,7 @@ export default function ProductDetailPage({
       content_name: product.name,
       content_ids: [product.id],
       content_type: "product",
-      value: Number(price),
+      value: Number(price) * qty,
       currency: "INR",
     });
 
@@ -190,35 +247,23 @@ export default function ProductDetailPage({
       },
       duration: 2500,
     });
-  };
+  }, [
+    activeImage,
+    addToCart,
+    isOut,
+    maxQty,
+    price,
+    product,
+    qty,
+    selectedVariant,
+  ]);
 
-  const handleBuyNow = () => {
-    if (isOut) return;
+  const handleBuyNow = useCallback(() => {
+    if (isOut || qty < 1 || qty > maxQty) return;
 
     addToCart(createCartItem(product, selectedVariant, qty));
     window.location.href = "/checkout";
-  };
-
-  const infoSections = [
-    {
-      key: "features",
-      title: "Product details",
-      items: featureList,
-      empty: "No additional product details available.",
-    },
-    {
-      key: "material",
-      title: "Material",
-      items: materialList,
-      empty: "No material information available.",
-    },
-    {
-      key: "care",
-      title: "Care instructions",
-      items: careList,
-      empty: "No care information available.",
-    },
-  ];
+  }, [addToCart, isOut, maxQty, product, qty, selectedVariant]);
 
   return (
     <>
@@ -271,12 +316,13 @@ export default function ProductDetailPage({
               fill
               sizes="50px"
               className="object-cover"
+              loading="eager"
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      <section className="min-h-screen w-full overflow-x-clip bg-[#eeeeee] text-black pt-15 md:pt-22">
+      <section className="min-h-screen w-full overflow-x-clip bg-[#eeeeee] pt-15 text-black md:pt-22">
         <div className="mx-auto max-w-[1800px] px-3 py-4 sm:px-5 md:px-8 lg:px-10 xl:px-14">
           {/* BREADCRUMB */}
           <nav
@@ -298,9 +344,7 @@ export default function ProductDetailPage({
 
             <span>/</span>
 
-            <span className="truncate text-black/70">
-              {product.name}
-            </span>
+            <span className="truncate text-black/70">{product.name}</span>
           </nav>
 
           {/* PRODUCT LAYOUT */}
@@ -308,13 +352,13 @@ export default function ProductDetailPage({
             {/* LEFT COLUMN: MAIN IMAGE + MOBILE THUMBNAILS */}
             <div className="min-w-0">
               <div
-                className="relative aspect-[4/5] overflow-hidden rounded-md bg-[#e8e3df] touch-pan-y select-none"
+                className="relative aspect-[4/5] touch-pan-y select-none overflow-hidden rounded-md bg-[#e8e3df]"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
-                    key={activeIdx}
+                    key={`${safeActiveIdx}-${activeImage}`}
                     initial={{ opacity: 0.6 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0.6 }}
@@ -322,10 +366,12 @@ export default function ProductDetailPage({
                     className="absolute inset-0"
                   >
                     <Image
-                      src={images[activeIdx] ?? product.image}
+                      src={activeImage}
                       alt={product.name}
                       fill
-                      priority
+                      priority={safeActiveIdx === 0}
+                      loading={safeActiveIdx === 0 ? "eager" : "lazy"}
+                      fetchPriority={safeActiveIdx === 0 ? "high" : "auto"}
                       sizes="(min-width: 1024px) 32vw, 100vw"
                       className="object-cover"
                       draggable={false}
@@ -336,7 +382,7 @@ export default function ProductDetailPage({
                 {/* MOBILE PHOTO COUNTER */}
                 {images.length > 1 && (
                   <div className="absolute bottom-3 right-3 z-10 rounded-full bg-black/55 px-3 py-1 text-[10px] text-white backdrop-blur-sm lg:hidden">
-                    {activeIdx + 1} / {images.length}
+                    {safeActiveIdx + 1} / {images.length}
                   </div>
                 )}
               </div>
@@ -349,9 +395,9 @@ export default function ProductDetailPage({
                     type="button"
                     onClick={() => setActiveIdx(i)}
                     aria-label={`View product photo ${i + 1}`}
-                    aria-pressed={activeIdx === i}
+                    aria-pressed={safeActiveIdx === i}
                     className={`relative h-[76px] w-[64px] shrink-0 overflow-hidden rounded-sm border bg-white transition sm:h-[88px] sm:w-[74px] ${
-                      activeIdx === i
+                      safeActiveIdx === i
                         ? "border-black"
                         : "border-black/10 opacity-75"
                     }`}
@@ -360,7 +406,8 @@ export default function ProductDetailPage({
                       src={src}
                       alt={`${product.name} photo ${i + 1}`}
                       fill
-                      sizes="88px"
+                      sizes="(min-width: 640px) 74px, 64px"
+                      loading="lazy"
                       className="object-cover"
                     />
                   </button>
@@ -372,37 +419,37 @@ export default function ProductDetailPage({
             <div
               ref={galleryRef}
               id="product-image-gallery"
-              className="hidden min-w-0 flex-col gap-4 lg:flex lg:h-[calc(100vh-140px)] lg:max-h-[850px] lg:min-h-[550px] lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain lg:pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="hidden min-w-0 flex-col gap-4 lg:flex lg:h-[calc(100vh-140px)] lg:max-h-[850px] lg:min-h-[550px] lg:overscroll-contain lg:overflow-x-hidden lg:overflow-y-auto lg:pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
-              {[...images.slice(1), images[0]].filter(Boolean).map((src, i) => (
-                <button
-                  key={`${src}-desktop-${i}`}
-                  type="button"
-                  onClick={() => setActiveIdx(i)}
-                  aria-label={`View product photo ${i + 1}`}
-                  aria-pressed={activeIdx === i}
-                  // className={`relative block aspect-[4/5] w-full shrink-0 overflow-hidden rounded-md bg-[#e8e3df] transition ${
-                  //   activeIdx === i
-                  //     ? "ring-1 ring-black/40"
-                  //     : "hover:opacity-90"
-                  // }`}
-                  className="relative block aspect-[4/5] w-full shrink-0 overflow-hidden rounded-md bg-[#e8e3df] transition hover:opacity-90"
-                >
-                  <Image
-                    src={src}
-                    alt={`${product.name} photo ${i + 1}`}
-                    fill
-                    sizes="(min-width: 1024px) 32vw, 100vw"
-                    className="object-cover"
-                  />
-                </button>
-              ))}
+              {images.slice(1).map((src, index) => {
+                const i = index + 1;
+
+                return (
+                  <button
+                    key={`${src}-desktop-${i}`}
+                    type="button"
+                    onClick={() => setActiveIdx(i)}
+                    aria-label={`View product photo ${i + 1}`}
+                    aria-pressed={safeActiveIdx === i}
+                    className="relative block aspect-[4/5] w-full shrink-0 overflow-hidden rounded-md bg-[#e8e3df] transition hover:opacity-90"
+                  >
+                    <Image
+                      src={src}
+                      alt={`${product.name} photo ${i + 1}`}
+                      fill
+                      sizes="(min-width: 1280px) 28vw, (min-width: 1024px) 32vw, 100vw"
+                      loading="lazy"
+                      className="object-cover"
+                    />
+                  </button>
+                  );
+                })}
             </div>
 
             {/* RIGHT COLUMN: PRODUCT DETAILS */}
             <div className="min-w-0 lg:sticky lg:top-6">
               {/* PRODUCT NAME + PRICE — LIQUID GLASS */}
-              <div className="group/info relative isolate overflow-hidden rounded-[15px] border border-white/60 bg-white/[0.38] px-[13px] py-[12px] backdrop-blur-xl backdrop-saturate-150 shadow-[0_4px_16px_rgba(30,50,65,0.06),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(255,255,255,0.25)] transition-all duration-300 ease-out hover:bg-white/[0.46]">
+              <div className="group/info relative isolate overflow-hidden rounded-[15px] border border-white/60 bg-white/[0.38] px-[13px] py-[12px] shadow-[0_4px_16px_rgba(30,50,65,0.06),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(255,255,255,0.25)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 ease-out hover:bg-white/[0.46]">
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] bg-gradient-to-br from-white/65 via-white/10 to-sky-100/20"
@@ -529,7 +576,7 @@ export default function ProductDetailPage({
               {/* QUANTITY + PURCHASE BUTTONS */}
               <div className="mt-4 grid grid-cols-[110px_minmax(0,1fr)_98px] items-center gap-2">
                 {/* QUANTITY CONTROL */}
-                <div className="relative isolate flex h-11 items-center justify-between overflow-hidden rounded-full border border-white/70 bg-white/[0.38] px-2 backdrop-blur-xl backdrop-saturate-150 shadow-[0_4px_16px_rgba(30,50,65,0.05),inset_0_1px_1px_rgba(255,255,255,0.95),inset_0_-1px_1px_rgba(255,255,255,0.2)]">
+                <div className="relative isolate flex h-11 items-center justify-between overflow-hidden rounded-full border border-white/70 bg-white/[0.38] px-2 shadow-[0_4px_16px_rgba(30,50,65,0.05),inset_0_1px_1px_rgba(255,255,255,0.95),inset_0_-1px_1px_rgba(255,255,255,0.2)] backdrop-blur-xl backdrop-saturate-150">
                   <div
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] bg-gradient-to-br from-white/65 via-white/10 to-sky-100/20"
@@ -571,8 +618,8 @@ export default function ProductDetailPage({
                   type="button"
                   whileTap={{ scale: 0.97 }}
                   onClick={handleAddToCart}
-                  disabled={isOut}
-                  className="relative isolate flex h-11 min-w-0 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-white/[0.42] px-2 text-[11px] font-medium text-black backdrop-blur-xl backdrop-saturate-150 shadow-[0_4px_16px_rgba(30,50,65,0.06),inset_0_1px_1px_rgba(255,255,255,0.95),inset_0_-1px_1px_rgba(255,255,255,0.2)] transition-all duration-300 ease-out hover:border-white/90 hover:bg-white/[0.68] hover:shadow-[0_6px_20px_rgba(30,50,65,0.08),inset_0_1px_1px_rgba(255,255,255,1)] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                  disabled={isOut || maxQty < 1}
+                  className="relative isolate flex h-11 min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-white/70 bg-white/[0.42] px-2 text-[11px] font-medium text-black shadow-[0_4px_16px_rgba(30,50,65,0.06),inset_0_1px_1px_rgba(255,255,255,0.95),inset_0_-1px_1px_rgba(255,255,255,0.2)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 ease-out hover:border-white/90 hover:bg-white/[0.68] hover:shadow-[0_6px_20px_rgba(30,50,65,0.08),inset_0_1px_1px_rgba(255,255,255,1)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <span
                     aria-hidden="true"
@@ -599,8 +646,8 @@ export default function ProductDetailPage({
                   type="button"
                   whileTap={{ scale: 0.97 }}
                   onClick={handleBuyNow}
-                  disabled={isOut}
-                  className="flex h-11 items-center justify-center rounded-full bg-black px-2 text-[11px] font-medium text-white transition-colors duration-200 hover:bg-[#CE0028] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                  disabled={isOut || maxQty < 1}
+                  className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-black px-2 text-[11px] font-medium text-white transition-colors duration-200 hover:bg-[#CE0028] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Buy Now
                 </motion.button>
@@ -609,7 +656,11 @@ export default function ProductDetailPage({
               {/* DELIVERY BENEFITS */}
               <div className="mt-5 space-y-4 px-0.5">
                 <div className="flex items-center gap-3 text-[#555]">
-                  <Truck size={19} strokeWidth={1.8} className="shrink-0" />
+                  <Truck
+                    size={19}
+                    strokeWidth={1.8}
+                    className="shrink-0"
+                  />
                   <span className="text-[12px]">Fast Shipping</span>
                 </div>
 
@@ -691,7 +742,9 @@ export default function ProductDetailPage({
                         }
                         aria-expanded={isOpen}
                         className={`flex w-full items-center justify-between gap-3 px-3.5 py-3.5 text-left transition-colors duration-300 ${
-                          isOpen ? "bg-white/[0.18]" : "hover:bg-white/[0.25]"
+                          isOpen
+                            ? "bg-white/[0.18]"
+                            : "hover:bg-white/[0.25]"
                         }`}
                       >
                         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-black">
@@ -700,7 +753,10 @@ export default function ProductDetailPage({
 
                         <motion.span
                           animate={{ rotate: isOpen ? 180 : 0 }}
-                          transition={{ duration: 0.25, ease: "easeInOut" }}
+                          transition={{
+                            duration: 0.25,
+                            ease: "easeInOut",
+                          }}
                           className="flex shrink-0 items-center justify-center text-black/65"
                         >
                           <ChevronDown size={15} strokeWidth={1.7} />
@@ -825,6 +881,8 @@ export default function ProductDetailPage({
                   alt="BLTDIF T-shirt size guide"
                   width={2048}
                   height={577}
+                  loading="lazy"
+                  sizes="(min-width: 768px) 90vw, 100vw"
                   className="hidden h-auto w-full object-contain md:block"
                 />
 
@@ -833,6 +891,8 @@ export default function ProductDetailPage({
                   alt="BLTDIF mobile T-shirt size guide"
                   width={1120}
                   height={1372}
+                  loading="lazy"
+                  sizes="(min-width: 768px) 90vw, 100vw"
                   className="block h-auto w-full object-contain md:hidden"
                 />
 
