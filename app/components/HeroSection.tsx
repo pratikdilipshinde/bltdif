@@ -1,26 +1,58 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // =====================================================
-// HERO VIDEO SOURCES
+// HERO SOURCES
 // =====================================================
+
+const DESKTOP_IMAGE = "/images/DiwaliOffer-banner-laptop.jpg";
+const MOBILE_IMAGE = "/images/DiwaliOffer-banner-mobile.jpg";
 
 const DESKTOP_VIDEO = "/images/video.mp4";
 const MOBILE_VIDEO = "/images/video-mobile.mp4";
+
 const MOBILE_QUERY = "(max-width: 767px)";
 
+const SLIDE_DURATION = 20000;
+
 export default function HeroSection() {
+  const [activeSlide, setActiveSlide] = useState(0);
   const [isHeroVisible, setIsHeroVisible] = useState(false);
   const [isAudioBlocked, setIsAudioBlocked] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const desktopVideoRef = useRef<HTMLVideoElement | null>(null);
   const mobileVideoRef = useRef<HTMLVideoElement | null>(null);
   const heroRef = useRef<HTMLElement | null>(null);
 
+  const isVideoSlide = activeSlide === 1;
+
   // =====================================================
-  // DETECT WHEN THE HERO IS VISIBLE
+  // DETECT SCREEN SIZE
+  // =====================================================
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(MOBILE_QUERY);
+
+    const updateScreenSize = () => {
+      setIsMobile(mediaQuery.matches);
+    };
+
+    updateScreenSize();
+
+    mediaQuery.addEventListener("change", updateScreenSize);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateScreenSize);
+    };
+  }, []);
+
+  // =====================================================
+  // DETECT WHEN HERO IS VISIBLE
   // =====================================================
 
   useEffect(() => {
@@ -42,7 +74,37 @@ export default function HeroSection() {
   }, []);
 
   // =====================================================
-  // LOAD ONLY THE VIDEO FOR THE CURRENT SCREEN SIZE
+  // CAROUSEL AUTOPLAY
+  // =====================================================
+
+  useEffect(() => {
+    if (!isHeroVisible) return;
+
+    const interval = window.setInterval(() => {
+      setActiveSlide((current) => (current === 0 ? 1 : 0));
+    }, SLIDE_DURATION);
+
+    return () => window.clearInterval(interval);
+  }, [isHeroVisible]);
+
+  // =====================================================
+  // CAROUSEL NAVIGATION
+  // =====================================================
+
+  const goToSlide = useCallback((slide: number) => {
+    setActiveSlide(slide);
+  }, []);
+
+  const nextSlide = useCallback(() => {
+    setActiveSlide((current) => (current === 0 ? 1 : 0));
+  }, []);
+
+  const previousSlide = useCallback(() => {
+    setActiveSlide((current) => (current === 0 ? 1 : 0));
+  }, []);
+
+  // =====================================================
+  // LOAD VIDEO ONLY WHEN VIDEO SLIDE IS ACTIVE
   // =====================================================
 
   useEffect(() => {
@@ -54,36 +116,50 @@ export default function HeroSection() {
     const mediaQuery = window.matchMedia(MOBILE_QUERY);
 
     let cancelled = false;
+    let activeVideo: HTMLVideoElement | null = null;
+
+    const unloadVideos = () => {
+      desktopVideo.pause();
+      mobileVideo.pause();
+
+      desktopVideo.removeAttribute("src");
+      mobileVideo.removeAttribute("src");
+
+      desktopVideo.load();
+      mobileVideo.load();
+    };
 
     const updateVideo = () => {
-      const isMobile = mediaQuery.matches;
+      if (!isVideoSlide || !isHeroVisible) {
+        unloadVideos();
+        return;
+      }
 
-      const activeVideo = isMobile ? mobileVideo : desktopVideo;
-      const inactiveVideo = isMobile ? desktopVideo : mobileVideo;
-      const activeSource = isMobile ? MOBILE_VIDEO : DESKTOP_VIDEO;
+      const mobile = mediaQuery.matches;
 
-      // Stop and unload the video that doesn't match the viewport.
+      activeVideo = mobile ? mobileVideo : desktopVideo;
+
+      const inactiveVideo = mobile ? desktopVideo : mobileVideo;
+
+      const activeSource = mobile
+        ? MOBILE_VIDEO
+        : DESKTOP_VIDEO;
+
       inactiveVideo.pause();
       inactiveVideo.removeAttribute("src");
       inactiveVideo.load();
 
-      // Load the correct video only when needed.
       if (activeVideo.getAttribute("src") !== activeSource) {
         activeVideo.pause();
         activeVideo.src = activeSource;
         activeVideo.load();
+
         setIsVideoReady(false);
         setIsAudioBlocked(false);
       }
 
-      // Don't play the video while the hero is offscreen.
-      if (!isHeroVisible) {
-        activeVideo.pause();
-        return;
-      }
-
       const tryPlayback = async () => {
-        if (cancelled || !activeVideo.isConnected) return;
+        if (cancelled || !activeVideo?.isConnected) return;
 
         try {
           activeVideo.muted = false;
@@ -120,12 +196,11 @@ export default function HeroSection() {
 
         console.error(
           `Hero video failed to load: ${
-            activeVideo.currentSrc || activeVideo.src
+            activeVideo?.currentSrc || activeVideo?.src
           }`
         );
       };
 
-      // Avoid attaching duplicate listeners.
       activeVideo.removeEventListener("canplay", handleCanPlay);
       activeVideo.removeEventListener("error", handleError);
 
@@ -141,36 +216,37 @@ export default function HeroSection() {
 
     updateVideo();
 
-    // Handle resizing or rotating the device.
     mediaQuery.addEventListener("change", updateVideo);
 
     return () => {
       cancelled = true;
+
       mediaQuery.removeEventListener("change", updateVideo);
 
       desktopVideo.pause();
       mobileVideo.pause();
     };
-  }, [isHeroVisible]);
+  }, [isVideoSlide, isHeroVisible]);
 
   // =====================================================
-  // ENABLE VIDEO SOUND AFTER USER INTERACTION
+  // ENABLE VIDEO SOUND
   // =====================================================
 
   const enableSound = async () => {
-    const isMobile = window.matchMedia(MOBILE_QUERY).matches;
+    const mobile = window.matchMedia(MOBILE_QUERY).matches;
 
-    const video = isMobile
+    const video = mobile
       ? mobileVideoRef.current
       : desktopVideoRef.current;
 
-    if (!video) return;
+    if (!video || !isVideoSlide) return;
 
     try {
       video.muted = false;
       video.volume = 1;
 
       await video.play();
+
       setIsAudioBlocked(false);
     } catch (error) {
       console.error("Could not enable hero video sound:", error);
@@ -189,13 +265,19 @@ export default function HeroSection() {
     };
   }, []);
 
+  // =====================================================
+  // RENDER
+  // =====================================================
+
   return (
     <section
       ref={heroRef}
+      aria-roledescription="carousel"
+      aria-label="BLTDIF hero carousel"
       className="
-        relative w-full overflow-hidden bg-black
+        relative isolate w-full overflow-hidden bg-black
 
-        h-[80dvh]
+        h-[90dvh]
         min-h-[500px]
         max-h-[900px]
 
@@ -204,56 +286,183 @@ export default function HeroSection() {
         md:max-h-none
       "
     >
-      {/* DESKTOP VIDEO — FULL VIEWPORT HEIGHT */}
+      {/* ============================================= */}
+      {/* SLIDE 1 — RESPONSIVE IMAGE */}
+      {/* ============================================= */}
 
-      <video
-        ref={desktopVideoRef}
-        autoPlay
-        playsInline
-        loop
-        preload="none"
-        muted
-        controls={false}
-        disablePictureInPicture
-        aria-label="BLTDIF desktop hero video"
-        className="
-          absolute inset-0 hidden h-full w-full
-          select-none object-cover object-center
-          pointer-events-none md:block
-        "
-      />
+      <div
+        aria-hidden={activeSlide !== 0}
+        className={`
+          absolute inset-0 transition-opacity duration-1000 ease-in-out
+          ${
+            activeSlide === 0
+              ? "z-10 opacity-100"
+              : "pointer-events-none z-0 opacity-0"
+          }
+        `}
+      >
+        {/* DESKTOP IMAGE */}
 
-      {/* MOBILE VIDEO — 80% VIEWPORT HEIGHT */}
-
-      <video
-        ref={mobileVideoRef}
-        autoPlay
-        playsInline
-        loop
-        preload="none"
-        muted
-        controls={false}
-        disablePictureInPicture
-        aria-label="BLTDIF mobile hero video"
-        className="
-          absolute inset-0 block h-full w-full
-          select-none object-cover object-center
-          pointer-events-none md:hidden
-        "
-      />
-
-      {/* LOADING BACKGROUND */}
-
-      {!isVideoReady && (
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-black"
+        <Image
+          src={DESKTOP_IMAGE}
+          alt="BLTDIF collection"
+          fill
+          priority
+          sizes="100vw"
+          quality={85}
+          className="hidden object-cover object-center md:block"
         />
-      )}
 
-      {/* ENABLE SOUND */}
+        {/* MOBILE IMAGE */}
 
-      {isAudioBlocked && isHeroVisible && (
+        <Image
+          src={MOBILE_IMAGE}
+          alt="BLTDIF collection"
+          fill
+          priority
+          sizes="100vw"
+          quality={85}
+          className="block object-cover object-center md:hidden"
+        />
+      </div>
+
+      {/* ============================================= */}
+      {/* SLIDE 2 — RESPONSIVE VIDEO */}
+      {/* ============================================= */}
+
+      <div
+        aria-hidden={!isVideoSlide}
+        className={`
+          absolute inset-0 transition-opacity duration-1000 ease-in-out
+          ${
+            isVideoSlide
+              ? "z-10 opacity-100"
+              : "pointer-events-none z-0 opacity-0"
+          }
+        `}
+      >
+        {/* DESKTOP VIDEO */}
+
+        <video
+          ref={desktopVideoRef}
+          playsInline
+          loop
+          preload="none"
+          muted
+          controls={false}
+          disablePictureInPicture
+          aria-label="BLTDIF desktop hero video"
+          className="
+            absolute inset-0 hidden h-full w-full
+            select-none object-cover object-center
+            pointer-events-none md:block
+          "
+        />
+
+        {/* MOBILE VIDEO */}
+
+        <video
+          ref={mobileVideoRef}
+          playsInline
+          loop
+          preload="none"
+          muted
+          controls={false}
+          disablePictureInPicture
+          aria-label="BLTDIF mobile hero video"
+          className="
+            absolute inset-0 block h-full w-full
+            select-none object-cover object-center
+            pointer-events-none md:hidden
+          "
+        />
+
+        {/* VIDEO LOADING BACKGROUND */}
+
+        {!isVideoReady && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-black"
+          />
+        )}
+      </div>
+
+      {/* ============================================= */}
+      {/* PREVIOUS BUTTON */}
+      {/* ============================================= */}
+
+      <button
+        type="button"
+        onClick={previousSlide}
+        aria-label="Previous slide"
+        className="
+          absolute left-4 top-1/2 z-30
+          -translate-y-1/2
+          flex h-10 w-10 items-center justify-center
+          rounded-full border border-white/30
+          bg-black/25 text-white backdrop-blur-xl
+          transition hover:bg-black/50
+          sm:left-6 sm:h-12 sm:w-12
+        "
+      >
+        <ChevronLeft size={23} />
+      </button>
+
+      {/* ============================================= */}
+      {/* NEXT BUTTON */}
+      {/* ============================================= */}
+
+      <button
+        type="button"
+        onClick={nextSlide}
+        aria-label="Next slide"
+        className="
+          absolute right-4 top-1/2 z-30
+          -translate-y-1/2
+          flex h-10 w-10 items-center justify-center
+          rounded-full border border-white/30
+          bg-black/25 text-white backdrop-blur-xl
+          transition hover:bg-black/50
+          sm:right-6 sm:h-12 sm:w-12
+        "
+      >
+        <ChevronRight size={23} />
+      </button>
+
+      {/* ============================================= */}
+      {/* SLIDE INDICATORS */}
+      {/* ============================================= */}
+
+      <div
+        className="
+          absolute bottom-6 left-1/2 z-30
+          flex -translate-x-1/2 items-center gap-2
+        "
+      >
+        {[0, 1].map((slide) => (
+          <button
+            key={slide}
+            type="button"
+            onClick={() => goToSlide(slide)}
+            aria-label={`Go to slide ${slide + 1}`}
+            aria-current={activeSlide === slide ? "true" : undefined}
+            className={`
+              h-1 rounded-full transition-all duration-500
+              ${
+                activeSlide === slide
+                  ? "w-9 bg-white"
+                  : "w-4 bg-white/50 hover:bg-white/80"
+              }
+            `}
+          />
+        ))}
+      </div>
+
+      {/* ============================================= */}
+      {/* ENABLE VIDEO SOUND */}
+      {/* ============================================= */}
+
+      {isAudioBlocked && isVideoSlide && isHeroVisible && (
         <button
           type="button"
           onClick={enableSound}
@@ -270,13 +479,6 @@ export default function HeroSection() {
           Enable video sound
         </button>
       )}
-
-      {/* IMAGE CAROUSEL — RESERVED FOR FUTURE USE */}
-
-      {/*
-        Keep your previous carousel implementation here
-        if you want to restore it in the future.
-      */}
     </section>
   );
 }

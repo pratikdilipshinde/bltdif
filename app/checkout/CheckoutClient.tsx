@@ -1,9 +1,9 @@
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { FaCircleInfo } from "react-icons/fa6";
 
 import { useCart } from "@/app/context/CartContext";
@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../components/ui/popover";
+
 import AnnouncementBar from "../components/AnnouncementBar";
 
 declare global {
@@ -48,6 +49,8 @@ type SavedUserProfile = {
   country: string;
 };
 
+type AppliedOffer = "COMPLETE_LOOK_15" | "PICK_ANY_2_10" | "NONE";
+
 const glassPanel =
   "border border-white/75 bg-white/[0.48] shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_10px_35px_rgba(0,0,0,0.055)] backdrop-blur-2xl";
 
@@ -56,7 +59,15 @@ const glassInput =
 
 export default function CheckoutClient() {
   const router = useRouter();
-  const { cartItems, cartTotal, clearCart } = useCart();
+
+  const {
+    cartItems,
+    cartTotal,
+    clearCart,
+    bundleDiscount,
+    combinationOffer,
+  } = useCart();
+
   const { user } = useAuth();
 
   const [form, setForm] = useState<CheckoutForm>({
@@ -75,14 +86,61 @@ export default function CheckoutClient() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [appliedOffer, setAppliedOffer] = useState<AppliedOffer>("NONE");
+
   const totalItems = useMemo(
     () => cartItems.reduce((sum, item) => sum + item.quantity, 0),
     [cartItems]
   );
 
+  // =====================================================
+  // OFFER DETAILS
+  // =====================================================
+
+  const {
+    completeLookCount,
+    completeLookDiscount,
+    pickAny2Count,
+    pickAny2Discount,
+  } = combinationOffer;
+
+  const hasCompleteLook = completeLookCount > 0;
+  const hasPickAny2 = !hasCompleteLook && pickAny2Count > 0;
+
+  const activeOffer: AppliedOffer = hasCompleteLook
+    ? "COMPLETE_LOOK_15"
+    : hasPickAny2
+      ? "PICK_ANY_2_10"
+      : "NONE";
+
+  const activeOfferDiscount = hasCompleteLook
+    ? completeLookDiscount
+    : hasPickAny2
+      ? pickAny2Discount
+      : 0;
+
+  const activeOfferCount = hasCompleteLook
+    ? completeLookCount
+    : hasPickAny2
+      ? pickAny2Count
+      : 0;
+
+  // =====================================================
+  // PRICING PREVIEW
+  // =====================================================
+
   const gstRate = 0.05;
-  const gstAmount = cartTotal * gstRate;
-  const finalTotal = cartTotal + gstAmount;
+
+  const discountedSubtotal = Math.max(0, cartTotal - bundleDiscount);
+
+  // Match backend currency rounding.
+  const gstAmount = Math.round(discountedSubtotal * gstRate * 100) / 100;
+
+  const finalTotal = discountedSubtotal + gstAmount;
+
+  // =====================================================
+  // LOAD AUTH USER DETAILS
+  // =====================================================
 
   useEffect(() => {
     if (user) {
@@ -95,6 +153,10 @@ export default function CheckoutClient() {
       }));
     }
   }, [user]);
+
+  // =====================================================
+  // LOAD SAVED PROFILE
+  // =====================================================
 
   useEffect(() => {
     const loadSavedProfile = async () => {
@@ -149,11 +211,19 @@ export default function CheckoutClient() {
     loadSavedProfile();
   }, [user]);
 
+  // =====================================================
+  // PRELOAD RAZORPAY
+  // =====================================================
+
   useEffect(() => {
     loadRazorpayWithRetry(2, 1000).catch(() => {
       // Silent prewarm only.
     });
   }, []);
+
+  // =====================================================
+  // FORM HANDLING
+  // =====================================================
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -178,6 +248,10 @@ export default function CheckoutClient() {
     return "";
   };
 
+  // =====================================================
+  // CHECKOUT
+  // =====================================================
+
   const handleCheckout = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -195,6 +269,7 @@ export default function CheckoutClient() {
     try {
       setLoading(true);
 
+      // Create order using trusted server-side prices and discounts.
       const createOrderRes = await fetch("/api/checkout/create-order", {
         method: "POST",
         headers: {
@@ -228,6 +303,16 @@ export default function CheckoutClient() {
         );
       }
 
+      // Keep the backend's offer selection as the authoritative result.
+      if (
+        createOrderData.appliedOffer === "COMPLETE_LOOK_15" ||
+        createOrderData.appliedOffer === "PICK_ANY_2_10" ||
+        createOrderData.appliedOffer === "NONE"
+      ) {
+        setAppliedOffer(createOrderData.appliedOffer);
+      }
+
+      // Load Razorpay.
       const sdkLoaded = await loadRazorpayWithRetry(3, 1500);
 
       if (!sdkLoaded || !window.Razorpay) {
@@ -338,299 +423,354 @@ export default function CheckoutClient() {
     }
   };
 
+  // =====================================================
+  // EMPTY CART
+  // =====================================================
+
   if (!cartItems.length) {
     return (
-        <>
+      <>
         <AnnouncementBar />
-      <section className="relative min-h-[50vh] overflow-hidden bg-[#f3f2ef] px-4 py-10 pt-15 md:pt-20">
-        <div className="pointer-events-none absolute -left-20 top-0 h-64 w-64 rounded-full bg-white/80 blur-[90px]" />
-        <div className="pointer-events-none absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-[#CE0028]/[0.05] blur-[90px]" />
 
-        <div
-          className={`relative mx-auto max-w-5xl rounded-[26px] p-8 text-center md:p-12 ${glassPanel}`}
-        >
-          <h1 className="text-2xl font-semibold text-black">
-            Your cart is empty
-          </h1>
+        <section className="relative min-h-[50vh] overflow-hidden bg-[#f3f2ef] px-4 py-10 pt-15 md:pt-20">
+          <div className="pointer-events-none absolute -left-20 top-0 h-64 w-64 rounded-full bg-white/80 blur-[90px]" />
 
-          <p className="mt-3 text-black/60">
-            Add products to your cart before checkout.
-          </p>
+          <div className="pointer-events-none absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-[#CE0028]/[0.05] blur-[90px]" />
 
-          <button
-            type="button"
-            onClick={() => router.push("/cart")}
-            className="mt-6 rounded-2xl bg-black px-6 py-3 text-sm font-semibold text-white shadow-lg transition duration-300 hover:bg-[#CE0028] active:scale-[0.98]"
+          <div
+            className={`relative mx-auto max-w-5xl rounded-[26px] p-8 text-center md:p-12 ${glassPanel}`}
           >
-            Go to cart
-          </button>
-        </div>
-      </section>
+            <h1 className="text-2xl font-semibold text-black">
+              Your cart is empty
+            </h1>
+
+            <p className="mt-3 text-black/60">
+              Add products to your cart before checkout.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => router.push("/cart")}
+              className="mt-6 rounded-2xl bg-black px-6 py-3 text-sm font-semibold text-white shadow-lg transition duration-300 hover:bg-[#CE0028] active:scale-[0.98]"
+            >
+              Go to cart
+            </button>
+          </div>
+        </section>
       </>
     );
   }
 
+  // =====================================================
+  // CHECKOUT UI
+  // =====================================================
+
   return (
     <>
-    <AnnouncementBar />
-    <section className="relative overflow-hidden bg-[#f3f2ef] pt-15 md:pt-20">
-      {/* Soft ambient background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-[25rem] h-96 w-96 rounded-full bg-white/90 blur-[120px]" />
-        <div className="absolute -right-40 top-[40rem] h-[30rem] w-[30rem] rounded-full bg-[#CE0028]/[0.045] blur-[130px]" />
-        <div className="absolute left-1/3 bottom-0 h-80 w-80 rounded-full bg-white/70 blur-[110px]" />
-      </div>
+      <AnnouncementBar />
 
-      {/* <div className="relative -mt-[56px] h-[240px] w-full overflow-hidden md:-mt-[72px] md:h-[320px]">
-        <Image
-          src="/images/PAYMENT-CHECKOUT-bg.jpg"
-          alt="Checkout Banner"
-          fill
-          priority
-          className="object-cover"
-        />
+      <section className="relative overflow-hidden bg-[#f3f2ef] pt-15 md:pt-20">
+        {/* Ambient background */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-40 top-[25rem] h-96 w-96 rounded-full bg-white/90 blur-[120px]" />
 
-        <div className="absolute inset-0 bg-black/[0.08]" />
-      </div> */}
+          <div className="absolute -right-40 top-[40rem] h-[30rem] w-[30rem] rounded-full bg-[#CE0028]/[0.045] blur-[130px]" />
 
-      <div className="relative z-10 px-4 py-8 md:py-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8">
-            <p className="text-xs uppercase tracking-[0.25em] text-black/45">
-              Checkout
-            </p>
+          <div className="absolute left-1/3 bottom-0 h-80 w-80 rounded-full bg-white/70 blur-[110px]" />
+        </div>
 
-            <h1 className="mt-2 text-3xl font-semibold text-black md:text-4xl">
-              Shipping &amp; Payment
-            </h1>
-          </div>
+        <div className="relative z-10 px-4 py-8 md:py-10">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-8">
+              <p className="text-xs uppercase tracking-[0.25em] text-black/45">
+                Checkout
+              </p>
 
-          <div className="grid gap-8 lg:grid-cols-[1.4fr_0.9fr]">
-            <form
-              onSubmit={handleCheckout}
-              className={`relative overflow-hidden rounded-[24px] p-5 md:rounded-[28px] md:p-7 ${glassPanel}`}
-            >
-              {/* Gloss highlight */}
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white" />
+              <h1 className="mt-2 text-3xl font-semibold text-black md:text-4xl">
+                Shipping &amp; Payment
+              </h1>
+            </div>
 
-              <div className="flex items-start justify-between gap-4">
+            <div className="grid gap-8 lg:grid-cols-[1.4fr_0.9fr]">
+              {/* DELIVERY FORM */}
+              <form
+                onSubmit={handleCheckout}
+                className={`relative overflow-hidden rounded-[24px] p-5 md:rounded-[28px] md:p-7 ${glassPanel}`}
+              >
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white" />
+
+                <div className="flex items-start justify-between gap-4">
+                  <h2 className="text-lg font-semibold text-black">
+                    Delivery details
+                  </h2>
+
+                  {profileLoading && (
+                    <span className="text-xs font-medium text-black/45">
+                      Loading saved info...
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <input
+                    name="fullName"
+                    value={form.fullName}
+                    onChange={handleChange}
+                    placeholder="Full name"
+                    autoComplete="name"
+                    className={glassInput}
+                  />
+
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="Email"
+                    autoComplete="email"
+                    className={glassInput}
+                  />
+
+                  <input
+                    name="phone"
+                    type="tel"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="Phone number"
+                    autoComplete="tel"
+                    className={glassInput}
+                  />
+
+                  <input
+                    name="postalCode"
+                    value={form.postalCode}
+                    onChange={handleChange}
+                    placeholder="Postal code"
+                    autoComplete="postal-code"
+                    className={glassInput}
+                  />
+                </div>
+
+                <div className="mt-4 grid gap-4">
+                  <input
+                    name="addressLine1"
+                    value={form.addressLine1}
+                    onChange={handleChange}
+                    placeholder="Address line 1"
+                    autoComplete="address-line1"
+                    className={glassInput}
+                  />
+
+                  <input
+                    name="addressLine2"
+                    value={form.addressLine2}
+                    onChange={handleChange}
+                    placeholder="Address line 2 (optional)"
+                    autoComplete="address-line2"
+                    className={glassInput}
+                  />
+                </div>
+
+                <div className="mt-4 grid gap-4 md:grid-cols-3">
+                  <input
+                    name="city"
+                    value={form.city}
+                    onChange={handleChange}
+                    placeholder="City"
+                    autoComplete="address-level2"
+                    className={glassInput}
+                  />
+
+                  <input
+                    name="state"
+                    value={form.state}
+                    onChange={handleChange}
+                    placeholder="State"
+                    autoComplete="address-level1"
+                    className={glassInput}
+                  />
+
+                  <input
+                    name="country"
+                    value={form.country}
+                    onChange={handleChange}
+                    placeholder="Country"
+                    autoComplete="country-name"
+                    className={glassInput}
+                  />
+                </div>
+
+                {error && (
+                  <p
+                    role="alert"
+                    className="mt-4 rounded-2xl border border-[#CE0028]/15 bg-[#CE0028]/[0.06] px-4 py-3 text-sm font-medium text-[#CE0028] backdrop-blur-xl"
+                  >
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-6 w-full cursor-pointer rounded-2xl bg-black px-6 py-3.5 text-sm font-semibold text-white shadow-[0_6px_20px_rgba(0,0,0,0.15)] transition-all duration-300 hover:bg-[#CE0028] hover:shadow-[0_8px_24px_rgba(206,0,40,0.2)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading
+                    ? "Preparing secure payment..."
+                    : `Pay ₹${finalTotal.toFixed(2)} with Razorpay`}
+                </button>
+              </form>
+
+              {/* ORDER SUMMARY */}
+              <aside
+                className={`relative h-fit overflow-hidden rounded-[24px] p-5 md:rounded-[28px] md:p-7 lg:sticky lg:top-24 ${glassPanel}`}
+              >
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white" />
+
                 <h2 className="text-lg font-semibold text-black">
-                  Delivery details
+                  Order summary
                 </h2>
 
-                {profileLoading ? (
-                  <span className="text-xs font-medium text-black/45">
-                    Loading saved info...
-                  </span>
-                ) : null}
-              </div>
+                {/* PRODUCTS */}
+                <div className="mt-5 space-y-4">
+                  {cartItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-start justify-between gap-4 border-b border-white/80 pb-4"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-black">
+                          {item.name}
+                        </p>
 
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <input
-                  name="fullName"
-                  value={form.fullName}
-                  onChange={handleChange}
-                  placeholder="Full name"
-                  autoComplete="name"
-                  className={glassInput}
-                />
+                        <p className="mt-1 text-xs text-black/55">
+                          Qty: {item.quantity}
+                        </p>
+                      </div>
 
-                <input
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="Email"
-                  autoComplete="email"
-                  className={glassInput}
-                />
-
-                <input
-                  name="phone"
-                  type="tel"
-                  value={form.phone}
-                  onChange={handleChange}
-                  placeholder="Phone number"
-                  autoComplete="tel"
-                  className={glassInput}
-                />
-
-                <input
-                  name="postalCode"
-                  value={form.postalCode}
-                  onChange={handleChange}
-                  placeholder="Postal code"
-                  autoComplete="postal-code"
-                  className={glassInput}
-                />
-              </div>
-
-              <div className="mt-4 grid gap-4">
-                <input
-                  name="addressLine1"
-                  value={form.addressLine1}
-                  onChange={handleChange}
-                  placeholder="Address line 1"
-                  autoComplete="address-line1"
-                  className={glassInput}
-                />
-
-                <input
-                  name="addressLine2"
-                  value={form.addressLine2}
-                  onChange={handleChange}
-                  placeholder="Address line 2 (optional)"
-                  autoComplete="address-line2"
-                  className={glassInput}
-                />
-              </div>
-
-              <div className="mt-4 grid gap-4 md:grid-cols-3">
-                <input
-                  name="city"
-                  value={form.city}
-                  onChange={handleChange}
-                  placeholder="City"
-                  autoComplete="address-level2"
-                  className={glassInput}
-                />
-
-                <input
-                  name="state"
-                  value={form.state}
-                  onChange={handleChange}
-                  placeholder="State"
-                  autoComplete="address-level1"
-                  className={glassInput}
-                />
-
-                <input
-                  name="country"
-                  value={form.country}
-                  onChange={handleChange}
-                  placeholder="Country"
-                  autoComplete="country-name"
-                  className={glassInput}
-                />
-              </div>
-
-              {error ? (
-                <p
-                  role="alert"
-                  className="mt-4 rounded-2xl border border-[#CE0028]/15 bg-[#CE0028]/[0.06] px-4 py-3 text-sm font-medium text-[#CE0028] backdrop-blur-xl"
-                >
-                  {error}
-                </p>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="mt-6 cursor-pointer w-full rounded-2xl bg-black px-6 py-3.5 text-sm font-semibold text-white shadow-[0_6px_20px_rgba(0,0,0,0.15)] transition-all duration-300 hover:bg-[#CE0028] hover:shadow-[0_8px_24px_rgba(206,0,40,0.2)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading
-                  ? "Preparing secure payment..."
-                  : `Pay ₹${finalTotal.toFixed(2)} with Razorpay`}
-              </button>
-            </form>
-
-            <aside
-              className={`relative h-fit overflow-hidden rounded-[24px] p-5 md:rounded-[28px] md:p-7 lg:sticky lg:top-24 ${glassPanel}`}
-            >
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white" />
-
-              <h2 className="text-lg font-semibold text-black">
-                Order summary
-              </h2>
-
-              <div className="mt-5 space-y-4">
-                {cartItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-start justify-between gap-4 border-b border-white/80 pb-4"
-                  >
-                    <div>
                       <p className="text-sm font-semibold text-black">
-                        {item.name}
-                      </p>
-
-                      <p className="mt-1 text-xs text-black/55">
-                        Qty: {item.quantity}
+                        ₹{(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
-
-                    <p className="text-sm font-semibold text-black">
-                      ₹{(item.price * item.quantity).toFixed(2)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-black/65">Items</span>
-                  <span className="text-sm font-medium text-black">
-                    {totalItems}
-                  </span>
+                  ))}
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-black/65">Subtotal</span>
-                  <span className="text-sm font-medium text-black">
-                    ₹{cartTotal.toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm text-black/65">GST (5%)</span>
-
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          aria-label="View GST information"
-                          className="inline-flex size-5 cursor-pointer items-center justify-center rounded-full text-black/45 transition-colors hover:bg-white/70 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
-                        >
-                          <FaCircleInfo aria-hidden="true" />
-                        </button>
-                      </PopoverTrigger>
-
-                      <PopoverContent
-                        side="top"
-                        align="center"
-                        sideOffset={8}
-                        className="w-auto rounded-2xl border border-white/80 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-2xl"
-                      >
-                        <p className="text-xs font-medium">
-                          GSTIN: 27JXDPS0552J1Z2
-                        </p>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  <span className="text-sm font-medium text-black">
-                    ₹{gstAmount.toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="border-t border-white/90 pt-4">
+                {/* PRICE BREAKDOWN */}
+                <div className="mt-5 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-base font-semibold text-black">
-                      Total
+                    <span className="text-sm text-black/65">
+                      Items
                     </span>
 
-                    <span className="text-xl font-semibold text-black">
-                      ₹{finalTotal.toFixed(2)}
+                    <span className="text-sm font-medium text-black">
+                      {totalItems}
                     </span>
                   </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-black/65">
+                      Subtotal
+                    </span>
+
+                    <span className="text-sm font-medium text-black">
+                      ₹{cartTotal.toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* ACTIVE OFFER */}
+                  {activeOfferDiscount > 0 && (
+                    <>
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-emerald-700">
+                            {hasCompleteLook
+                              ? "Complete Look offer (15%)"
+                              : "Pick Any 2 offer (10%)"}
+                          </p>
+
+                          <p className="mt-1 text-xs text-black/45">
+                            {hasCompleteLook
+                              ? `${activeOfferCount} Complete Look${activeOfferCount === 1 ? "" : "s"} applied`
+                              : `${activeOfferCount} eligible pair${activeOfferCount === 1 ? "" : "s"} applied`}
+                          </p>
+                        </div>
+
+                        <span className="text-sm font-semibold text-emerald-700">
+                          −₹{activeOfferDiscount.toFixed(2)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-black/65">
+                          Discounted subtotal
+                        </span>
+
+                        <span className="text-sm font-medium text-black">
+                          ₹{discountedSubtotal.toFixed(2)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+
+                  {/* GST */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm text-black/65">
+                        GST (5%)
+                      </span>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            aria-label="View GST information"
+                            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-full text-black/45 transition-colors hover:bg-white/70 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+                          >
+                            <FaCircleInfo aria-hidden="true" />
+                          </button>
+                        </PopoverTrigger>
+
+                        <PopoverContent
+                          side="top"
+                          align="center"
+                          sideOffset={8}
+                          className="w-auto rounded-2xl border border-white/80 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-2xl"
+                        >
+                          <p className="text-xs font-medium">
+                            GSTIN: 27JXDPS0552J1Z2
+                          </p>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <span className="text-sm font-medium text-black">
+                      ₹{gstAmount.toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* TOTAL */}
+                  <div className="border-t border-white/90 pt-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-semibold text-black">
+                        Total
+                      </span>
+
+                      <span className="text-xl font-semibold text-black">
+                        ₹{finalTotal.toFixed(2)}
+                      </span>
+                    </div>
+
+                    {activeOfferDiscount > 0 && (
+                      <p className="mt-2 text-right text-xs font-medium text-emerald-700">
+                        You're saving ₹{activeOfferDiscount.toFixed(2)}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </aside>
+              </aside>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
     </>
   );
 }

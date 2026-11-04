@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -43,10 +44,8 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { cartItems } = useCart();
 
-  // Role-based navigation using your existing user type.
+  // Role-based navigation
   const isAdmin = user?.role === "ADMIN";
-
-  const dashboardHref = isAdmin ? "/admin/dashboard" : "/account";
   const ordersHref = isAdmin ? "/admin/orders" : "/account/orders";
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -339,19 +338,22 @@ export default function Navbar() {
 
                     {user ? (
                       <>
-                        <Link
-                          href={dashboardHref}
-                          onClick={() => setIsAccountOpen(false)}
-                          className="
-                            flex items-center gap-3 rounded-xl px-3 py-3
-                            text-black transition-colors hover:bg-white/55 cursor-pointer
-                          "
-                        >
-                          <LayoutDashboard size={16} strokeWidth={1.7} />
-                          <span className="text-[11px] tracking-[0.08em]">
-                            DASHBOARD
-                          </span>
-                        </Link>
+                        {/* DASHBOARD: ADMIN ONLY */}
+                        {isAdmin && (
+                          <Link
+                            href="/admin/dashboard"
+                            onClick={() => setIsAccountOpen(false)}
+                            className="
+                              flex items-center gap-3 rounded-xl px-3 py-3
+                              text-black transition-colors hover:bg-white/55 cursor-pointer
+                            "
+                          >
+                            <LayoutDashboard size={16} strokeWidth={1.7} />
+                            <span className="text-[11px] tracking-[0.08em]">
+                              DASHBOARD
+                            </span>
+                          </Link>
+                        )}
 
                         <Link
                           href="/account/profile"
@@ -629,23 +631,26 @@ export default function Navbar() {
                           className="overflow-hidden"
                         >
                           <div className="ml-5 border-l border-white/30 py-1 pl-3">
-                            <Link
-                              href={dashboardHref}
-                              onClick={() => {
-                                setIsMobileMenuOpen(false);
-                                setIsMobileAccountOpen(false);
-                              }}
-                              className="
-                                flex items-center gap-3 rounded-xl
-                                px-4 py-3 text-black
-                                transition-colors hover:bg-white/20
-                              "
-                            >
-                              <LayoutDashboard size={15} strokeWidth={1.7} />
-                              <span className="text-[10px] font-medium tracking-[0.12em]">
-                                DASHBOARD
-                              </span>
-                            </Link>
+                            {/* DASHBOARD: ADMIN ONLY */}
+                            {isAdmin && (
+                              <Link
+                                href="/admin/dashboard"
+                                onClick={() => {
+                                  setIsMobileMenuOpen(false);
+                                  setIsMobileAccountOpen(false);
+                                }}
+                                className="
+                                  flex items-center gap-3 rounded-xl
+                                  px-4 py-3 text-black
+                                  transition-colors hover:bg-white/20
+                                "
+                              >
+                                <LayoutDashboard size={15} strokeWidth={1.7} />
+                                <span className="text-[10px] font-medium tracking-[0.12em]">
+                                  DASHBOARD
+                                </span>
+                              </Link>
+                            )}
 
                             <Link
                               href="/account/profile"

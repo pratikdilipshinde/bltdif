@@ -31,6 +31,8 @@ type FlyingItem = {
   endY: number;
 };
 
+type SizeGuideType = "tshirt" | "hoodie";
+
 function toBullets(value: string | null | undefined): string[] {
   if (!value) return [];
 
@@ -61,7 +63,72 @@ export default function ProductDetailPage({
     product.default_variant
   );
 
-  // Derive the gallery from the current product.
+  // =====================================================
+  // PRODUCT CATEGORY / SIZE GUIDE DETECTION
+  // =====================================================
+
+  const categoryCode = product.category_code?.toLowerCase() ?? "";
+  const categoryName = product.category_name?.toLowerCase() ?? "";
+  const productType = product.product_type?.toLowerCase() ?? "";
+  const productName = product.name?.toLowerCase() ?? "";
+
+  const isTshirt =
+    ["tshirts", "t-shirts", "tshirt", "t-shirt"].includes(categoryCode) ||
+    categoryName.includes("t-shirt") ||
+    categoryName.includes("tshirt") ||
+    productType.includes("t-shirt") ||
+    productType.includes("tshirt") ||
+    productName.includes("t-shirt") ||
+    productName.includes("tshirt");
+
+  const isHoodie =
+    categoryCode === "hoodies" ||
+    categoryName.includes("hoodie") ||
+    productType.includes("hoodie") ||
+    productName.includes("hoodie");
+
+  const sizeGuideType: SizeGuideType | null = isTshirt
+    ? "tshirt"
+    : isHoodie
+      ? "hoodie"
+      : null;
+
+  const sizeGuide = useMemo(() => {
+    if (sizeGuideType === "tshirt") {
+      return {
+        title: "T-Shirt Size Guide",
+        desktopImage: "/images/TEE-SIZE-GUIDE.png",
+        mobileImage: "/images/TEE-SIZE-GUIDE-mobile.png",
+        desktopWidth: 2048,
+        desktopHeight: 577,
+        mobileWidth: 1120,
+        mobileHeight: 1372,
+        desktopAlt: "BLTDIF T-shirt size guide",
+        mobileAlt: "BLTDIF mobile T-shirt size guide",
+      };
+    }
+
+    if (sizeGuideType === "hoodie") {
+      return {
+        title: "Hoodie Size Guide",
+        desktopImage: "/images/hoodie-size-guide-laptop.jpg",
+        mobileImage: "/images/hoodie-size-guide-mobile.jpg",
+        desktopWidth: 2048,
+        desktopHeight: 1200,
+        mobileWidth: 1120,
+        mobileHeight: 1372,
+        desktopAlt: "BLTDIF hoodie size guide",
+        mobileAlt: "BLTDIF mobile hoodie size guide",
+      };
+    }
+
+    return null;
+  }, [sizeGuideType]);
+
+  // =====================================================
+  // PRODUCT GALLERY
+  // =====================================================
+
   const images = useMemo(() => {
     const productImages = product.images?.length
       ? product.images.map((img) => img.image_url)
@@ -79,7 +146,10 @@ export default function ProductDetailPage({
 
   const activeImage = images[safeActiveIdx] ?? product.image;
 
+  // =====================================================
   // MOBILE PHOTO SWIPE
+  // =====================================================
+
   const handleTouchStart = useCallback(
     (event: TouchEvent<HTMLDivElement>) => {
       const touch = event.touches[0];
@@ -108,7 +178,6 @@ export default function ProductDetailPage({
       const deltaX = touch.clientX - touchStartX.current;
       const deltaY = touch.clientY - touchStartY.current;
 
-      // Handle deliberate horizontal gestures without blocking vertical scroll.
       if (
         Math.abs(deltaX) >= 45 &&
         Math.abs(deltaX) > Math.abs(deltaY) * 1.2 &&
@@ -129,11 +198,9 @@ export default function ProductDetailPage({
     [images.length]
   );
 
-  const showSizeGuide =
-    product.category_code === "tshirts" ||
-    product.category_code === "t-shirts" ||
-    product.category_name?.toLowerCase().includes("t-shirt") ||
-    product.product_type?.toLowerCase().includes("t-shirt");
+  // =====================================================
+  // PRICE / STOCK
+  // =====================================================
 
   const price = selectedVariant?.price ?? product.base_price;
 
@@ -149,6 +216,10 @@ export default function ProductDetailPage({
     product.variants.length > 0
       ? !selectedVariant?.in_stock
       : !product.availability;
+
+  // =====================================================
+  // PRODUCT INFORMATION
+  // =====================================================
 
   const featureList = useMemo(
     () => toBullets(product.features),
@@ -197,7 +268,10 @@ export default function ProductDetailPage({
     [featureList, materialList, careList]
   );
 
+  // =====================================================
   // ADD TO CART + FLYING PRODUCT ANIMATION
+  // =====================================================
+
   const handleAddToCart = useCallback(() => {
     if (isOut || qty < 1 || qty > maxQty) return;
 
@@ -206,7 +280,6 @@ export default function ProductDetailPage({
       '[data-cart-icon="true"]'
     );
 
-    // Capture positions before updating the cart.
     if (button && cartIcon) {
       const buttonRect = button.getBoundingClientRect();
       const cartRect = cartIcon.getBoundingClientRect();
@@ -379,7 +452,6 @@ export default function ProductDetailPage({
                   </motion.div>
                 </AnimatePresence>
 
-                {/* MOBILE PHOTO COUNTER */}
                 {images.length > 1 && (
                   <div className="absolute bottom-3 right-3 z-10 rounded-full bg-black/55 px-3 py-1 text-[10px] text-white backdrop-blur-sm lg:hidden">
                     {safeActiveIdx + 1} / {images.length}
@@ -442,13 +514,13 @@ export default function ProductDetailPage({
                       className="object-cover"
                     />
                   </button>
-                  );
-                })}
+                );
+              })}
             </div>
 
             {/* RIGHT COLUMN: PRODUCT DETAILS */}
             <div className="min-w-0 lg:sticky lg:top-6">
-              {/* PRODUCT NAME + PRICE — LIQUID GLASS */}
+              {/* PRODUCT NAME + PRICE */}
               <div className="group/info relative isolate overflow-hidden rounded-[15px] border border-white/60 bg-white/[0.38] px-[13px] py-[12px] shadow-[0_4px_16px_rgba(30,50,65,0.06),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(255,255,255,0.25)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 ease-out hover:bg-white/[0.46]">
                 <div
                   aria-hidden="true"
@@ -490,17 +562,17 @@ export default function ProductDetailPage({
                 </div>
               </div>
 
-              {/* SIZE SELECTOR — LIQUID GLASS */}
+              {/* SIZE SELECTOR */}
               {variants.length > 0 && (
                 <div className="mt-4">
                   <div className="flex items-center justify-between">
                     <p className="text-[13px] font-medium">Size</p>
 
-                    {showSizeGuide && (
+                    {sizeGuide && (
                       <button
                         type="button"
                         onClick={() => setShowSizeChart(true)}
-                        className="cursor-pointer text-[10px] text-black/55 underline underline-offset-4"
+                        className="cursor-pointer text-[10px] text-black/55 underline underline-offset-4 transition-colors hover:text-[#CE0028]"
                       >
                         Size guide
                       </button>
@@ -575,7 +647,6 @@ export default function ProductDetailPage({
 
               {/* QUANTITY + PURCHASE BUTTONS */}
               <div className="mt-4 grid grid-cols-[110px_minmax(0,1fr)_98px] items-center gap-2">
-                {/* QUANTITY CONTROL */}
                 <div className="relative isolate flex h-11 items-center justify-between overflow-hidden rounded-full border border-white/70 bg-white/[0.38] px-2 shadow-[0_4px_16px_rgba(30,50,65,0.05),inset_0_1px_1px_rgba(255,255,255,0.95),inset_0_-1px_1px_rgba(255,255,255,0.2)] backdrop-blur-xl backdrop-saturate-150">
                   <div
                     aria-hidden="true"
@@ -612,7 +683,7 @@ export default function ProductDetailPage({
                   </button>
                 </div>
 
-                {/* ADD TO CART — LIQUID GLASS + FLY ANIMATION */}
+                {/* ADD TO CART */}
                 <motion.button
                   ref={addToCartButtonRef}
                   type="button"
@@ -656,11 +727,7 @@ export default function ProductDetailPage({
               {/* DELIVERY BENEFITS */}
               <div className="mt-5 space-y-4 px-0.5">
                 <div className="flex items-center gap-3 text-[#555]">
-                  <Truck
-                    size={19}
-                    strokeWidth={1.8}
-                    className="shrink-0"
-                  />
+                  <Truck size={19} strokeWidth={1.8} className="shrink-0" />
                   <span className="text-[12px]">Fast Shipping</span>
                 </div>
 
@@ -710,7 +777,7 @@ export default function ProductDetailPage({
                 </div>
               </div>
 
-              {/* PRODUCT DETAILS ACCORDION — LIQUID GLASS */}
+              {/* PRODUCT DETAILS ACCORDION */}
               <div className="group/accordion relative isolate mt-3 overflow-hidden rounded-[15px] border border-white/60 bg-white/[0.38] shadow-[0_4px_16px_rgba(30,50,65,0.06),inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(255,255,255,0.25)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 hover:bg-white/[0.46]">
                 <div
                   aria-hidden="true"
@@ -838,9 +905,9 @@ export default function ProductDetailPage({
           )}
         </div>
 
-        {/* SIZE CHART MODAL */}
+        {/* DYNAMIC T-SHIRT / HOODIE SIZE GUIDE MODAL */}
         <AnimatePresence>
-          {showSizeChart && (
+          {showSizeChart && sizeGuide && (
             <motion.div
               className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 px-3 py-4 backdrop-blur-sm"
               initial={{ opacity: 0 }}
@@ -862,7 +929,7 @@ export default function ProductDetailPage({
                     </p>
 
                     <h3 className="mt-1 text-lg font-semibold">
-                      T-Shirt Size Guide
+                      {sizeGuide.title}
                     </h3>
                   </div>
 
@@ -870,27 +937,29 @@ export default function ProductDetailPage({
                     type="button"
                     onClick={() => setShowSizeChart(false)}
                     aria-label="Close size guide"
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-xl text-white hover:bg-[#CE0028]"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-xl text-white transition-colors hover:bg-[#CE0028]"
                   >
                     ×
                   </button>
                 </div>
 
+                {/* DESKTOP SIZE GUIDE */}
                 <Image
-                  src="/images/TEE-SIZE-GUIDE.png"
-                  alt="BLTDIF T-shirt size guide"
-                  width={2048}
-                  height={577}
+                  src={sizeGuide.desktopImage}
+                  alt={sizeGuide.desktopAlt}
+                  width={sizeGuide.desktopWidth}
+                  height={sizeGuide.desktopHeight}
                   loading="lazy"
                   sizes="(min-width: 768px) 90vw, 100vw"
                   className="hidden h-auto w-full object-contain md:block"
                 />
 
+                {/* MOBILE SIZE GUIDE */}
                 <Image
-                  src="/images/TEE-SIZE-GUIDE-mobile.png"
-                  alt="BLTDIF mobile T-shirt size guide"
-                  width={1120}
-                  height={1372}
+                  src={sizeGuide.mobileImage}
+                  alt={sizeGuide.mobileAlt}
+                  width={sizeGuide.mobileWidth}
+                  height={sizeGuide.mobileHeight}
                   loading="lazy"
                   sizes="(min-width: 768px) 90vw, 100vw"
                   className="block h-auto w-full object-contain md:hidden"

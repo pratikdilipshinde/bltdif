@@ -100,11 +100,11 @@ export async function sendInvoiceEmail(order: InvoiceOrder) {
                     <img src="${LOGO_WHITE}" alt="BLTDIF" style="width:200px; max-width:100%; display:block; margin-bottom:10px;" />
 
                     <p style="margin:4px 0 0; font-size:13px; color:#ffffff; opacity:0.9;">
-                      support@bltdif.in | +91 98765 43210
+                      support@bltdif.in | +91 80071 99908
                     </p>
 
                     <p style="margin:2px 0 0; font-size:13px; color:#ffffff; opacity:0.9;">
-                      Mumbai, Maharashtra, India
+                      Pune, Maharashtra, India
                     </p>
                   </td>
 

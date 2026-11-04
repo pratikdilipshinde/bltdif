@@ -140,7 +140,7 @@ export default function AboutPage() {
 
                   <div className="mt-9 flex flex-wrap items-center gap-4">
                     <Link
-                      href="/products"
+                      href="/"
                       className="group inline-flex items-center gap-5 rounded-full border border-white/25 px-6 py-3.5 text-xs font-semibold text-white shadow-[0_12px_30px_rgba(206,0,40,0.2)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(206,0,40,0.3)]"
                       style={{
                         background: `linear-gradient(135deg, ${BRAND_RED}, #92001d)`,
@@ -354,7 +354,7 @@ export default function AboutPage() {
                 </p>
 
                 <Link
-                  href="/products"
+                  href="/"
                   className="group mt-7 inline-flex items-center gap-5 rounded-full border border-white/25 px-7 py-3.5 text-xs font-semibold text-white shadow-[0_12px_30px_rgba(206,0,40,0.2)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(206,0,40,0.3)]"
                   style={{
                     background: `linear-gradient(135deg, ${BRAND_RED}, #92001d)`,

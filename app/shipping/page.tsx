@@ -196,7 +196,7 @@ export default function ShippingPage() {
                     />
                   </Link>
 
-                  <Link
+                  {/* <Link
                     href="/faq"
                     className="group inline-flex items-center justify-center gap-3 rounded-full border border-white/90 bg-white/[0.55] px-6 py-3.5 text-center text-[12px] font-semibold text-black/75 shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_5px_16px_rgba(0,0,0,0.035)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/[0.85]"
                   >
@@ -205,7 +205,7 @@ export default function ShippingPage() {
                       size={15}
                       className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                     />
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
             </div>
